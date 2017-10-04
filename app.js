@@ -1,4 +1,6 @@
 var fioAccountStatement = require("./fio-response-example.json");
 var fio = require("./fio.js");
 
-console.log(JSON.stringify(fio.extractCoreTransactions(fioAccountStatement), null, 2));
+var accountStatement = fio.normalizeAccountStatement(fioAccountStatement);
+
+console.log(JSON.stringify(accountStatement, null, 2));

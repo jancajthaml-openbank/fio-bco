@@ -34,16 +34,22 @@ function accumulateCoreTransfers2CoreTransaction(transactions, transfer) {
   return transactions;
 }
 
-function extractCoreTransactions(fioAccountStatement) {
+// TODO: rethink, maybe extracting core transactions is enough
+function normalizeAccountStatement(fioAccountStatement) {
+  let transactions = fioAccountStatement.accountStatement.transactionList.transaction
+    .map((fioTransaction) => fioTransaction2CoreTransfer(fioTransaction, fioAccountStatement.accountStatement.info.iban))
+    .reduce(accumulateCoreTransfers2CoreTransaction, {});
+  let transactionsArray = Object.keys(transactions).map((transactionId) => transactions[transactionId]);
+
   return {
     "iban": fioAccountStatement.accountStatement.info.iban,
     "currency": fioAccountStatement.accountStatement.info.currency,
-    "transactions": fioAccountStatement.accountStatement.transactionList.transaction
-      .map((fioTransaction) => fioTransaction2CoreTransfer(fioTransaction, fioAccountStatement.accountStatement.info.iban))
-      .reduce(accumulateCoreTransfers2CoreTransaction, {})
+    "transactions": transactionsArray
   };
 }
 
+// TODO: Add method for extracting unique core accounts
+
 module.exports = {
-  extractCoreTransactions
+  normalizeAccountStatement: normalizeAccountStatement
 };
