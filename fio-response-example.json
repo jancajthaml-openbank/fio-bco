@@ -1,0 +1,204 @@
+{
+  "accountStatement": {
+    "info": {
+      "accountId": "2400222222",
+      "bankId": "2010",
+      "currency": "CZK",
+      "iban": "CZ7920100000002400222222",
+      "bic": "FIOBCZPPXXX",
+      "openingBalance": 185.05,
+      "closingBalance": 185.03,
+      "dateStart": 1343685600000,
+      "dateEnd": 1348956000000,
+      "yearList": null,
+      "idList": null,
+      "idFrom": 1152125621,
+      "idTo": 1158218819,
+      "idLastDownload": 1150808074
+    },
+    "transactionList": {
+      "transaction": [
+        {
+          "column22": {
+            "value": 1152125621,
+            "name": "IDpohybu",
+            "id": 22
+          },
+          "column0": {
+            "value": 1343685600000,
+            "name": "Datum",
+            "id": 0
+          },
+          "column1": {
+            "value": 0.02,
+            "name": "Objem",
+            "id": 1
+          },
+          "column14": {
+            "value": "CZK",
+            "name": "Měna",
+            "id": 14
+          },
+          "column2": null,
+          "column10": null,
+          "column3": null,
+          "column12": null,
+          "column4": null,
+          "column5": null,
+          "column6": null,
+          "column7": null,
+          "column16": null,
+          "column8": {
+            "value": "Připsanýúrok",
+            "name": "Typ",
+            "id": 8
+          },
+          "column9": null,
+          "column18": null,
+          "column25": null,
+          "column26": null,
+          "column17": {
+            "value": 2121115983,
+            "name": "ID www.fio.cz Verze 3. 5. 2017pokynu",
+            "id": 17
+          }
+        },
+        {
+          "column22": {
+            "value": 1155172472,
+            "name": "IDpohybu",
+            "id": 22
+          },
+          "column0": {
+            "value": 1346364000000,
+            "name": "Datum",
+            "id": 0
+          },
+          "column1": {
+            "value": 0.02,
+            "name": "Objem",
+            "id": 1
+          },
+          "column14": {
+            "value": "CZK",
+            "name": "Měna",
+            "id": 14
+          },
+          "column2": null,
+          "column10": null,
+          "column3": null,
+          "column12": null,
+          "column4": null,
+          "column5": null,
+          "column6": null,
+          "column7": null,
+          "column16": null,
+          "column8": {
+            "value": "Připsanýúrok",
+            "name": "Typ",
+            "id": 8
+          },
+          "column9": null,
+          "column18": null,
+          "column25": null,
+          "column26": null,
+          "column17": {
+            "value": 2135081594,
+            "name": "IDpokynu",
+            "id": 17
+          }
+        },
+        {
+          "column22": {
+            "value": 1155172472,
+            "name": "IDpohybu",
+            "id": 22
+          },
+          "column0": {
+            "value": 1346364000000,
+            "name": "Datum",
+            "id": 0
+          },
+          "column1": {
+            "value": 0.02,
+            "name": "Objem",
+            "id": 1
+          },
+          "column14": {
+            "value": "CZK",
+            "name": "Měna",
+            "id": 14
+          },
+          "column2": null,
+          "column10": null,
+          "column3": null,
+          "column12": null,
+          "column4": null,
+          "column5": null,
+          "column6": null,
+          "column7": null,
+          "column16": null,
+          "column8": {
+            "value": "Připsanýúrok",
+            "name": "Typ",
+            "id": 8
+          },
+          "column9": null,
+          "column18": null,
+          "column25": null,
+          "column26": null,
+          "column17": {
+            "value": 2135081594,
+            "name": "IDpokynu",
+            "id": 17
+          }
+        },
+        {
+          "column22": {
+            "value": 1158218819,
+            "name": "IDpohybu",
+            "id": 22
+          },
+          "column0": {
+            "value": 1348956000000,
+            "name": "Datum",
+            "id": 0
+          },
+          "column1": {
+            "value": 0.02,
+            "name": "Objem",
+            "id": 1
+          },
+          "column14": {
+            "value": "CZK",
+            "name": "Měna",
+            "id": 14
+          },
+          "column2": null,
+          "column10": null,
+          "column3": null,
+          "column12": null,
+          "column4": null,
+          "column5": null,
+          "column6": null,
+          "column7": null,
+          "column16": null,
+          "column8": {
+            "value": "Připsanýúrok",
+            "name": "Typ",
+            "id": 8
+          },
+          "column9": null,
+          "column18": null,
+          "column25": null,
+          "column26": null,
+          "column17": {
+            "value": 2151261787,
+            "name": "IDpokynu",
+            "id": 17
+          }
+        }
+      ]
+    }
+  }
+}
