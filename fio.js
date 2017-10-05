@@ -40,14 +40,19 @@ function fioTransactions2CoreTransactions(transactions, fioTransaction, accountI
   return transactions;
 }
 
-function extractCoreTransactions(fioAccountStatement) {
+function extractCoreAccountStatement(fioAccountStatement) {
   let transactions = fioAccountStatement.accountStatement.transactionList.transaction
     .reduce((transactions, fioTransaction) => fioTransactions2CoreTransactions(
       transactions,
       fioTransaction,
       fioAccountStatement.accountStatement.info.iban,
       fioAccountStatement.accountStatement.info.currency), {});
-  return Object.keys(transactions).map((transactionId) => transactions[transactionId]);
+
+  return {
+    "accountNumber": fioAccountStatement.accountStatement.info.iban,
+    "idTransactionTo": fioAccountStatement.accountStatement.info.idTo,
+    "transactions": Object.keys(transactions).map((transactionId) => transactions[transactionId])
+  }
 }
 
 function extractUniqueCoreAccounts(fioAccountStatement) {
@@ -75,6 +80,6 @@ function extractUniqueCoreAccounts(fioAccountStatement) {
 }
 
 module.exports = {
-  extractCoreTransactions,
+  extractCoreAccountStatement,
   extractUniqueCoreAccounts
 };

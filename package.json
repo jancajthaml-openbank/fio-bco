@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.16.2"
+    "axios": "^0.16.2",
+    "jsonfile": "^4.0.0",
+    "jsonfile-promised": "0.0.1"
   }
 }
