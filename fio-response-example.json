@@ -4,7 +4,7 @@
       "accountId": "2400222222",
       "bankId": "2010",
       "currency": "CZK",
-      "iban": "CZ7920100000002400222222",
+      "iban": "CZ7920100000002400222233",
       "bic": "FIOBCZPPXXX",
       "openingBalance": 185.05,
       "closingBalance": 185.03,
@@ -129,7 +129,11 @@
             "name": "Měna",
             "id": 14
           },
-          "column2": null,
+          "column2": {
+            "value": "Counterpart",
+            "name": "Protistrana",
+            "id": 1
+          },
           "column10": null,
           "column3": null,
           "column12": null,

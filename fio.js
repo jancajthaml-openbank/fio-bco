@@ -1,6 +1,10 @@
+function getAccount(fioTransaction) {
+  return (fioTransaction.column2 && fioTransaction.column2.value) || "FIO";
+}
+
 function getDebitAccount(transaction, accountIban) {
   if (transaction.column1.value > 0) {
-    return (transaction.column2 && transaction.column2.value) || "FIO internal account";
+    return (transaction.column2 && transaction.column2.value) || "FIO";
   } else {
     return accountIban;
   }
@@ -8,48 +12,69 @@ function getDebitAccount(transaction, accountIban) {
 
 function getCreditAccount(transaction, accountIban) {
   if (transaction.column1.value < 0) {
-    return (transaction.column2 && transaction.column2.value) || "FIO internal account";
+    return (transaction.column2 && transaction.column2.value) || "FIO";
   } else {
     return accountIban;
   }
 }
 
-function fioTransaction2CoreTransfer(fioTransction, accountIban) {
+function fioTransaction2CoreTransfer(fioTransaction, accountIban, accountCurrency) {
   return {
-    "transactionId": fioTransction.column17.value,
-    "transferId": fioTransction.column22.value,
-    "amount": fioTransction.column1.value,
-    "debit": getDebitAccount(fioTransction, accountIban),
-    "credit": getCreditAccount(fioTransction, accountIban),
-    "valueDate": fioTransction.column0.value
+    "credit": getCreditAccount(fioTransaction, accountIban),
+    "debit": getDebitAccount(fioTransaction, accountIban),
+    "amount": fioTransaction.column1.value.toString(),
+    "currency": accountCurrency
   };
 }
 
-function accumulateCoreTransfers2CoreTransaction(transactions, transfer) {
-  if (transactions[transfer.transactionId]) {
-    transactions[transfer.transactionId].push(transfer);
+function fioTransactions2CoreTransactions(transactions, fioTransaction, accountIban, accountCurrency) {
+  let transactionId = fioTransaction.column17.value;
+  if (transactions[transactionId]) {
+    transactions[transactionId].transfers.push(fioTransaction2CoreTransfer(fioTransaction, accountIban, accountCurrency));
   } else {
-    transactions[transfer.transactionId] = [transfer];
+    transactions[transactionId] = {
+      "blame": "fio-sync",
+      "transfers": [fioTransaction2CoreTransfer(fioTransaction, accountIban, accountCurrency)]
+    };
   }
   return transactions;
 }
 
-// TODO: rethink, maybe extracting core transactions is enough
-function normalizeAccountStatement(fioAccountStatement) {
+function extractCoreTransactions(fioAccountStatement) {
   let transactions = fioAccountStatement.accountStatement.transactionList.transaction
-    .map((fioTransaction) => fioTransaction2CoreTransfer(fioTransaction, fioAccountStatement.accountStatement.info.iban))
-    .reduce(accumulateCoreTransfers2CoreTransaction, {});
-  let transactionsArray = Object.keys(transactions).map((transactionId) => transactions[transactionId]);
-
-  return {
-    "iban": fioAccountStatement.accountStatement.info.iban,
-    "currency": fioAccountStatement.accountStatement.info.currency,
-    "transactions": transactionsArray
-  };
+    .reduce((transactions, fioTransaction) => fioTransactions2CoreTransactions(
+      transactions,
+      fioTransaction,
+      fioAccountStatement.accountStatement.info.iban,
+      fioAccountStatement.accountStatement.info.currency), {});
+  return Object.keys(transactions).map((transactionId) => transactions[transactionId]);
 }
 
-// TODO: Add method for extracting unique core accounts
+function extractUniqueCoreAccounts(fioAccountStatement) {
+  let coreAccounts = fioAccountStatement.accountStatement.transactionList.transaction
+    .map((fioTransaction) => {
+      return {
+        "accountNumber": getAccount(fioTransaction),
+        "currency": fioAccountStatement.accountStatement.info.currency,
+        "isBalanceCheck": false
+      };
+    })
+    .filter((coreAccount, index, coreAccounts) => {
+      let findIndex = coreAccounts.findIndex((acc, accIndex) => {
+        return acc.accountNumber === coreAccount.accountNumber && acc.currency === coreAccount.currency;
+      });
+      return index === findIndex;
+    });
+  coreAccounts
+    .push({
+      "accountNumber": fioAccountStatement.accountStatement.info.iban,
+      "currency": fioAccountStatement.accountStatement.info.currency,
+      "isBalanceCheck": false
+    });
+  return coreAccounts;
+}
 
 module.exports = {
-  normalizeAccountStatement: normalizeAccountStatement
+  extractCoreTransactions,
+  extractUniqueCoreAccounts
 };
