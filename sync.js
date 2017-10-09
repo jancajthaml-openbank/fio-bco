@@ -12,6 +12,21 @@ async function updateTransactionCheckpoint(fn, accountNumber, idTransactionTo) {
   await jsonfile.writeFile(fn, checkpoints);
 }
 
+async function getTransactionCheckpoint(fn, accountNumber) {
+  try {
+    let checkpoints = await jsonfile.readFile(fn);
+    if (checkpoints && checkpoints[accountNumber]) {
+      return checkpoints[accountNumber].idTransactionTo;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    if (error.code === "ENOENT") return null;
+    else throw error;
+  }
+}
+
 module.exports = {
-  updateTransactionCheckpoint: updateTransactionCheckpoint
+  updateTransactionCheckpoint,
+  getTransactionCheckpoint
 };

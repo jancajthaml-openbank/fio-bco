@@ -79,7 +79,13 @@ function extractUniqueCoreAccounts(fioAccountStatement) {
   return coreAccounts;
 }
 
+function getFioAccountStatement(fioApiUrl, token, idTransactionFrom, wait) {
+  // TODO - nastavit zarazku pro transakci
+  // TODO - Stahnout vypis z fia a zohlednit timeout pokud je wait = true
+}
+
 module.exports = {
   extractCoreAccountStatement,
-  extractUniqueCoreAccounts
+  extractUniqueCoreAccounts,
+  getFioAccountStatement
 };
