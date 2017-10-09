@@ -1,6 +1,6 @@
 let jsonfile = require("jsonfile-promised");
 
-async function updateTransactionCheckpoint(fn, accountNumber, idTransactionTo) {
+async function setTransactionCheckpoint(fn, accountNumber, idTransactionTo) {
   let checkpoints = {};
   try {
     checkpoints = await jsonfile.readFile(fn);
@@ -27,6 +27,6 @@ async function getTransactionCheckpoint(fn, accountNumber) {
 }
 
 module.exports = {
-  updateTransactionCheckpoint,
+  setTransactionCheckpoint,
   getTransactionCheckpoint
 };

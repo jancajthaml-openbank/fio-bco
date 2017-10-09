@@ -1,20 +1,33 @@
 let axios = require("axios");
 
+let defaultOptions = {
+  "accountsParallelismSize": 1,
+  "transactionsParallelismSize": 2
+} ;
+
 function CoreTenant (coreHost, tenant) {
   if (!coreHost || !tenant) {
     throw Error("When creating CoreTenant you have to provide both parameters - coreHost and tenant");
   }
   this._coreHost = coreHost;
   this._tenant = tenant;
+  this._options = defaultOptions;
 }
+
+CoreTenant.prototype._runInParallel = async function (items, parallelismSize, processItem) {
+  for (let i = 0; i < items.length; i += parallelismSize) {
+    let bulk = items.slice(i, Math.min(i + parallelismSize, items.length));
+    await Promise.all(bulk.map((item, index) => processItem(item, index)));
+    console.log("Finished " + (Math.floor(i/parallelismSize)+1) + ". bulk");
+  }
+};
 
 CoreTenant.prototype._getApiUrl = function () {
   return this._coreHost + "/v1/" + this._tenant + "/core";
 };
 
 CoreTenant.prototype.createMissingAccounts = async function (accounts) {
-  console.log(this._getApiUrl());
-  await Promise.all(accounts.map(
+  await this._runInParallel(accounts, this._options.accountsParallelismSize,
     async account => {
       try {
         await axios.get(this._getApiUrl() + "/account/" + account.accountNumber);
@@ -28,16 +41,16 @@ CoreTenant.prototype.createMissingAccounts = async function (accounts) {
         }
       }
     }
-  ));
+  );
 };
 
 CoreTenant.prototype.createTransactions = async function (transactions) {
-  await Promise.all(transactions.map(
+  await this._runInParallel(transactions, this._options.transactionsParallelismSize,
     async (transaction, index) => {
       await axios.put(this._getApiUrl() + "/transaction", transaction);
       console.log("Created " + (index+1) + ". transaction");
     }
-  ));
+  );
 };
 
 module.exports = {

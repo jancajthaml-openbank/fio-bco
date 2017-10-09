@@ -13,7 +13,7 @@ async function main(args) {
   await tenantJohny.createMissingAccounts(accounts);
   await tenantJohny.createTransactions(coreAccountStatement.transactions);
 
-  await sync.updateTransactionCheckpoint(args.db, coreAccountStatement.accountNumber, coreAccountStatement.idTransactionTo);
+  await sync.setTransactionCheckpoint(args.db, coreAccountStatement.accountNumber, coreAccountStatement.idTransactionTo);
 }
 
 main({
