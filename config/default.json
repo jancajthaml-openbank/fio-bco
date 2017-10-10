@@ -1,0 +1,11 @@
+{
+  "fio": {
+    "apiUrl": "xxx"
+  },
+  "core": {
+    "url": "http://localhost:8080",
+    "accountsParallelismSize": 50,
+    "transactionsParallelismSize": 50,
+    "db": "./db.json"
+  }
+}
