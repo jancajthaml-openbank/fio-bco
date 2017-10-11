@@ -51,7 +51,11 @@ function extractCoreAccountStatement(fioAccountStatement) {
   return {
     "accountNumber": fioAccountStatement.accountStatement.info.iban,
     "idTransactionTo": fioAccountStatement.accountStatement.info.idTo,
-    "transactions": Object.keys(transactions).map((transactionId) => transactions[transactionId])
+    "transactions": Object.keys(transactions).map((transactionId) => {
+      let transaction = transactions[transactionId];
+      transaction.id = transactionId;
+      return transaction;
+    })
   }
 }
 

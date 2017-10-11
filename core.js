@@ -30,7 +30,7 @@ Tenant.prototype.createMissingAccounts = async function (accounts) {
         console.log("Account " + account.accountNumber + " already exists");
       } catch (error) {
         if (error.response && error.response.status === 404) {
-          await axios.put(this._getApiUrl() + "/account/", account);
+          await axios.post(this._getApiUrl() + "/account/", account);
           console.log("Created account " + account.accountNumber);
         } else {
           throw error;
@@ -44,8 +44,7 @@ Tenant.prototype.createTransactions = async function (transactions, accountNumbe
   await this._runInParallel(transactions, options.transactionsParallelismSize,
     async (transaction, index) => {
       await axios.put(this._getApiUrl() + "/transaction", transaction);
-      // ToDo - add real transaction id
-      let transactionId = index;
+      let transactionId = transaction.id;
       console.log("Created transaction ID " + transactionId);
       return transactionId;
     },
@@ -53,14 +52,14 @@ Tenant.prototype.createTransactions = async function (transactions, accountNumbe
       let max = transactionIds.reduce((max, transactionId) => {
         return Math.max(max, transactionId);
       });
-      await sync.setTransactionCheckpoint(options.db, accountNumber, max);
+      await sync.setTransactionCheckpoint(options.db, this._tenantName, accountNumber, max);
       console.log("Max ID " + max);
     }
   );
 };
 
 Tenant.prototype.getTransactionCheckpoint = async function (accountNumber) {
-  return await sync.getTransactionCheckpoint(options.db, accountNumber);
+  return await sync.getTransactionCheckpoint(options.db, this._tenantName, accountNumber);
 };
 
 module.exports = {
