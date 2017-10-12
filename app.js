@@ -2,21 +2,23 @@
 let fio = require("./fio.js");
 let core = require("./core.js");
 
+//TODO: add working with valuedate in transactions
+
 async function main(argv) {
   if (!argv || !argv.tenantName || !argv.accountNumber || !argv.token) {
     console.log("Run program using npm start <tenant_name> <tenant_accountIban> <fio_token>");
     return;
   }
 
-  let tenantJohny = new core.Tenant(argv.tenantName);
-  let transactionCheckpoint = await tenantJohny.getTransactionCheckpoint(argv.accountNumber);
+  let tenant = new core.Tenant(argv.tenantName);
+  let transactionCheckpoint = await tenant.getTransactionCheckpoint(argv.accountNumber);
 
   let fioAccountStatement = await fio.getFioAccountStatement(argv.token, transactionCheckpoint, true);
   let coreAccountStatement = fio.extractCoreAccountStatement(fioAccountStatement);
   let accounts = fio.extractUniqueCoreAccounts(fioAccountStatement);
 
-  await tenantJohny.createMissingAccounts(accounts);
-  await tenantJohny.createTransactions(coreAccountStatement.transactions, coreAccountStatement.accountNumber);
+  await tenant.createMissingAccounts(accounts);
+  await tenant.createTransactions(coreAccountStatement.transactions, coreAccountStatement.accountNumber);
 }
 
 main({
