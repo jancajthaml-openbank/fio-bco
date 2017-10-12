@@ -1,3 +1,6 @@
+let options = require("config").get("fio");
+let axios = require("axios");
+
 function getAccount(fioTransaction) {
   return (fioTransaction.column2 && fioTransaction.column2.value) || "FIO";
 }
@@ -20,6 +23,7 @@ function getCreditAccount(transaction, accountIban) {
 
 function fioTransaction2CoreTransfer(fioTransaction, accountIban, accountCurrency) {
   return {
+    "id": fioTransaction.column22.value.toString(),
     "credit": getCreditAccount(fioTransaction, accountIban),
     "debit": getDebitAccount(fioTransaction, accountIban),
     "amount": fioTransaction.column1.value.toString(),
@@ -83,9 +87,31 @@ function extractUniqueCoreAccounts(fioAccountStatement) {
   return coreAccounts;
 }
 
-function getFioAccountStatement(fioApiUrl, token, idTransactionFrom, wait) {
-  // TODO - nastavit zarazku pro transakci
-  // TODO - Stahnout vypis z fia a zohlednit timeout pokud je wait = true
+let sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+async function getFioAccountStatement(token, idTransactionFrom, wait) {
+  if (!idTransactionFrom) {
+    await axios.get(options.apiUrl + "/set-last-date/" + token +  "/1900-01-01/");
+  } else {
+    await axios.get(options.apiUrl + "/set-last-id/" + token +  "/" + idTransactionFrom + "/");
+  }
+  try {
+    let response = await axios.get(options.apiUrl + "/last/" + token + "/transactions.json");
+    return response.data;
+  } catch (error) {
+    if (error.response.status === 409) {
+      if (wait) {
+        console.log("Request to FIO for transactions is too early - waiting 20 seconds ...");
+        await sleep(1000 * 20);
+        let response = await axios.get(options.apiUrl + "/last/" + token + "/transactions.json");
+        return response.data;
+      } else {
+        console.log("Request to FIO for transactions is too early");
+        throw error;
+      }
+    }
+    throw error;
+  }
 }
 
 module.exports = {

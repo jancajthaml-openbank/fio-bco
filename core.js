@@ -43,13 +43,17 @@ Tenant.prototype.createMissingAccounts = async function (accounts) {
 Tenant.prototype.createTransactions = async function (transactions, accountNumber) {
   await this._runInParallel(transactions, options.transactionsParallelismSize,
     async (transaction, index) => {
+      let transferId = transaction.transfers.reduce((maxTransferId, transfer) => {
+        let newMaxTransferId = Math.max(maxTransferId, transfer.id);
+        delete(transfer.id);
+        return newMaxTransferId;
+      }, null);
       await axios.put(this._getApiUrl() + "/transaction", transaction);
-      let transactionId = transaction.id;
-      console.log("Created transaction ID " + transactionId);
-      return transactionId;
+      console.log("Created transaction ID " + transaction.id);
+      return transferId;
     },
-    async (transactionIds) => {
-      let max = transactionIds.reduce((max, transactionId) => {
+    async (transferIds) => {
+      let max = transferIds.reduce((max, transactionId) => {
         return Math.max(max, transactionId);
       });
       await sync.setTransactionCheckpoint(options.db, this._tenantName, accountNumber, max);
