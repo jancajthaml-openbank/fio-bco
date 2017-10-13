@@ -21,9 +21,17 @@ function getCreditAccount(transaction, accountIban) {
   }
 }
 
+function getTransferValueDate(fioTransaction) {
+  let part = fioTransaction.column0.value.substring(0, fioTransaction.column0.value.indexOf('+'));
+  let stringDate = part + "T00:00:00" + fioTransaction.column0.value.substring(fioTransaction.column0.value.indexOf('+'));
+  return new Date(stringDate);
+}
+
 function fioTransaction2CoreTransfer(fioTransaction, accountIban, accountCurrency) {
+
   return {
     "id": fioTransaction.column22.value.toString(),
+    "valueDate": getTransferValueDate(fioTransaction),
     "credit": getCreditAccount(fioTransaction, accountIban),
     "debit": getDebitAccount(fioTransaction, accountIban),
     "amount": fioTransaction.column1.value.toString(),

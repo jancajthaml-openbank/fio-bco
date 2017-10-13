@@ -3,11 +3,12 @@
 To run fio-sync you have to install npm and nodeJS. Then run commands below, user has to have write permissions for working directory.
 
 npm install
-npm start <tenant_name> <tenant_accountIban> <fio_token>
+npm start <tenant_name> <tenant_accountIban> <fio_token> [wait]
 
 <tenant_name> - name of tenant in core
 <tenant_accountIban> - iban of the account that is synced to transaction core
 <fio_token> - token that is used to access account via FIO api, read-only token is sufficient
+[wait] - optional just type wait as last argument if you want to wait for fio api to be available otherwise fio-sync will end
 
 
 2. What it does
