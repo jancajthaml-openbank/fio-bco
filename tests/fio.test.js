@@ -5,7 +5,7 @@ beforeEach(() => {
 });
 
 test("Extract unique core accounts from fio account statement", () => {
-  let fio = require("../fio.js");
+  let fio = require("../modules/fio.js");
   let sampleFioStatement = require("./test-fio-statement.json");
 
   expect(fio.extractUniqueCoreAccounts(sampleFioStatement))
@@ -25,7 +25,7 @@ test("Extract unique core accounts from fio account statement", () => {
 });
 
 test("Extract core account statement from fio account statement", () => {
-  let fio = require("../fio.js");
+  let fio = require("../modules/fio.js");
   let sampleFioStatement = require("./test-fio-statement.json");
   let sampleCoreStatement = require("./test-core-statement.json");
 
@@ -34,7 +34,7 @@ test("Extract core account statement from fio account statement", () => {
 });
 
 test("Retrieve fio statement data", async () => {
-  let fio = require("../fio.js");
+  let fio = require("../modules/fio.js");
   let axios = require("axios");
 
   axios.get
@@ -48,7 +48,7 @@ test("Retrieve fio statement data", async () => {
 });
 
 test("Set position to the beginning", async () => {
-  let fio = require("../fio.js");
+  let fio = require("../modules/fio.js");
   let axios = require("axios");
 
   axios.get
@@ -61,7 +61,7 @@ test("Set position to the beginning", async () => {
 });
 
 test("Set position to the specific transaction", async () => {
-  let fio = require("../fio.js");
+  let fio = require("../modules/fio.js");
   let axios = require("axios");
 
   axios.get
@@ -74,7 +74,7 @@ test("Set position to the specific transaction", async () => {
 });
 
 test("Test exception on FIO timeout", async () => {
-  let fio = require("../fio.js");
+  let fio = require("../modules/fio.js");
   let axios = require("axios");
   let mockedError = new Error();
   mockedError.response = { "status": 409 };
@@ -95,7 +95,7 @@ test("Test exception on FIO timeout", async () => {
 });
 
 test("Test wait on FIO timeout", async () => {
-  let fio = require("../fio.js");
+  let fio = require("../modules/fio.js");
   let axios = require("axios");
 
   global.setTimeout = jest.fn((cb, timeout) => {
@@ -120,7 +120,7 @@ test("Test wait on FIO timeout", async () => {
 });
 
 test("Rethrow unexpected error", async () => {
-  let fio = require("../fio.js");
+  let fio = require("../modules/fio.js");
   let axios = require("axios");
   let mockedError = new Error();
   mockedError.response = {"status": 111};

@@ -1,5 +1,5 @@
-let fio = require("./fio.js");
-let core = require("./core.js");
+let fio = require("./modules/fio.js");
+let core = require("./modules/core.js");
 
 async function main(argv) {
   if (!argv || !argv.tenantName || !argv.accountNumber || !argv.token) {
