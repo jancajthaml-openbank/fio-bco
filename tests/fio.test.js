@@ -99,7 +99,6 @@ test("Test wait on FIO timeout", async () => {
   let axios = require("axios");
 
   global.setTimeout = jest.fn((cb, timeout) => {
-    console.log("mocked setTimeout");
     cb();
   });
 
