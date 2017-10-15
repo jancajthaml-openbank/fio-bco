@@ -1,0 +1,11 @@
+{
+  "fio": {
+    "apiUrl": "https://www.fio.cz/ib_api/rest"
+  },
+  "core": {
+    "url": "http://127.0.0.1:8080",
+    "accountsParallelismSize": 50,
+    "transactionsParallelismSize": 50,
+    "db": "./db.json"
+  }
+}

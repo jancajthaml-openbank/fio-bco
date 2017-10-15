@@ -1,108 +1,144 @@
+/**
+ * The main purpose of this module is to transform fio account statement to core account statement. The account
+ * statement contains all transactions that was realized in given time period. To clarify terminology we have
+ * transaction and transfer. Transaction contains 1 - N transfers, each transfer belongs under one particular
+ * transaction. In fio terminology transaction is called "Pokyn" and transfer is called "Pohyb".
+ */
+
 let options = require("config").get("fio");
 let axios = require("axios");
 
-function getAccount(fioTransaction) {
-  return (fioTransaction.column2 && fioTransaction.column2.value) || "FIO";
+function extractCounterPartAccountNumber(fioTransfer) {
+  return (fioTransfer.column2 && fioTransfer.column2.value) || "FIO";
 }
 
-function getDebitAccount(transaction, accountIban) {
-  if (transaction.column1.value > 0) {
-    return (transaction.column2 && transaction.column2.value) || "FIO";
+function extractAmount(fioTransfer) {
+  return fioTransfer.column1.value;
+}
+
+function extractDebitAccountNumber(fioTransfer, mainAccountNumber) {
+  if (extractAmount(fioTransfer) > 0) {
+    return extractCounterPartAccountNumber(fioTransfer);
   } else {
-    return accountIban;
+    return mainAccountNumber;
   }
 }
 
-function getCreditAccount(transaction, accountIban) {
-  if (transaction.column1.value < 0) {
-    return (transaction.column2 && transaction.column2.value) || "FIO";
+function extractCreditAccountNumber(fioTransfer, mainAccountNumber) {
+  if (extractAmount(fioTransfer) < 0) {
+    return extractCounterPartAccountNumber(fioTransfer);
   } else {
-    return accountIban;
+    return mainAccountNumber;
   }
 }
 
-function getTransferValueDate(fioTransaction) {
-  let part = fioTransaction.column0.value.substring(0, fioTransaction.column0.value.indexOf('+'));
-  let stringDate = part + "T00:00:00" + fioTransaction.column0.value.substring(fioTransaction.column0.value.indexOf('+'));
+function extractTransferValueDate(fioTransfer) {
+  let part = fioTransfer.column0.value.substring(0, fioTransfer.column0.value.indexOf('+'));
+  let stringDate = part + "T00:00:00" + fioTransfer.column0.value.substring(fioTransfer.column0.value.indexOf('+'));
   return new Date(stringDate);
 }
 
-function fioTransaction2CoreTransfer(fioTransaction, accountIban, accountCurrency) {
+function extractTransferId(fioTransfer) {
+  return fioTransfer.column22.value;
+}
 
+function extractTransactionId(fioTransfer) {
+  return fioTransfer.column17.value;
+}
+
+function extractMainAccountNumber(fioAccountStatement) {
+  return fioAccountStatement.accountStatement.info.iban;
+}
+
+function extractMainAccountCurrency(fioAccountStatement) {
+  return fioAccountStatement.accountStatement.info.currency;
+}
+
+function fioTransferToCoreTransfer(fioTransfer, mainAccountNumber, mainAccountCurrency) {
   return {
-    "id": fioTransaction.column22.value.toString(),
-    "valueDate": getTransferValueDate(fioTransaction),
-    "credit": getCreditAccount(fioTransaction, accountIban),
-    "debit": getDebitAccount(fioTransaction, accountIban),
-    "amount": fioTransaction.column1.value.toString(),
-    "currency": accountCurrency
+    "id": extractTransferId(fioTransfer).toString(),
+    "valueDate": extractTransferValueDate(fioTransfer).toISOString(),
+    "credit": extractCreditAccountNumber(fioTransfer, mainAccountNumber),
+    "debit": extractDebitAccountNumber(fioTransfer, mainAccountNumber),
+    "amount": Math.abs(extractAmount(fioTransfer)).toString(),
+    "currency": mainAccountCurrency
   };
 }
 
-function fioTransactions2CoreTransactions(transactions, fioTransaction, accountIban, accountCurrency) {
-  let transactionId = fioTransaction.column17.value;
-  if (transactions[transactionId]) {
-    transactions[transactionId].transfers.push(fioTransaction2CoreTransfer(fioTransaction, accountIban, accountCurrency));
-  } else {
-    transactions[transactionId] = {
-      "blame": "fio-sync",
-      "transfers": [fioTransaction2CoreTransfer(fioTransaction, accountIban, accountCurrency)]
-    };
-  }
-  return transactions;
+function fioTransfersToCoreTransactions(fioTransfers, mainAccountNumber, mainAccountCurrency) {
+  let result = fioTransfers
+    .reduce((coreTransactions, fioTransfer) => {
+      let transactionId = extractTransactionId(fioTransfer);
+      if (coreTransactions[transactionId]) {
+        coreTransactions[transactionId].transfers.push(fioTransferToCoreTransfer(fioTransfer, mainAccountNumber, mainAccountCurrency));
+      } else {
+        coreTransactions[transactionId] = {
+          "blame": "fio-sync",
+          "transfers": [fioTransferToCoreTransfer(fioTransfer, mainAccountNumber, mainAccountCurrency)]
+        };
+      }
+      return coreTransactions;
+    }, {});
+
+  // Return as array
+  return Object.keys(result).map((transactionId) => {
+    let transaction = result[transactionId];
+    transaction.id = transactionId;
+    return transaction;
+  });
 }
 
-function extractCoreAccountStatement(fioAccountStatement) {
-  let transactions = fioAccountStatement.accountStatement.transactionList.transaction
-    .reduce((transactions, fioTransaction) => fioTransactions2CoreTransactions(
-      transactions,
-      fioTransaction,
-      fioAccountStatement.accountStatement.info.iban,
-      fioAccountStatement.accountStatement.info.currency), {});
-
+function toCoreAccountStatement(fioAccountStatement) {
   return {
-    "accountNumber": fioAccountStatement.accountStatement.info.iban,
-    "idTransactionTo": fioAccountStatement.accountStatement.info.idTo,
-    "transactions": Object.keys(transactions).map((transactionId) => {
-      let transaction = transactions[transactionId];
-      transaction.id = transactionId;
-      return transaction;
-    })
+    "accountNumber": extractMainAccountNumber(fioAccountStatement),
+    "transactions": fioTransfersToCoreTransactions(
+      fioAccountStatement.accountStatement.transactionList.transaction,
+      extractMainAccountNumber(fioAccountStatement),
+      extractMainAccountCurrency(fioAccountStatement)
+    )
   }
 }
 
 function extractUniqueCoreAccounts(fioAccountStatement) {
   let coreAccounts = fioAccountStatement.accountStatement.transactionList.transaction
-    .map((fioTransaction) => {
+    .filter((fioTransfer, currIndex, fioTransfers) => {
+      let currAccountNumber = extractCounterPartAccountNumber(fioTransfer);
+      let foundIndex = fioTransfers.findIndex((fioTransfer) => {
+        return currAccountNumber === extractCounterPartAccountNumber(fioTransfer);
+      });
+      return foundIndex === currIndex;
+    })
+    .map((fioTransfer) => {
       return {
-        "accountNumber": getAccount(fioTransaction),
-        "currency": fioAccountStatement.accountStatement.info.currency,
+        "accountNumber": extractCounterPartAccountNumber(fioTransfer),
+        "currency": extractMainAccountCurrency(fioAccountStatement),
         "isBalanceCheck": false
       };
-    })
-    .filter((coreAccount, index, coreAccounts) => {
-      let findIndex = coreAccounts.findIndex((acc, accIndex) => {
-        return acc.accountNumber === coreAccount.accountNumber && acc.currency === coreAccount.currency;
-      });
-      return index === findIndex;
     });
+
+  // Add main account
   coreAccounts
     .push({
-      "accountNumber": fioAccountStatement.accountStatement.info.iban,
-      "currency": fioAccountStatement.accountStatement.info.currency,
+      "accountNumber": extractMainAccountNumber(fioAccountStatement),
+      "currency": extractMainAccountCurrency(fioAccountStatement),
       "isBalanceCheck": false
     });
+
   return coreAccounts;
 }
 
 let sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-async function getFioAccountStatement(token, idTransactionFrom, wait) {
-  if (!idTransactionFrom) {
+async function setLastTransaction(token, idLastTransaction) {
+  if (!idLastTransaction) {
     await axios.get(options.apiUrl + "/set-last-date/" + token +  "/1900-01-01/");
   } else {
-    await axios.get(options.apiUrl + "/set-last-id/" + token +  "/" + idTransactionFrom + "/");
+    await axios.get(options.apiUrl + "/set-last-id/" + token +  "/" + idLastTransaction + "/");
   }
+}
+
+async function getFioAccountStatement(token, idTransactionFrom, wait) {
+  await setLastTransaction(token, idTransactionFrom);
   try {
     let response = await axios.get(options.apiUrl + "/last/" + token + "/transactions.json");
     return response.data;
@@ -123,7 +159,7 @@ async function getFioAccountStatement(token, idTransactionFrom, wait) {
 }
 
 module.exports = {
-  extractCoreAccountStatement,
+  extractCoreAccountStatement: toCoreAccountStatement,
   extractUniqueCoreAccounts,
   getFioAccountStatement
 };

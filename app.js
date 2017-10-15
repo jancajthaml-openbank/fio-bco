@@ -1,4 +1,3 @@
-//let fioAccountStatement = require("./fio-response-example.json");
 let fio = require("./fio.js");
 let core = require("./core.js");
 
