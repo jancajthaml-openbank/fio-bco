@@ -1,4 +1,5 @@
 let jsonfile = require("jsonfile-promised");
+const log = require("winston");
 
 async function setTransactionCheckpoint(fn, tenantName, accountNumber, idTransactionTo) {
   let checkpoints;
@@ -6,7 +7,7 @@ async function setTransactionCheckpoint(fn, tenantName, accountNumber, idTransac
     checkpoints = await jsonfile.readFile(fn);
   } catch (error) {
     if (error.code === "ENOENT") {
-      console.log("Database " + fn + " will be created for the first time");
+      log.info("Database " + fn + " will be created for the first time");
       checkpoints = {};
     }
     else throw error;

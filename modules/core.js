@@ -1,6 +1,7 @@
-let axios = require("axios");
-let sync = require("./sync.js");
-let options = require("config").get("core");
+const axios = require("axios");
+const sync = require("./sync.js");
+const options = require("config").get("core");
+const log = require("winston");
 
 function Tenant (tenantName) {
   if (!tenantName) {
@@ -11,10 +12,10 @@ function Tenant (tenantName) {
 
 Tenant.prototype._runInParallel = async function (items, parallelismSize, processItem, afterBatch) {
   for (let i = 0; i < items.length; i += parallelismSize) {
-    let bulk = items.slice(i, Math.min(i + parallelismSize, items.length));
-    let batchResult = await Promise.all(bulk.map((item, index) => processItem(item, index)));
+    const bulk = items.slice(i, Math.min(i + parallelismSize, items.length));
+    const batchResult = await Promise.all(bulk.map((item, index) => processItem(item, index)));
     if (afterBatch) await afterBatch(batchResult);
-    console.log("Finished " + (Math.floor(i/parallelismSize)+1) + ". bulk");
+    log.debug("Finished " + (Math.floor(i/parallelismSize)+1) + ". bulk");
   }
 };
 
@@ -27,43 +28,47 @@ Tenant.prototype.createMissingAccounts = async function (accounts) {
     async account => {
       try {
         await axios.get(this._getApiUrl() + "/account/" + account.accountNumber);
-        console.log("Account " + account.accountNumber + " already exists");
+        log.debug("Account " + account.accountNumber + " already exists");
       } catch (error) {
         if (error.response && error.response.status === 404) {
           await axios.post(this._getApiUrl() + "/account/", account);
-          console.log("Created account " + account.accountNumber);
+          log.debug("Created account " + account.accountNumber);
         } else {
           throw error;
         }
       }
     }
   );
+  log.info("Created missing accounts for tenant " + this._tenantName);
 };
 
 Tenant.prototype.createTransactions = async function (transactions, accountNumber) {
   await this._runInParallel(transactions, options.transactionsParallelismSize,
     async (transaction, index) => {
-      let transferId = transaction.transfers.reduce((maxTransferId, transfer) => {
-        let newMaxTransferId = Math.max(maxTransferId, transfer.id);
+      const transferId = transaction.transfers.reduce((maxTransferId, transfer) => {
+        const newMaxTransferId = Math.max(maxTransferId, transfer.id);
         delete(transfer.id);
         return newMaxTransferId;
       }, null);
       await axios.put(this._getApiUrl() + "/transaction", transaction);
-      console.log("Created transaction ID " + transaction.id);
+      log.debug("Created transaction ID " + transaction.id);
       return transferId;
     },
     async (transferIds) => {
-      let max = transferIds.reduce((max, transactionId) => {
+      const max = transferIds.reduce((max, transactionId) => {
         return Math.max(max, transactionId);
       });
       await sync.setTransactionCheckpoint(options.db, this._tenantName, accountNumber, max);
-      console.log("Max ID " + max);
+      log.debug("Max ID " + max);
     }
   );
+  log.info("Created transactions for tenant " + this._tenantName);
 };
 
 Tenant.prototype.getTransactionCheckpoint = async function (accountNumber) {
-  return await sync.getTransactionCheckpoint(options.db, this._tenantName, accountNumber);
+  transactionCheckpoint = await sync.getTransactionCheckpoint(options.db, this._tenantName, accountNumber);
+  log.info("Checkpoint for tenant/account " + this._tenantName + "/" + accountNumber + ": " + transactionCheckpoint);
+  return transactionCheckpoint;
 };
 
 module.exports = {

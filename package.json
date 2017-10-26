@@ -13,7 +13,8 @@
     "axios": "^0.16.2",
     "config": "^1.26.2",
     "jsonfile": "^4.0.0",
-    "jsonfile-promised": "0.0.1"
+    "jsonfile-promised": "0.0.1",
+    "winston": "^2.4.0"
   },
   "devDependencies": {
     "jest": "^21.2.1",
@@ -21,5 +22,9 @@
   },
   "jest": {
     "testEnvironment": "node"
+  },
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/jancajthaml/fio-bco.git"
   }
 }

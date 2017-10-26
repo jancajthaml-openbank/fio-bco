@@ -1,18 +1,20 @@
-let fio = require("./modules/fio.js");
-let core = require("./modules/core.js");
+const fio = require("./modules/fio.js");
+const core = require("./modules/core.js");
+const log = require("./modules/logger");
 
 async function main(argv) {
   if (!argv || !argv.tenantName || !argv.accountNumber || !argv.token) {
-    console.log("Run program using npm start <tenant_name> <tenant_accountIban> <fio_token> [wait]");
+    log.error("Run program using npm start <tenant_name> <tenant_accountIban> <fio_token> [wait]");
     return;
   }
 
-  let tenant = new core.Tenant(argv.tenantName);
-  let transactionCheckpoint = await tenant.getTransactionCheckpoint(argv.accountNumber);
+  log.info("Running synchronization for tenant/account" + argv.tenantName + "/" + argv.accountNumber);
+  const tenant = new core.Tenant(argv.tenantName);
+  const transactionCheckpoint = await tenant.getTransactionCheckpoint(argv.accountNumber);
 
-  let fioAccountStatement = await fio.getFioAccountStatement(argv.token, transactionCheckpoint, argv.wait);
-  let coreAccountStatement = fio.extractCoreAccountStatement(fioAccountStatement);
-  let accounts = fio.extractUniqueCoreAccounts(fioAccountStatement);
+  const fioAccountStatement = await fio.getFioAccountStatement(argv.token, transactionCheckpoint, argv.wait);
+  const coreAccountStatement = fio.toCoreAccountStatement(fioAccountStatement);
+  const accounts = fio.extractUniqueCoreAccounts(fioAccountStatement);
 
   await tenant.createMissingAccounts(accounts);
   await tenant.createTransactions(coreAccountStatement.transactions, coreAccountStatement.accountNumber);
@@ -27,4 +29,5 @@ main({
     console.log(error);
     console.log(error.message);
     console.log("There were some unexpected error see above");
-  });
+
+});

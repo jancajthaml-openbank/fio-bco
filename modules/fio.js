@@ -5,8 +5,9 @@
  * transaction. In fio terminology transaction is called "Pokyn" and transfer is called "Pohyb".
  */
 
-let options = require("config").get("fio");
-let axios = require("axios");
+const options = require("config").get("fio");
+const axios = require("axios");
+const log = require("winston");
 
 function extractCounterPartAccountNumber(fioTransfer) {
   return (fioTransfer.column2 && fioTransfer.column2.value) || "FIO";
@@ -33,8 +34,8 @@ function extractCreditAccountNumber(fioTransfer, mainAccountNumber) {
 }
 
 function extractTransferValueDate(fioTransfer) {
-  let part = fioTransfer.column0.value.substring(0, fioTransfer.column0.value.indexOf('+'));
-  let stringDate = part + "T00:00:00" + fioTransfer.column0.value.substring(fioTransfer.column0.value.indexOf('+'));
+  const part = fioTransfer.column0.value.substring(0, fioTransfer.column0.value.indexOf('+'));
+  const stringDate = part + "T00:00:00" + fioTransfer.column0.value.substring(fioTransfer.column0.value.indexOf('+'));
   return new Date(stringDate);
 }
 
@@ -66,9 +67,9 @@ function fioTransferToCoreTransfer(fioTransfer, mainAccountNumber, mainAccountCu
 }
 
 function fioTransfersToCoreTransactions(fioTransfers, mainAccountNumber, mainAccountCurrency) {
-  let result = fioTransfers
+  const result = fioTransfers
     .reduce((coreTransactions, fioTransfer) => {
-      let transactionId = extractTransactionId(fioTransfer);
+      const transactionId = extractTransactionId(fioTransfer);
       if (coreTransactions[transactionId]) {
         coreTransactions[transactionId].transfers.push(fioTransferToCoreTransfer(fioTransfer, mainAccountNumber, mainAccountCurrency));
       } else {
@@ -82,7 +83,7 @@ function fioTransfersToCoreTransactions(fioTransfers, mainAccountNumber, mainAcc
 
   // Return as array
   return Object.keys(result).map((transactionId) => {
-    let transaction = result[transactionId];
+    const transaction = result[transactionId];
     transaction.id = transactionId;
     return transaction;
   });
@@ -100,10 +101,10 @@ function toCoreAccountStatement(fioAccountStatement) {
 }
 
 function extractUniqueCoreAccounts(fioAccountStatement) {
-  let coreAccounts = fioAccountStatement.accountStatement.transactionList.transaction
+  const coreAccounts = fioAccountStatement.accountStatement.transactionList.transaction
     .filter((fioTransfer, currIndex, fioTransfers) => {
-      let currAccountNumber = extractCounterPartAccountNumber(fioTransfer);
-      let foundIndex = fioTransfers.findIndex((fioTransfer) => {
+      const currAccountNumber = extractCounterPartAccountNumber(fioTransfer);
+      const foundIndex = fioTransfers.findIndex((fioTransfer) => {
         return currAccountNumber === extractCounterPartAccountNumber(fioTransfer);
       });
       return foundIndex === currIndex;
@@ -127,7 +128,9 @@ function extractUniqueCoreAccounts(fioAccountStatement) {
   return coreAccounts;
 }
 
-let sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 async function setLastTransaction(token, idLastTransaction) {
   if (!idLastTransaction) {
@@ -138,28 +141,30 @@ async function setLastTransaction(token, idLastTransaction) {
 }
 
 async function getFioAccountStatement(token, idTransactionFrom, wait) {
+  let response;
   await setLastTransaction(token, idTransactionFrom);
   try {
-    let response = await axios.get(options.apiUrl + "/last/" + token + "/transactions.json");
-    return response.data;
+    response = await axios.get(options.apiUrl + "/last/" + token + "/transactions.json");
   } catch (error) {
     if (error.response.status === 409) {
       if (wait) {
-        console.log("Request to FIO for transactions is too early - waiting 20 seconds ...");
+        log.warn("Request to FIO for transactions is too early - waiting 20 seconds ...");
         await sleep(1000 * 20);
-        let response = await axios.get(options.apiUrl + "/last/" + token + "/transactions.json");
-        return response.data;
+        response = await axios.get(options.apiUrl + "/last/" + token + "/transactions.json");
       } else {
-        console.log("Request to FIO for transactions is too early");
+        log.error("Request to FIO for transactions is too early");
         throw error;
       }
+    } else {
+      throw error;
     }
-    throw error;
   }
+  log.info("Loaded FIO account statement for account " + response.data.accountStatement.info.iban);
+  return response.data;
 }
 
 module.exports = {
-  extractCoreAccountStatement: toCoreAccountStatement,
+  toCoreAccountStatement,
   extractUniqueCoreAccounts,
   getFioAccountStatement
 };

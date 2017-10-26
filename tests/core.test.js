@@ -6,9 +6,9 @@ beforeEach(() => {
 });
 
 test("create missing acounts, one account from list already exits", async () => {
-  let core = require("../modules/core.js");
-  let axios = require("axios");
-  let accountMissingError = new Error();
+  const core = require("../modules/core.js");
+  const axios = require("axios");
+  const accountMissingError = new Error();
   accountMissingError.response = {"status": 404};
 
   axios.get = jest.fn()
@@ -19,7 +19,7 @@ test("create missing acounts, one account from list already exits", async () => 
       throw accountMissingError;
     });
 
-  let testAccounts = [
+  const testAccounts = [
     {
       "accountNumber": "test1",
       "currency": "USD",
@@ -37,7 +37,7 @@ test("create missing acounts, one account from list already exits", async () => 
     }
   ];
 
-  let tenant = new core.Tenant("test");
+  const tenant = new core.Tenant("test");
   await tenant.createMissingAccounts(testAccounts);
 
   expect(axios.get).toHaveBeenCalledTimes(3);
@@ -57,12 +57,12 @@ test("create missing acounts, one account from list already exits", async () => 
 });
 
 test("Create few transactions", async () => {
-  let core = require("../modules/core.js");
-  let axios = require("axios");
-  let sync = require("../modules/sync.js");
+  const core = require("../modules/core.js");
+  const axios = require("axios");
+  const sync = require("../modules/sync.js");
 
-  let testAccountNumber = "test";
-  let testTransactions = [{
+  const testAccountNumber = "test";
+  const testTransactions = [{
     "blame": "fio-sync",
     "id": "2121115983",
     "transfers": [{
@@ -95,7 +95,7 @@ test("Create few transactions", async () => {
     ]
   }];
 
-  let tenant = new core.Tenant("test");
+  const tenant = new core.Tenant("test");
   await tenant.createTransactions(testTransactions, testAccountNumber);
 
   expect(axios.put).toHaveBeenCalledTimes(2);

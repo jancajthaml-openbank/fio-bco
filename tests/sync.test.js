@@ -5,8 +5,8 @@ beforeEach(() => {
 });
 
 test("get transaction checkpoint, existing tenant and existing account number", async () => {
-  let sync = require("../modules/sync.js");
-  let jsonfile = require("jsonfile-promised");
+  const sync = require("../modules/sync.js");
+  const jsonfile = require("jsonfile-promised");
 
   jsonfile.readFile = jest.fn(() => {
     return {
@@ -19,14 +19,14 @@ test("get transaction checkpoint, existing tenant and existing account number", 
     }
   });
 
-  let checkpoint = await sync.getTransactionCheckpoint("testdb.json", "johny", "CZ7120100000002700968855");
+  const checkpoint = await sync.getTransactionCheckpoint("testdb.json", "johny", "CZ7120100000002700968855");
   expect(checkpoint).toBe(14434862430);
   expect(jsonfile.readFile.mock.calls[0][0]).toBe("testdb.json");
 });
 
 test("get transaction checkpoint, existing tenant and none-existing account number", async () => {
-  let sync = require("../modules/sync.js");
-  let jsonfile = require("jsonfile-promised");
+  const sync = require("../modules/sync.js");
+  const jsonfile = require("jsonfile-promised");
 
   jsonfile.readFile = jest.fn(() => {
     return {
@@ -39,14 +39,14 @@ test("get transaction checkpoint, existing tenant and none-existing account numb
     }
   });
 
-  let checkpoint = await sync.getTransactionCheckpoint("testdb.json", "johny", "CZ7120100000002700961234");
+  const checkpoint = await sync.getTransactionCheckpoint("testdb.json", "johny", "CZ7120100000002700961234");
   expect(checkpoint).toBeNull();
   expect(jsonfile.readFile.mock.calls[0][0]).toBe("testdb.json");
 });
 
 test("get transaction checkpoint, none-existing tenant", async () => {
-  let sync = require("../modules/sync.js");
-  let jsonfile = require("jsonfile-promised");
+  const sync = require("../modules/sync.js");
+  const jsonfile = require("jsonfile-promised");
 
   jsonfile.readFile = jest.fn(() => {
     return {
@@ -59,15 +59,15 @@ test("get transaction checkpoint, none-existing tenant", async () => {
     }
   });
 
-  let checkpoint = await sync.getTransactionCheckpoint("testdb.json", "the_tenant", "CZ7120100000002700968855");
+  const checkpoint = await sync.getTransactionCheckpoint("testdb.json", "the_tenant", "CZ7120100000002700968855");
   expect(checkpoint).toBeNull();
   expect(jsonfile.readFile.mock.calls[0][0]).toBe("testdb.json");
 });
 
 test("get transaction checkpoint, none-existing db file", async () => {
-  let sync = require("../modules/sync.js");
-  let jsonfile = require("jsonfile-promised");
-  let mockedError = new Error();
+  const sync = require("../modules/sync.js");
+  const jsonfile = require("jsonfile-promised");
+  const mockedError = new Error();
   mockedError.code = "ENOENT";
 
   jsonfile.readFile = jest.fn(() => {
@@ -75,16 +75,16 @@ test("get transaction checkpoint, none-existing db file", async () => {
   });
 
 
-  let checkpoint = await sync.getTransactionCheckpoint("testdb.json", "the_tenant", "CZ7120100000002700968855");
+  const checkpoint = await sync.getTransactionCheckpoint("testdb.json", "the_tenant", "CZ7120100000002700968855");
 
   expect(checkpoint).toBeNull();
   expect(jsonfile.readFile.mock.calls[0][0]).toBe("testdb.json");
 });
 
 test("get transaction checkpoint, rethrowing unknown error", async () => {
-  let sync = require("../modules/sync.js");
-  let jsonfile = require("jsonfile-promised");
-  let mockedError = new Error();
+  const sync = require("../modules/sync.js");
+  const jsonfile = require("jsonfile-promised");
+  const mockedError = new Error();
   mockedError.code = "UNKNOWN";
 
   jsonfile.readFile = jest.fn(() => {
@@ -93,7 +93,7 @@ test("get transaction checkpoint, rethrowing unknown error", async () => {
 
   let error;
   try {
-    let checkpoint = await sync.getTransactionCheckpoint("testdb.json", "the_tenant", "CZ7120100000002700968855");
+    const checkpoint = await sync.getTransactionCheckpoint("testdb.json", "the_tenant", "CZ7120100000002700968855");
   } catch (e) {
     error = e;
   }
@@ -102,8 +102,8 @@ test("get transaction checkpoint, rethrowing unknown error", async () => {
 });
 
 test("set transaction checkpoint, none-existing tenant", async () => {
-  let sync = require("../modules/sync.js");
-  let jsonfile = require("jsonfile-promised");
+  const sync = require("../modules/sync.js");
+  const jsonfile = require("jsonfile-promised");
 
   jsonfile.readFile = jest.fn(() => {
     return {
@@ -131,8 +131,8 @@ test("set transaction checkpoint, none-existing tenant", async () => {
 });
 
 test("set transaction checkpoint, existing tenant, none-existing account number", async () => {
-  let sync = require("../modules/sync.js");
-  let jsonfile = require("jsonfile-promised");
+  const sync = require("../modules/sync.js");
+  const jsonfile = require("jsonfile-promised");
 
   jsonfile.readFile = jest.fn(() => {
     return {
@@ -162,9 +162,9 @@ test("set transaction checkpoint, existing tenant, none-existing account number"
 });
 
 test("set transaction checkpoint, none existing db file", async () => {
-  let sync = require("../modules/sync.js");
-  let jsonfile = require("jsonfile-promised");
-  let mockedError = new Error();
+  const sync = require("../modules/sync.js");
+  const jsonfile = require("jsonfile-promised");
+  const mockedError = new Error();
   mockedError.code = "ENOENT";
 
   jsonfile.readFile = jest.fn(() => {
@@ -178,9 +178,9 @@ test("set transaction checkpoint, none existing db file", async () => {
 });
 
 test("set transaction checkpoint, rethrow unknown error", async () => {
-  let sync = require("../modules/sync.js");
-  let jsonfile = require("jsonfile-promised");
-  let mockedError = new Error();
+  const sync = require("../modules/sync.js");
+  const jsonfile = require("jsonfile-promised");
+  const mockedError = new Error();
   mockedError.code = "UNKNOWN";
 
   jsonfile.readFile = jest.fn(() => {

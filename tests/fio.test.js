@@ -5,8 +5,8 @@ beforeEach(() => {
 });
 
 test("Extract unique core accounts from fio account statement", () => {
-  let fio = require("../modules/fio.js");
-  let sampleFioStatement = require("./test-fio-statement.json");
+  const fio = require("../modules/fio.js");
+  const sampleFioStatement = require("./test-fio-statement.json");
 
   expect(fio.extractUniqueCoreAccounts(sampleFioStatement))
     .toEqual(expect.arrayContaining([{
@@ -25,58 +25,82 @@ test("Extract unique core accounts from fio account statement", () => {
 });
 
 test("Extract core account statement from fio account statement", () => {
-  let fio = require("../modules/fio.js");
-  let sampleFioStatement = require("./test-fio-statement.json");
-  let sampleCoreStatement = require("./test-core-statement.json");
+  const fio = require("../modules/fio.js");
+  const sampleFioStatement = require("./test-fio-statement.json");
+  const sampleCoreStatement = require("./test-core-statement.json");
 
-  expect(fio.extractCoreAccountStatement(sampleFioStatement))
+  expect(fio.toCoreAccountStatement(sampleFioStatement))
     .toEqual(sampleCoreStatement);
 });
 
 test("Retrieve fio statement data", async () => {
-  let fio = require("../modules/fio.js");
-  let axios = require("axios");
+  const fio = require("../modules/fio.js");
+  const axios = require("axios");
 
   axios.get
     .mockReturnValueOnce(null)
-    .mockReturnValueOnce({"data": "test"});
+    .mockReturnValueOnce({
+      "data": {
+        "accountStatement": {
+          "info": {
+            "iban": "test"
+          }
+        }
+      }
+    });
 
-  let result = await fio.getFioAccountStatement("s4cret", null, false);
+  const result = await fio.getFioAccountStatement("s4cret", null, false);
 
-  expect(result).toBe("test");
+  expect(result.accountStatement.info.iban).toBe("test");
   expect(axios.get.mock.calls[1][0]);
 });
 
 test("Set position to the beginning", async () => {
-  let fio = require("../modules/fio.js");
-  let axios = require("axios");
+  const fio = require("../modules/fio.js");
+  const axios = require("axios");
 
   axios.get
     .mockReturnValueOnce(null)
-    .mockReturnValueOnce({"data": "test"});
+    .mockReturnValueOnce({
+      "data": {
+        "accountStatement": {
+          "info": {
+            "iban": "test"
+          }
+        }
+      }
+    });
 
-  let result = await fio.getFioAccountStatement("s4cret", null, false);
+  const result = await fio.getFioAccountStatement("s4cret", null, false);
 
   expect(axios.get.mock.calls[0][0]).toBe("https://www.fio.cz/ib_api/rest/set-last-date/s4cret/1900-01-01/");
 });
 
 test("Set position to the specific transaction", async () => {
-  let fio = require("../modules/fio.js");
-  let axios = require("axios");
+  const fio = require("../modules/fio.js");
+  const axios = require("axios");
 
   axios.get
     .mockReturnValueOnce(null)
-    .mockReturnValueOnce({"data": "test"});
+    .mockReturnValueOnce({
+      "data": {
+        "accountStatement": {
+          "info": {
+            "iban": "test"
+          }
+        }
+      }
+    });
 
-  let result = await fio.getFioAccountStatement("s4cret", "12345", false);
+  const result = await fio.getFioAccountStatement("s4cret", "12345", false);
 
   expect(axios.get.mock.calls[0][0]).toBe("https://www.fio.cz/ib_api/rest/set-last-id/s4cret/12345/");
 });
 
 test("Test exception on FIO timeout", async () => {
-  let fio = require("../modules/fio.js");
-  let axios = require("axios");
-  let mockedError = new Error();
+  const fio = require("../modules/fio.js");
+  const axios = require("axios");
+  const mockedError = new Error();
   mockedError.response = { "status": 409 };
 
   axios.get
@@ -95,8 +119,8 @@ test("Test exception on FIO timeout", async () => {
 });
 
 test("Test wait on FIO timeout", async () => {
-  let fio = require("../modules/fio.js");
-  let axios = require("axios");
+  const fio = require("../modules/fio.js");
+  const axios = require("axios");
 
   global.setTimeout = jest.fn((cb, timeout) => {
     cb();
@@ -105,23 +129,31 @@ test("Test wait on FIO timeout", async () => {
   axios.get
     .mockImplementationOnce(() => null)
     .mockImplementationOnce(() => {
-      let mockedError = new Error();
+      const mockedError = new Error();
       mockedError.response = { "status": 409 };
       throw mockedError;
     })
     .mockImplementationOnce(() => {
-      return {"data": "test"};
+      return {
+        "data": {
+          "accountStatement": {
+            "info": {
+              "iban": "test"
+            }
+          }
+        }
+      };
     });
 
-  let result = await fio.getFioAccountStatement("s4cret", null, true);
-  expect(result).toBe("test");
+  const result = await fio.getFioAccountStatement("s4cret", null, true);
+  expect(result.accountStatement.info.iban).toBe("test");
   expect(global.setTimeout.mock.calls[0][1]).toBe(20 * 1000);
 });
 
 test("Rethrow unexpected error", async () => {
-  let fio = require("../modules/fio.js");
-  let axios = require("axios");
-  let mockedError = new Error();
+  const fio = require("../modules/fio.js");
+  const axios = require("axios");
+  const mockedError = new Error();
   mockedError.response = {"status": 111};
 
   axios.get
@@ -132,7 +164,7 @@ test("Rethrow unexpected error", async () => {
 
   let error;
   try {
-    let result = await fio.getFioAccountStatement("s4cret", null, true);
+    const result = await fio.getFioAccountStatement("s4cret", null, true);
   } catch (e) {
     error = e;
   }
