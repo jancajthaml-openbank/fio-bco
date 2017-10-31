@@ -16,8 +16,10 @@ npm start <tenant_name> <tenant_accountIban> <fio_token> [wait]
 Application get all transactions for given account via FIO api and store it in core. It also save the last
 transaction that was synced, so when run again it get from FIO only transactions that are new.
 
-Note: THere is a FIO limitation that request for account statement from which is transactions gathered can be requested
+Note: There is a FIO limitation that request for account statement from which is transactions gathered can be requested
 once per 20 seconds. If you run application twice in that window app will simply wait 20 seconds and then continue.
 
 // TODO: remove accountNumber as input argument and get it from fio account statement, also need to store token in db
 // TODO: rename to fio-bco
+// TODO: better propagate exception, when occur error like core is not available propagate original exception but add custom message
+// TODO: also better work with axios errors, see https://www.npmjs.com/package/axios#handling-errors
