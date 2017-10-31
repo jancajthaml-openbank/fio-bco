@@ -26,8 +26,5 @@ main({
   "token": process.argv[4],
   "wait": process.argv[5] && process.argv[5] === "wait"
 }).catch(error => {
-    console.log(error);
-    console.log(error.message);
-    console.log("There were some unexpected error see above");
-
+    log.error("Synchronization failed, exception:\n" + error.stack);
 });

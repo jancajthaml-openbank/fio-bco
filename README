@@ -21,5 +21,3 @@ once per 20 seconds. If you run application twice in that window app will simply
 
 // TODO: remove accountNumber as input argument and get it from fio account statement, also need to store token in db
 // TODO: rename to fio-bco
-// TODO: better propagate exception, when occur error like core is not available propagate original exception but add custom message
-// TODO: also better work with axios errors, see https://www.npmjs.com/package/axios#handling-errors

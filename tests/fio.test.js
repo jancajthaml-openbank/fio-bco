@@ -115,7 +115,7 @@ test("Test exception on FIO timeout", async () => {
   } catch (e) {
     error = e;
   }
-  expect(error).toBe(mockedError);
+  expect(error.jse_cause.response.status).toBe(409);
 });
 
 test("Test wait on FIO timeout", async () => {
@@ -168,6 +168,6 @@ test("Rethrow unexpected error", async () => {
   } catch (e) {
     error = e;
   }
-  expect(error).toBe(mockedError);
+  expect(error.jse_cause.response.status).toBe(111);
 });
 

@@ -14,6 +14,7 @@
     "config": "^1.26.2",
     "jsonfile": "^4.0.0",
     "jsonfile-promised": "0.0.1",
+    "verror": "^1.10.0",
     "winston": "^2.4.0"
   },
   "devDependencies": {
@@ -24,7 +25,7 @@
     "testEnvironment": "node"
   },
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/jancajthaml/fio-bco.git"
+    "type": "git",
+    "url": "https://github.com/jancajthaml/fio-bco.git"
   }
 }
