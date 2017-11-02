@@ -1,11 +1,11 @@
 {
-  "name": "fio-sync",
+  "name": "fio-bco",
   "version": "1.0.0",
   "description": "Synchronize transactions from fio to transaction core, see README for details how to use it.",
   "main": "app.js",
   "scripts": {
     "test": "jest --coverage",
-    "start": "node app.js"
+    "start": "node --harmony_default_parameters --harmony-destructuring app.js"
   },
   "author": "matus159",
   "license": "ISC",
@@ -14,6 +14,7 @@
     "config": "^1.26.2",
     "jsonfile": "^4.0.0",
     "jsonfile-promised": "0.0.1",
+    "verror": "^1.10.0",
     "winston": "^2.4.0"
   },
   "devDependencies": {
@@ -24,7 +25,7 @@
     "testEnvironment": "node"
   },
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/jancajthaml/fio-bco.git"
+    "type": "git",
+    "url": "https://github.com/jancajthaml/fio-bco.git"
   }
 }

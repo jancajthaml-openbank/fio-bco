@@ -1,6 +1,5 @@
-const options = require("config").get("logger");
-const log = require("winston");
+const log = require('winston')
 
-log.level = options.level;
+log.level = require("config").get("logger").level
 
-module.exports = log;
+module.exports = log

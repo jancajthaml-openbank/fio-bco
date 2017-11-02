@@ -4,24 +4,43 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
+test("FIO Api crash is caught", async () => {
+  const axios = require("axios");
+  const VError = require("verror");
+  const fio = require("../modules/fio.js");
+
+  const internalServerError = new VError(new Error(), "Request to FIO api failed")
+
+  axios.get
+    .mockImplementationOnce(() => {
+      throw new Error();
+    });
+    
+  await expect(fio.getFioAccountStatement("s4cret", null, false)).rejects.toEqual(internalServerError)
+})
+
 test("Extract unique core accounts from fio account statement", () => {
   const fio = require("../modules/fio.js");
   const sampleFioStatement = require("./test-fio-statement.json");
 
   expect(fio.extractUniqueCoreAccounts(sampleFioStatement))
-    .toEqual(expect.arrayContaining([{
-      "accountNumber": "CZ7920100000002400222233",
-      "currency": "CZK",
-      "isBalanceCheck": false
-    },{
-      "accountNumber": "FIO",
-      "currency": "CZK",
-      "isBalanceCheck": false
-    },{
-      "accountNumber": "Counterpart",
-      "currency": "CZK",
-      "isBalanceCheck": false
-    }]));
+    .toEqual(expect.arrayContaining([
+      {
+        "accountNumber": "CZ7920100000002400222233",
+        "currency": "CZK",
+        "isBalanceCheck": false
+      },
+      {
+        "accountNumber": "FIO",
+        "currency": "CZK",
+        "isBalanceCheck": false
+      },
+      {
+        "accountNumber": "Counterpart",
+        "currency": "CZK",
+        "isBalanceCheck": false
+      }
+    ]));
 });
 
 test("Extract core account statement from fio account statement", () => {
@@ -56,8 +75,8 @@ test("Retrieve fio statement data", async () => {
 });
 
 test("Set position to the beginning", async () => {
-  const fio = require("../modules/fio.js");
   const axios = require("axios");
+  const fio = require("../modules/fio.js");
 
   axios.get
     .mockReturnValueOnce(null)
@@ -77,8 +96,8 @@ test("Set position to the beginning", async () => {
 });
 
 test("Set position to the specific transaction", async () => {
-  const fio = require("../modules/fio.js");
   const axios = require("axios");
+  const fio = require("../modules/fio.js");
 
   axios.get
     .mockReturnValueOnce(null)
@@ -98,15 +117,16 @@ test("Set position to the specific transaction", async () => {
 });
 
 test("Test exception on FIO timeout", async () => {
-  const fio = require("../modules/fio.js");
   const axios = require("axios");
-  const mockedError = new Error();
-  mockedError.response = { "status": 409 };
+  const fio = require("../modules/fio.js");
+  
+  const conflictError = new Error();
+  conflictError.response = { "status": 409 };
 
   axios.get
     .mockImplementationOnce(() => null)
     .mockImplementationOnce(() => {
-      throw mockedError;
+      throw conflictError;
     });
 
   let error;
@@ -115,12 +135,15 @@ test("Test exception on FIO timeout", async () => {
   } catch (e) {
     error = e;
   }
-  expect(error).toBe(mockedError);
+  expect(error.jse_cause.response.status).toBe(409);
 });
 
 test("Test wait on FIO timeout", async () => {
   const fio = require("../modules/fio.js");
   const axios = require("axios");
+
+  const conflictError = new Error();
+  conflictError.response = { "status": 409 };
 
   global.setTimeout = jest.fn((cb, timeout) => {
     cb();
@@ -129,9 +152,7 @@ test("Test wait on FIO timeout", async () => {
   axios.get
     .mockImplementationOnce(() => null)
     .mockImplementationOnce(() => {
-      const mockedError = new Error();
-      mockedError.response = { "status": 409 };
-      throw mockedError;
+      throw conflictError;
     })
     .mockImplementationOnce(() => {
       return {
@@ -168,6 +189,5 @@ test("Rethrow unexpected error", async () => {
   } catch (e) {
     error = e;
   }
-  expect(error).toBe(mockedError);
+  expect(error.jse_cause.response.status).toBe(111);
 });
-
