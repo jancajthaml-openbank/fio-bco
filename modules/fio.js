@@ -163,4 +163,4 @@ module.exports = {
   toCoreAccountStatement,
   extractUniqueCoreAccounts,
   getFioAccountStatement
-};
+}
