@@ -2,6 +2,7 @@ const axios = require("axios");
 const sync = require("./sync.js");
 const options = require("config").get("core");
 const log = require("winston");
+const VError = require("verror");
 
 function Tenant (tenantName) {
   if (!tenantName) {
@@ -23,18 +24,30 @@ Tenant.prototype._getApiUrl = function () {
   return options.url + "/v1/" + this._tenantName + "/core";
 };
 
+Tenant.prototype._accountExists = async function (accountNumber) {
+  try {
+    await axios.get(this._getApiUrl() + "/account/" + accountNumber);
+    return true;
+  } catch (err) {
+    if (err.response && err.response.status === 404) {
+      return false;
+    } else {
+      throw new VError(err, "Request to core api failed");
+    }
+  }
+};
+
 Tenant.prototype.createMissingAccounts = async function (accounts) {
   await this._runInParallel(accounts, options.accountsParallelismSize,
     async account => {
-      try {
-        await axios.get(this._getApiUrl() + "/account/" + account.accountNumber);
+      if (await this._accountExists(account.accountNumber)) {
         log.debug("Account " + account.accountNumber + " already exists");
-      } catch (error) {
-        if (error.response && error.response.status === 404) {
+      } else {
+        try {
           await axios.post(this._getApiUrl() + "/account/", account);
           log.debug("Created account " + account.accountNumber);
-        } else {
-          throw error;
+        } catch (err) {
+          throw new VError(err, "Request to core api failed");
         }
       }
     }

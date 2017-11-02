@@ -8,6 +8,7 @@
 const options = require("config").get("fio");
 const axios = require("axios");
 const log = require("winston");
+const VError = require("verror");
 
 function extractCounterPartAccountNumber(fioTransfer) {
   return (fioTransfer.column2 && fioTransfer.column2.value) || "FIO";
@@ -133,32 +134,38 @@ function sleep(ms) {
 }
 
 async function setLastTransaction(token, idLastTransaction) {
-  if (!idLastTransaction) {
-    await axios.get(options.apiUrl + "/set-last-date/" + token +  "/1900-01-01/");
-  } else {
-    await axios.get(options.apiUrl + "/set-last-id/" + token +  "/" + idLastTransaction + "/");
+  try {
+    if (!idLastTransaction) {
+      await axios.get(options.apiUrl + "/set-last-date/" + token + "/1900-01-01/");
+    } else {
+      await axios.get(options.apiUrl + "/set-last-id/" + token + "/" + idLastTransaction + "/");
+    }
+  } catch (err) {
+    throw new VError(err, "Request to FIO api failed");
+  }
+}
+
+async function getLastTransactions(token, retry) {
+  try {
+    return await axios.get(options.apiUrl + "/last/" + token + "/transactions.json");
+  } catch (err) {
+    if (err.response && err.response.status === 409) {
+      if (retry) {
+        log.warn("Request to FIO for transactions is too early - waiting 20 seconds ...");
+        await sleep(20 * 1000);
+        return await getLastTransactions(token, false);
+      } else {
+        throw new VError(err, "FIO transaction api unavailable, you have to wait 20 seconds between calls");
+      }
+    } else {
+      throw new VError(err, "Request to FIO api failed");
+    }
   }
 }
 
 async function getFioAccountStatement(token, idTransactionFrom, wait) {
-  let response;
   await setLastTransaction(token, idTransactionFrom);
-  try {
-    response = await axios.get(options.apiUrl + "/last/" + token + "/transactions.json");
-  } catch (error) {
-    if (error.response.status === 409) {
-      if (wait) {
-        log.warn("Request to FIO for transactions is too early - waiting 20 seconds ...");
-        await sleep(1000 * 20);
-        response = await axios.get(options.apiUrl + "/last/" + token + "/transactions.json");
-      } else {
-        log.error("Request to FIO for transactions is too early");
-        throw error;
-      }
-    } else {
-      throw error;
-    }
-  }
+  const response = await getLastTransactions(token, wait);
   log.info("Loaded FIO account statement for account " + response.data.accountStatement.info.iban);
   return response.data;
 }
