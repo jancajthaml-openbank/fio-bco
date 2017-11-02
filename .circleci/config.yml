@@ -4,7 +4,7 @@ jobs:
     docker:
       - image: circleci/node:7.10
 
-    working_directory: ~/repo
+    working_directory: ~/project
 
     steps:
       - checkout
@@ -21,4 +21,4 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
 
-      - run: npm tesy
+      - run: npm test
