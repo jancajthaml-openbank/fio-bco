@@ -1,3 +1,6 @@
+[![CircleCI](https://circleci.com/gh/jancajthaml/fio-bco.svg?style=svg&circle-token=dca7fe834e3de7b35f226069ae4729e283ff1df5)](https://circleci.com/gh/jancajthaml/fio-bco)
+
+
 1. How to run it
 
 To run fio-sync you have to install npm and nodeJS. Then run commands below, user has to have write permissions for working directory.
