@@ -14,11 +14,28 @@ jobs:
           - v1-dependencies-{{ checksum "package.json" }}
           - v1-dependencies-
 
-      - run: npm i
+      - run:
+          name: install
+          command: npm i
 
       - save_cache:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
 
-      - run: npm test
+      - run:
+          name: test
+          command: npm test
+          environment:
+            JEST_JUNIT_OUTPUT: "$CIRCLE_TEST_REPORTS/junit/test-results.xml"
+
+      - store_artifacts:
+          path: coverage/lcov-report/
+          destination: unit-test-coverage
+
+      - store_test_results:
+          path: $CIRCLE_TEST_REPORTS
+
+      - store_artifacts:
+          path: $CIRCLE_TEST_REPORTS
+
