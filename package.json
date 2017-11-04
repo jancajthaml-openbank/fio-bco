@@ -1,5 +1,5 @@
 {
-  "name": "fio-sync",
+  "name": "fio-bco",
   "version": "1.0.0",
   "description": "Synchronize transactions from fio to transaction core, see README for details how to use it.",
   "main": "app.js",

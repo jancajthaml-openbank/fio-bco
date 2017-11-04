@@ -1,46 +1,50 @@
-let jsonfile = require("jsonfile-promised");
-const log = require("winston");
+const jsonfile = require('jsonfile-promised')
+const log = require('./logger.js')
 
-async function setTransactionCheckpoint(fn, tenantName, accountNumber, idTransactionTo) {
-  let checkpoints;
+async function setTransactionCheckpoint(db, tenantName, accountNumber, idTransactionTo) {
+  let checkpoints
+
   try {
-    checkpoints = await jsonfile.readFile(fn);
+    checkpoints = await jsonfile.readFile(db)
   } catch (error) {
     if (error.code === "ENOENT") {
-      log.info("Database " + fn + " will be created for the first time");
-      checkpoints = {};
+      log.info(`Database ${db} will be created for the first time`)
+      checkpoints = {}
+    } else {
+      throw error
     }
-    else throw error;
   }
 
   if (checkpoints[tenantName]) {
-    checkpoints[tenantName][accountNumber] = { idTransactionTo };
+    checkpoints[tenantName][accountNumber] = { idTransactionTo }
   } else {
     checkpoints[tenantName] = {
-      [accountNumber] : {
+      [accountNumber]: {
         idTransactionTo
       }
     }
   }
 
-  await jsonfile.writeFile(fn, checkpoints);
+  await jsonfile.writeFile(db, checkpoints)
 }
 
-async function getTransactionCheckpoint(fn, tenantName, accountNumber) {
+async function getTransactionCheckpoint(db, tenantName, accountNumber) {
   try {
-    let checkpoints = await jsonfile.readFile(fn);
-    if (checkpoints && checkpoints[tenantName] && checkpoints[tenantName][accountNumber]) {
-      return checkpoints[tenantName][accountNumber].idTransactionTo;
-    } else {
-      return null;
-    }
+    let checkpoints = await jsonfile.readFile(db)
+
+    return (checkpoints && checkpoints[tenantName] && checkpoints[tenantName][accountNumber])
+      ? checkpoints[tenantName][accountNumber].idTransactionTo
+      : null
   } catch (error) {
-    if (error.code === "ENOENT") return null;
-    else throw error;
+    if (error.code === "ENOENT") {
+      return null
+    } else {
+      throw error
+    }
   }
 }
 
 module.exports = {
   setTransactionCheckpoint,
   getTransactionCheckpoint
-};
+}

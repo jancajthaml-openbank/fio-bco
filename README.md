@@ -37,4 +37,3 @@ transaction that was synced, so when run again it get from FIO only transactions
 once per 20 seconds. If you run application twice in that window app will simply wait 20 seconds and then continue.
 
 // TODO: remove accountNumber as input argument and get it from fio account statement, also need to store token in db
-// TODO: rename to fio-bco
