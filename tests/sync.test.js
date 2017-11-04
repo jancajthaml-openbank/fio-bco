@@ -74,7 +74,6 @@ test("get transaction checkpoint, none-existing db file", async () => {
     throw mockedError;
   });
 
-
   const checkpoint = await sync.getTransactionCheckpoint("testdb.json", "the_tenant", "CZ7120100000002700968855");
 
   expect(checkpoint).toBeNull();

@@ -1,0 +1,27 @@
+version: '2'
+
+services:
+
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
+    volumes:
+      - ./lifecycle:/opt/lifecycle:ro
+      - ./tests:/opt/project/tests
+      - ./coverage:/opt/project/coverage
+      - ./modules:/opt/project/modules
+      - ./config:/opt/project/config
+      - ./package.json:/opt/project/package.json:ro
+    working_dir: /opt/project
+    entrypoint: /bin/sh
+    privileged: true
+
+  test:
+    extends: dev
+    entrypoint: /opt/lifecycle/test
+
+  bundle:
+    build:
+      context: .
+      dockerfile: Dockerfile-prod
