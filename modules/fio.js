@@ -10,10 +10,9 @@
 const axios = require('axios')
 const log = require('./logger')
 const VError = require('verror')
+const { sleep, parseDate } = require("./utils.js")
 
 const options = require("config").get("fio")
-
-const sleep = ms => new Promise(andThen => setTimeout(andThen, ms))
 
 const extractCounterPartAccountNumber = _ =>
   ((_.column2 && _.column2.value) || "FIO")
@@ -34,15 +33,8 @@ const extractCreditAccountNumber = (fioTransfer, mainAccountNumber) =>
     ? extractCounterPartAccountNumber(fioTransfer)
     : mainAccountNumber
 
-const extractTransferValueDate = _ => {
-  let sDate = _.column0.value,
-      idx = sDate.indexOf('+'),
-      date = new Date((idx == -1)
-        ? `${sDate}T00:00:00+0000`
-        : `${sDate.substring(0, idx)}T00:00:00${sDate.substring(idx)}`)
-
-  return date.toISOString()
-}
+const extractTransferValueDate = _ =>
+  parseDate(_.column0.value).toISOString()
 
 const extractTransferId = _ =>
   String(_.column22.value)
@@ -112,7 +104,7 @@ function extractUniqueCoreAccounts(fioAccountStatement) {
     })
     .map(extractCounterPartAccountNumber)
 
-  // Add main account
+  // add main account
   coreAccounts.push(extractMainAccountNumber(fioAccountStatement))
 
   return coreAccounts.map(accountNumber => ({
@@ -139,12 +131,12 @@ async function getLastTransactions(token, retry) {
   } catch (err) {
     if (err.response && err.response.status === 409) {
       if (retry) {
-        // FIXME 20 secs to constant
-        log.warn("Request to FIO for transactions is too early - waiting 20 seconds ...")
-        await sleep(20 * 1000) // FIXME to config
+        log.warn(`Request to FIO for transactions is too early - waiting ${options.backoffIntervalSec} seconds ...`)
+
+        await sleep(options.backoffIntervalSec * 1000)
         return await getLastTransactions(token, false)
       } else {
-        throw new VError(err, "FIO transaction api unavailable, you have to wait 20 seconds between calls")
+        throw new VError(err, `FIO transaction api unavailable, you have to wait ${options.backoffIntervalSec} seconds between calls`)
       }
     } else {
       throw new VError(err, "Request to FIO api failed")
