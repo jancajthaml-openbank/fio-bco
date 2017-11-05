@@ -7,12 +7,7 @@ all: package bundle authors
 
 .PHONY: package
 package:
-	docker-compose run \
-	-w /opt/project \
-	--rm \
-	-v $$(pwd)/node_modules:/opt/project/node_modules \
-	-v $$(pwd)/lifecycle:/opt/lifecycle \
-	dev /opt/lifecycle/package
+	docker-compose run --rm package
 
 .PHONY: test
 test:

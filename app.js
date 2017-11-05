@@ -10,7 +10,8 @@ async function main(argv) {
 
   log.info(`Running synchronization for tenant/account ${argv.tenantName}/${argv.accountNumber}`)
   const tenant = new core.Tenant(argv.tenantName)
-  const transactionCheckpoint = await tenant.getTransactionCheckpoint(argv.accountNumber)
+
+  const transactionCheckpoint = await tenant.getCheckpoint(argv.accountNumber)
 
   const fioAccountStatement = await fio.getFioAccountStatement(argv.token, transactionCheckpoint, argv.wait)
   const coreAccountStatement = fio.toCoreAccountStatement(fioAccountStatement)

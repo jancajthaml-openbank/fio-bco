@@ -13,6 +13,7 @@ COPY ./modules/core.js /opt/fio-bco/modules/core.js
 COPY ./modules/fio.js /opt/fio-bco/modules/fio.js
 COPY ./modules/logger.js /opt/fio-bco/modules/logger.js
 COPY ./modules/sync.js /opt/fio-bco/modules/sync.js
+COPY ./modules/utils.js /opt/fio-bco/modules/utils.js
 
 COPY ./config/default.json /opt/fio-bco/config/default.json
 

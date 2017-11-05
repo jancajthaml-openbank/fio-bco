@@ -1,38 +1,11 @@
 const axios = require("axios")
 const { setTransactionCheckpoint, getTransactionCheckpoint } = require("./sync.js")
+const { parallelize, getMax } = require("./utils.js")
 const log = require('./logger.js')
 const VError = require("verror")
 
 const options = require("config").get("core")
 
-const getMax = (a, b) => a > b ? a : b
-
-const partition = (list, chunkSize) => {
-  let groups = [], i = 0, j = chunkSize, len = list.length
-
-  while (i < len) {
-    groups.push(list.slice(i, j))
-
-    i = j
-    j += chunkSize
-  }
-
-  return groups
-}
-
-const parallelize = (items, partitionSize, processItem, andThen) => {
-
-  let withThen = () => partition(items, partitionSize)
-    .map(bulk => Promise.all(bulk.map(processItem)).then(andThen))
-
-  let withPass = () => partition(items, partitionSize)
-    .map(bulk => bulk.map(processItem))
-    .reduce((a, b) => a.concat(b), [])
-
-  return Promise.all(andThen ? withThen() : withPass())
-}
-
-// FIXME rename to somethin else
 class Tenant {
 
   constructor(tenantName) {
@@ -40,7 +13,6 @@ class Tenant {
       throw Error("When creating Tenant you have to provide his name")
     }
 
-    // FIXME rename to tenant
     this._tenantName = tenantName
   }
 

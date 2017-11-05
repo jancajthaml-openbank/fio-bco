@@ -1,13 +1,15 @@
 const jsonfile = require('jsonfile-promised')
 const log = require('./logger.js')
 
+const NoSuchFileException = 'ENOENT'
+
 async function setTransactionCheckpoint(db, tenantName, accountNumber, idTransactionTo) {
   let checkpoints
 
   try {
     checkpoints = await jsonfile.readFile(db)
   } catch (error) {
-    if (error.code === "ENOENT") {
+    if (error.code == NoSuchFileException) {
       log.info(`Database ${db} will be created for the first time`)
       checkpoints = {}
     } else {
@@ -36,7 +38,7 @@ async function getTransactionCheckpoint(db, tenantName, accountNumber) {
       ? checkpoints[tenantName][accountNumber].idTransactionTo
       : null
   } catch (error) {
-    if (error.code === "ENOENT") {
+    if (error.code == NoSuchFileException) {
       return null
     } else {
       throw error

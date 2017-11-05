@@ -11,15 +11,24 @@ services:
       - ./tests:/opt/project/tests
       - ./coverage:/opt/project/coverage
       - ./modules:/opt/project/modules
-      - ./config:/opt/project/config
-      - ./package.json:/opt/project/package.json:ro
+      - ./config:/opt/project/config:ro
     working_dir: /opt/project
     entrypoint: /bin/sh
     privileged: true
 
   test:
     extends: dev
+    volumes:
+      - ./node_modules:/opt/project/node_modules:ro
+      - ./package.json:/opt/project/package.json:ro
     entrypoint: /opt/lifecycle/test
+
+  package:
+    extends: dev
+    volumes:
+      - ./node_modules:/opt/project/node_modules:ro
+      - ./package.json:/opt/project/package.json:ro
+    entrypoint: /opt/lifecycle/package
 
   bundle:
     build:
