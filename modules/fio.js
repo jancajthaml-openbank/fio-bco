@@ -28,7 +28,7 @@ const extractDebitAccountNumber = (fioTransfer, mainAccountNumber) =>
     ? extractCounterPartAccountNumber(fioTransfer)
     : mainAccountNumber
 
-const extractCreditAccountNumber = (fioTransfer, mainAccountNumber) => 
+const extractCreditAccountNumber = (fioTransfer, mainAccountNumber) =>
   (extractAmount(fioTransfer) < 0)
     ? extractCounterPartAccountNumber(fioTransfer)
     : mainAccountNumber
