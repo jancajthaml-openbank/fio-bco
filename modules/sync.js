@@ -1,28 +1,54 @@
+/**
+ * Sync is used as simple DB that stores synchronization checkpoints of tenant's accounts in core. The structure of the
+ * DB is:
+ *
+ * {
+ *   "tenantName": {
+ *     "accountNumber1": {
+ *       "idTransactionTo": #####
+ *     },
+ *     "accountNumber2": {
+ *       "idTransactionTo": #####
+ *     }
+ *   },
+ *   "anotherTenant": ...
+ * }
+ *
+ * where idTransactionTo is ID of last transaction that was synced for given tenant and his account.
+ */
+
 const jsonfile = require('jsonfile-promised')
 const log = require('./logger.js')
+const VError = require('verror')
 
 const NoSuchFileException = 'ENOENT'
 
-async function setTransactionCheckpoint(db, tenantName, accountNumber, idTransactionTo) {
+async function setTransactionCheckpoint(db, tenantName, accountNumber, token, idTransactionTo) {
   let checkpoints
+  // Todo: add check for parameters, token is optional
 
   try {
     checkpoints = await jsonfile.readFile(db)
   } catch (error) {
-    if (error.code == NoSuchFileException) {
+    if (error.code === NoSuchFileException) {
       log.info(`Database ${db} will be created for the first time`)
       checkpoints = {}
     } else {
+      // fixme: add verror
       throw error
     }
   }
 
   if (checkpoints[tenantName]) {
-    checkpoints[tenantName][accountNumber] = { idTransactionTo }
+    checkpoints[tenantName][accountNumber] = {
+      idTransactionTo,
+      token
+    }
   } else {
     checkpoints[tenantName] = {
       [accountNumber]: {
-        idTransactionTo
+        idTransactionTo,
+        token
       }
     }
   }
@@ -31,22 +57,38 @@ async function setTransactionCheckpoint(db, tenantName, accountNumber, idTransac
 }
 
 async function getTransactionCheckpoint(db, tenantName, accountNumber) {
-  try {
-    let checkpoints = await jsonfile.readFile(db)
+  return await getCheckpoint(db, checkpoints =>
+      checkpoints[tenantName] && checkpoints[tenantName][accountNumber] ?
+      checkpoints[tenantName][accountNumber].idTransactionTo :
+      null
+  )
+}
 
-    return (checkpoints && checkpoints[tenantName] && checkpoints[tenantName][accountNumber])
-      ? checkpoints[tenantName][accountNumber].idTransactionTo
-      : null
-  } catch (error) {
-    if (error.code == NoSuchFileException) {
+async function getCheckpoint(db, searchCb) {
+  try {
+    const checkpoints = await jsonfile.readFile(db)
+    return searchCb(checkpoints)
+  } catch (err) {
+    if (err.code === NoSuchFileException)
       return null
-    } else {
-      throw error
-    }
+    throw new VError(err, `Error when reading DB file ${db}`)
   }
+}
+
+async function getTransactionCheckpointByToken(db, tenantName, token) {
+  return await getCheckpoint(db, checkpoints => {
+    if (checkpoints[tenantName]) {
+      const result = Object.values(checkpoints[tenantName]).find((account) =>
+        account.token && account.token === token
+      )
+      return result && result.idTransactionTo || null
+    }
+    return null
+  })
 }
 
 module.exports = {
   setTransactionCheckpoint,
-  getTransactionCheckpoint
+  getTransactionCheckpoint,
+  getTransactionCheckpointByToken
 }
