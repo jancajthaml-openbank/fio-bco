@@ -1,7 +1,7 @@
 const axios = require("axios")
 const sync = require("./sync.js")
 const { parallelize, getMax } = require("./utils.js")
-const log = require('./logger.js')
+const log = require("./logger.js")
 const VError = require("verror")
 
 const options = require("config").get("core")
@@ -18,7 +18,7 @@ class Tenant {
 
   async createMissingAccounts(accounts) {
     await parallelize(accounts, options.accountsParallelismSize,
-      async account => {
+      async (account) => {
         if (await this._accountExists(account.accountNumber)) {
           log.debug(`Account ${account.accountNumber} already exists`)
         } else {

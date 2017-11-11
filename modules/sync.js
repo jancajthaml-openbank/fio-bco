@@ -1,5 +1,6 @@
 /**
- * Sync is used as simple DB that stores synchronization checkpoints of tenant's accounts in core. The structure of the
+ * Sync is used as simple DB that stores synchronization checkpoints of tenant's
+ * accounts in core. The structure of the
  * DB is:
  *
  * {
@@ -14,12 +15,13 @@
  *   "anotherTenant": ...
  * }
  *
- * where idTransactionTo is ID of last transaction that was synced for given tenant and his account.
+ * where idTransactionTo is ID of last transaction that was synced for given
+ * tenant and his account.
  */
 
-const jsonfile = require('jsonfile-promised')
-const log = require('./logger.js')
-const VError = require('verror')
+const jsonfile = require("jsonfile-promised")
+const log = require("./logger.js")
+const VError = require("verror")
 
 const NoSuchFileException = 'ENOENT'
 
@@ -57,7 +59,7 @@ async function setTransactionCheckpoint(db, tenantName, accountNumber, token, id
 }
 
 async function getTransactionCheckpoint(db, tenantName, accountNumber) {
-  return await getCheckpoint(db, checkpoints =>
+  return await getCheckpoint(db, (checkpoints) =>
       checkpoints[tenantName] && checkpoints[tenantName][accountNumber] ?
       checkpoints[tenantName][accountNumber].idTransactionTo :
       null
@@ -76,7 +78,7 @@ async function getCheckpoint(db, searchCb) {
 }
 
 async function getTransactionCheckpointByToken(db, tenantName, token) {
-  return await getCheckpoint(db, checkpoints => {
+  return await getCheckpoint(db, (checkpoints) => {
     if (checkpoints[tenantName]) {
       const result = Object.values(checkpoints[tenantName]).find((account) =>
         account.token && account.token === token

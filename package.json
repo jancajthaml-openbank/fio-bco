@@ -7,8 +7,12 @@
     "test": "jest --coverage",
     "start": "node app.js"
   },
-  "author": "matus159",
   "contributors": [
+    {
+      "name": "Matus Lackovic",
+      "email": "matus.lackovic@gmail.com",
+      "url": "https://github.com/matus159"
+    },
     {
       "name": "Jan Cajthaml",
       "email": "jan.cajthaml@gmail.com",

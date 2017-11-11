@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/jancajthaml/fio-bco.svg?style=svg&circle-token=dca7fe834e3de7b35f226069ae4729e283ff1df5)](https://circleci.com/gh/jancajthaml/fio-bco) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/61e302f97d014c64b4f974a2872d467f)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=jancajthaml/fio-bco&amp;utm_campaign=Badge_Grade)
+[![CircleCI](https://circleci.com/gh/jancajthaml/fio-bco.svg?style=svg&circle-token=dca7fe834e3de7b35f226069ae4729e283ff1df5)](https://circleci.com/gh/jancajthaml/fio-bco) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c68588793efb4f0ca3b33b74d174fc8a)](https://www.codacy.com/app/jan-cajthaml/fio-bco?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=jancajthaml/fio-bco&amp;utm_campaign=Badge_Grade)
 
 ### How to run it
 

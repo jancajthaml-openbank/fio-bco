@@ -83,7 +83,7 @@ test("get transaction checkpoint, none-existing db file", async () => {
 test("get transaction checkpoint, rethrowing unknown error", async () => {
   const sync = require("../modules/sync.js")
   const jsonfile = require("jsonfile-promised")
-  const VError = require('verror')
+  const VError = require("verror")
   const error = new Error('some error')
 
   jsonfile.readFile = jest.fn(() => {
