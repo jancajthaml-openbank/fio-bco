@@ -1,0 +1,28 @@
+#!/bin/sh
+set -e
+
+####
+
+post_stop() {
+  exit_code=$?
+  echo "[INFO] terminating"
+  exit $exit_code
+}
+
+trap exit SIGINT
+trap post_stop EXIT
+
+echo "[INFO] starting"
+
+[ -z "$TENANT_NAME" ] && {
+	echo "[ERRO] missing TENANT_NAME env variable"
+	exit 1
+} || : 
+
+[ -z "$FIO_TOKEN" ] && {
+	echo "[ERRO] missing FIO_TOKEN env variable"
+	exit 1
+} || : 
+
+cd /opt/fio-bco && \
+	dumb-init node app.js $TENANT_NAME $FIO_TOKEN
