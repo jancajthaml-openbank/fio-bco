@@ -1,0 +1,45 @@
+version: '2'
+
+services:
+
+  dev:
+    image: fio-bco/dev:base
+    build:
+      context: ..
+      dockerfile: dev/image.dev.Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - ./lifecycle:/opt/lifecycle:ro
+      - ../tests:/opt/project/tests
+      - ../coverage:/opt/project/coverage
+      - ../modules:/opt/project/modules
+      - ../config:/opt/project/config:ro
+    working_dir: /opt/project
+    entrypoint: ["/bin/sh"]
+    privileged: true
+
+  test:
+    image: fio-bco/dev:test
+    extends: dev
+    volumes:
+      - ../node_modules:/opt/project/node_modules:ro
+      - ../package.json:/opt/project/package.json:ro
+    entrypoint: ["/opt/lifecycle/test"]
+
+  package:
+    image: fio-bco/dev:package
+    extends: dev
+    volumes:
+      - ../node_modules:/opt/project/node_modules:ro
+      - ../package.json:/opt/project/package.json:ro
+    entrypoint: ["/opt/lifecycle/package"]
+
+  artefact:
+    image: openbank/fio-bco:latest
+    build:
+      context: ..
+      dockerfile: dev/image.prod.Dockerfile
+    env_file:
+      - .env
+    restart: unless-stopped

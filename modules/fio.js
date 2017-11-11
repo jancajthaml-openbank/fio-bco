@@ -14,13 +14,13 @@ const { sleep, parseDate } = require("./utils.js")
 
 const options = require("config").get("fio")
 
-const extractCounterPartAccountNumber = _ =>
+const extractCounterPartAccountNumber = (_) =>
   ((_.column2 && _.column2.value) || "FIO")
 
-const extractAmount = _ =>
+const extractAmount = (_) =>
   Number(_.column1.value)
 
-const extractAbsAmount = _ =>
+const extractAbsAmount = (_) =>
   Math.abs(Number(_.column1.value))
 
 const extractDebitAccountNumber = (fioTransfer, mainAccountNumber) =>
@@ -28,24 +28,24 @@ const extractDebitAccountNumber = (fioTransfer, mainAccountNumber) =>
     ? extractCounterPartAccountNumber(fioTransfer)
     : mainAccountNumber
 
-const extractCreditAccountNumber = (fioTransfer, mainAccountNumber) => 
+const extractCreditAccountNumber = (fioTransfer, mainAccountNumber) =>
   (extractAmount(fioTransfer) < 0)
     ? extractCounterPartAccountNumber(fioTransfer)
     : mainAccountNumber
 
-const extractTransferValueDate = _ =>
+const extractTransferValueDate = (_) =>
   parseDate(_.column0.value).toISOString()
 
-const extractTransferId = _ =>
+const extractTransferId = (_) =>
   String(_.column22.value)
 
-const extractTransactionId = _ =>
+const extractTransactionId = (_) =>
   _.column17.value
 
-const extractMainAccountNumber = _ =>
+const extractMainAccountNumber = (_) =>
   _.accountStatement.info.iban
 
-const extractMainAccountCurrency = _ =>
+const extractMainAccountCurrency = (_) =>
   _.accountStatement.info.currency
 
 const fioTransferToCoreTransfer = (fioTransfer, mainAccountNumber, mainAccountCurrency) => ({

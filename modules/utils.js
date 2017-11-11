@@ -1,4 +1,3 @@
-
 const getMax = (a, b) => a > b ? a : b
 
 const partition = (list, chunkSize) => {
@@ -17,21 +16,21 @@ const partition = (list, chunkSize) => {
 const parallelize = (items, partitionSize, processItem, andThen) => {
 
   let withThen = () => partition(items, partitionSize)
-    .map(bulk => Promise.all(bulk.map(processItem)).then(andThen))
+    .map((bulk) => Promise.all(bulk.map(processItem)).then(andThen))
 
   let withPass = () => partition(items, partitionSize)
-    .map(bulk => bulk.map(processItem))
+    .map((bulk) => bulk.map(processItem))
     .reduce((a, b) => a.concat(b), [])
 
   return Promise.all(andThen ? withThen() : withPass())
 }
 
-const sleep = ms => new Promise(andThen => setTimeout(andThen, ms))
+const sleep = (ms) => new Promise((andThen) => setTimeout(andThen, ms))
 
-const parseDate = input => {
+const parseDate = (input) => {
   let idx = input.indexOf('+')
 
-  return new Date((idx == -1)
+  return new Date((idx === -1)
     ? `${input}T00:00:00+0000`
     : `${input.substring(0, idx)}T00:00:00${input.substring(idx)}`)  
 }

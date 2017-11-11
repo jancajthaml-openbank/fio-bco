@@ -1,33 +1,32 @@
-NAME = jancajthaml/fio_bco
-VERSION = $$(git rev-parse --abbrev-ref HEAD 2> /dev/null | rev | cut -d/ -f1 | rev)
+NAME = openbank/fio-bco
+VERSION = $$(git rev-parse --abbrev-ref HEAD 2> /dev/null | sed 's:.*/::')
 CORES := $$(getconf _NPROCESSORS_ONLN)
 
 .PHONY: all
-all: package bundle authors
+all: package bundle
 
 .PHONY: package
 package:
-	docker-compose run --rm package
+	docker-compose -f dev/docker-compose.yml \
+		run --rm package
 
 .PHONY: test
 test:
-	docker-compose run --rm test
+	docker-compose -f dev/docker-compose.yml \
+		run --rm test
 
 .PHONY: bundle
 bundle:
-	docker-compose build bundle
+	docker-compose -f dev/docker-compose.yml \
+		build artefact
 
 .PHONY: run
 run:
-	docker-compose run \
+	docker-compose -f dev/docker-compose.yml \
+		run \
 		--rm \
 		--no-deps \
 		--service-ports \
 		-e TENANT_NAME=$(TENANT_NAME) \
-		-e ACCOUNT_IBAN=$(ACCOUNT_IBAN) \
 		-e FIO_TOKEN=$(FIO_TOKEN) \
-		bundle
-
-.PHONY: authors
-authors:
-	@git log --format='%aN <%aE>' | sort -fu > AUTHORS
+		artefact

@@ -1,0 +1,18 @@
+#!/bin/sh
+set -e
+trap exit TERM INT
+
+echo "[INFO] starting"
+
+if [ -z "$TENANT_NAME" ] ; then
+	echo "[ERRO] missing TENANT_NAME env variable"
+	exit 1
+fi
+
+if [ -z "$FIO_TOKEN" ] ; then
+	echo "[ERRO] missing FIO_TOKEN env variable"
+	exit 1
+fi
+
+cd /opt/fio-bco && \
+	dumb-init node app.js $TENANT_NAME $FIO_TOKEN
