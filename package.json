@@ -18,7 +18,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.16.2",
-    "config": "^1.26.2",
+    "config": "^1.27.0",
     "jsonfile": "^4.0.0",
     "jsonfile-promised": "0.0.1",
     "verror": "^1.10.0",
