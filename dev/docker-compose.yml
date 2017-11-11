@@ -10,7 +10,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ../lifecycle:/opt/lifecycle:ro
+      - ./lifecycle:/opt/lifecycle:ro
       - ../tests:/opt/project/tests
       - ../coverage:/opt/project/coverage
       - ../modules:/opt/project/modules
