@@ -1,0 +1,5 @@
+#!/bin/sh
+set -e
+trap exit TERM INT
+
+npm test
