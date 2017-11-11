@@ -22,12 +22,11 @@ npm start <tenant_name> <fio_token> [wait]
 ```
 make
 
-TENANT_NAME=<tenant_name> ACCOUNT_IBAN=<tenant_accountIban> FIO_TOKEN=<fio_token> \
+TENANT_NAME=<tenant_name>  FIO_TOKEN=<fio_token> \
 make run
 ```
 
 - <tenant_name> - name of tenant in core
-- <tenant_accountIban> - iban of the account that is synced to transaction core
 - <fio_token> - token that is used to access account via FIO api, read-only token is sufficient
 
 ### What it does

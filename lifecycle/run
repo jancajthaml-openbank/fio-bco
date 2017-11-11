@@ -19,15 +19,10 @@ echo "[INFO] starting"
 	exit 1
 } || : 
 
-[ -z "$ACCOUNT_IBAN" ] && {
-	echo "[ERRO] missing ACCOUNT_IBAN env variable"
-	exit 1
-} || : 
-
 [ -z "$FIO_TOKEN" ] && {
 	echo "[ERRO] missing FIO_TOKEN env variable"
 	exit 1
 } || : 
 
 cd /opt/fio-bco && \
-	dumb-init node app.js $TENANT_NAME $ACCOUNT_IBAN $FIO_TOKEN
+	dumb-init node app.js $TENANT_NAME $FIO_TOKEN
