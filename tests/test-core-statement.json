@@ -2,7 +2,6 @@
   "accountNumber": "CZ7920100000002400222233",
   "transactions": [
     {
-      "blame": "fio-bco",
       "id": "2121115983",
       "transfers": [
         {
@@ -16,7 +15,6 @@
       ]
     },
     {
-      "blame": "fio-bco",
       "id": "2135081594",
       "transfers": [
         {
@@ -38,7 +36,6 @@
       ]
     },
     {
-      "blame": "fio-bco",
       "id": "2151261787",
       "transfers": [
         {

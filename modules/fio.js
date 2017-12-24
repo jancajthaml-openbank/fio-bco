@@ -14,14 +14,14 @@ const { sleep, parseDate } = require("./utils.js")
 
 const options = require("config").get("fio")
 
-const extractCounterPartAccountNumber = (_) =>
-  ((_.column2 && _.column2.value) || "FIO")
+const extractCounterPartAccountNumber = (row) =>
+  (row.column2 && row.column2.value || "FIO")
 
-const extractAmount = (_) =>
-  Number(_.column1.value)
+const extractAmount = (row) =>
+  Number(row.column1.value)
 
-const extractAbsAmount = (_) =>
-  Math.abs(Number(_.column1.value))
+const extractAbsAmount = (row) =>
+  Math.abs(Number(row.column1.value))
 
 const extractDebitAccountNumber = (fioTransfer, mainAccountNumber) =>
   (extractAmount(fioTransfer) > 0)
@@ -33,20 +33,20 @@ const extractCreditAccountNumber = (fioTransfer, mainAccountNumber) =>
     ? extractCounterPartAccountNumber(fioTransfer)
     : mainAccountNumber
 
-const extractTransferValueDate = (_) =>
-  parseDate(_.column0.value).toISOString()
+const extractTransferValueDate = (row) =>
+  parseDate(row.column0.value).toISOString()
 
-const extractTransferId = (_) =>
-  String(_.column22.value)
+const extractTransferId = (row) =>
+  String(row.column22.value)
 
-const extractTransactionId = (_) =>
-  _.column17.value
+const extractTransactionId = (row) =>
+  String(row.column17.value)
 
-const extractMainAccountNumber = (_) =>
-  _.accountStatement.info.iban
+const extractMainAccountNumber = (row) =>
+  row.accountStatement.info.iban
 
-const extractMainAccountCurrency = (_) =>
-  _.accountStatement.info.currency
+const extractMainAccountCurrency = (row) =>
+  row.accountStatement.info.currency
 
 const fioTransferToCoreTransfer = (fioTransfer, mainAccountNumber, mainAccountCurrency) => ({
   "id": extractTransferId(fioTransfer),
@@ -66,7 +66,7 @@ function fioTransfersToCoreTransactions(fioTransfers, mainAccountNumber, mainAcc
         coreTransactions[transactionId].transfers.push(fioTransferToCoreTransfer(fioTransfer, mainAccountNumber, mainAccountCurrency))
       } else {
         coreTransactions[transactionId] = {
-          "blame": "fio-bco", // FIXME to config
+          "id": transactionId,
           "transfers": [fioTransferToCoreTransfer(fioTransfer, mainAccountNumber, mainAccountCurrency)]
         }
       }
@@ -75,7 +75,6 @@ function fioTransfersToCoreTransactions(fioTransfers, mainAccountNumber, mainAcc
 
   // Return as array
   return Object.keys(result).map(transactionId => {
-    // FIXME possible undefined
     const transaction = result[transactionId]
     transaction.id = transactionId
     return transaction
@@ -104,7 +103,6 @@ function extractUniqueCoreAccounts(fioAccountStatement) {
     })
     .map(extractCounterPartAccountNumber)
 
-  // add main account
   coreAccounts.push(extractMainAccountNumber(fioAccountStatement))
 
   return coreAccounts.map(accountNumber => ({
@@ -118,7 +116,7 @@ async function setLastTransaction(token, idLastTransaction) {
   try {
     return await axios.get(idLastTransaction
       ? `${options.apiUrl}/set-last-id/${token}/${idLastTransaction}/`
-      : `${options.apiUrl}/set-last-date/${token}/1900-01-01/`
+      : `${options.apiUrl}/set-last-date/${token}/2012-07-27/`
     )
   } catch (err) {
     throw new VError(err, "Request to FIO api failed")
@@ -129,7 +127,7 @@ async function getLastTransactions(token, retry) {
   try {
     return await axios.get(`${options.apiUrl}/last/${token}/transactions.json`)
   } catch (err) {
-    if (err.response && err.response.status === 409) {
+    if (err.response && (err.response.status === 409)) {
       if (retry) {
         log.warn(`Request to FIO for transactions is too early - waiting ${options.backoffIntervalSec} seconds ...`)
 

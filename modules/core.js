@@ -1,6 +1,6 @@
 const axios = require("axios")
 const sync = require("./sync.js")
-const { parallelize, getMax } = require("./utils.js")
+const { elapsedTime, parallelize, getMax } = require("./utils.js")
 const log = require("./logger.js")
 const VError = require("verror")
 
@@ -8,93 +8,95 @@ const options = require("config").get("core")
 
 class Tenant {
 
-  constructor(tenantName) {
-    if (!tenantName) {
+  constructor(tenant) {
+    if (!tenant) {
       throw Error("When creating Tenant you have to provide his name")
     }
 
-    this._tenantName = tenantName
+    this._tenant = tenant
   }
 
   async createMissingAccounts(accounts) {
-    await parallelize(accounts, options.accountsParallelismSize,
+    log.info(`Asserting ${accounts.length} accounts for tenant ${this._tenant}`)
+
+    let t0 = process.hrtime()
+    await parallelize(accounts,
       async (account) => {
         if (await this._accountExists(account.accountNumber)) {
           log.debug(`Account ${account.accountNumber} already exists`)
         } else {
           try {
-            await axios.post(`${this._apiUrl}/account`, account)
+            await axios.post(`${this._baseUrl}/account/${this._tenant}`, account)
             log.debug(`Created account ${account.accountNumber}`)
           } catch (err) {
-            throw new VError(err, "Request to core api failed")
+            throw new VError(err, "Account core api")
           }
         }
       }
     )
 
-    log.info(`Created missing accounts for tenant ${this._tenantName}`)
+    log.info(`Creation of ${accounts.length} accounts took ${elapsedTime(t0)}.`)
   }
 
   async createTransactions(transactions, accountNumber, token) {
-    await parallelize(transactions, options.transactionsParallelismSize,
-      async (transaction, index) => {
-        // TODO: should be part of fioTransfersToCoreTransactions, here we just pass core transaction to core
-        const transferId = transaction.transfers.reduce((maxTransferId, transfer) => {
-          const newMaxTransferId = getMax(maxTransferId, transfer.id)
-          delete(transfer.id)
-          return newMaxTransferId
-        }, null)
+    if (transactions.length > 0) {
+      log.info(`Creating ${transactions.length} new transactions for tenant ${this._tenant}`)
 
-        try {
-          await axios.put(`${this._apiUrl}/transaction`, transaction)
-          log.debug(`Created transaction ID ${transaction.id}`)
-        } catch (err) {
-          // Returned by core when transaction already exists but with different data
-          if (err.response && err.response.status === 406) {
-            log.warn(`Transaction with ID ${transaction.id} already exits in core but has different data.
-                      Source data: 
-                      ` + JSON.stringify(transaction, null, 2))
-          } else {
-            throw new VError(err, "Unable to create transaction in core")
+      let t0 = process.hrtime()
+      await parallelize(transactions,
+        async (transaction, index) => {
+          //const transferId = transaction.transfers.map((transfer) => transfer.id).reduce(getMax)
+
+          try {
+            await axios.post(`${this._baseUrl}/transaction/${this._tenant}`, transaction)
+            log.debug(`Created transaction ID ${transaction.id}`)
+          } catch (err) {
+            // Returned by core when transaction already exists but with different data
+            if (err.response && err.response.status === 406) {
+              log.warn(`Transaction with ID ${transaction.id} already exits in core but has different data.
+                        Source data:
+                        ` + JSON.stringify(transaction, null, 2))
+            } else {
+              throw new VError(err, "Transaction core api")
+            }
           }
+          return transaction.transfers.map((transfer) => transfer.id).reduce(getMax)
+        },
+        async (transferIds) => {
+          const max = transferIds.reduce(getMax)
+          await sync.setTransactionCheckpoint(options.db, this._tenant, accountNumber, token, max)
+          log.debug(`Max TransferId ${max}`)
+          log.info(`Creation of ${transactions.length} transactions took ${elapsedTime(t0)}.`)
         }
-        return transferId
-      },
-      async (transferIds) => {
-        const max = transferIds.reduce(getMax)
-        await sync.setTransactionCheckpoint(options.db, this._tenantName, accountNumber, token, max)
-        log.debug(`Max ID ${max}`)
-      }
-    )
-
-    log.info(`Created transactions for tenant ${this._tenantName}`)
+      )
+    }
   }
 
   async getCheckpointByAccountNumber(accountNumber) {
-    const transactionCheckpoint = await sync.getTransactionCheckpoint(options.db, this._tenantName, accountNumber)
-    log.info(`Checkpoint for tenant/account ${this._tenantName}/${accountNumber}:${transactionCheckpoint}`)
+    const transactionCheckpoint = await sync.getTransactionCheckpoint(options.db, this._tenant, accountNumber)
+    log.info(`Checkpoint for tenant/account ${this._tenant}/${accountNumber}:${transactionCheckpoint}`)
     return transactionCheckpoint
   }
 
   async getCheckpointByToken(token) {
-    const transactionCheckpoint = await sync.getTransactionCheckpointByToken(options.db, this._tenantName, token)
-    log.info(`Checkpoint (by token) for tenant ${this._tenantName}:${transactionCheckpoint}`)
+    const transactionCheckpoint = await sync.getTransactionCheckpointByToken(options.db, this._tenant, token)
+    log.info(`Checkpoint (by token) for tenant ${this._tenant}:${transactionCheckpoint}`)
     return transactionCheckpoint
   }
 
-  get _apiUrl() {
-    return `${options.url}/v1/${this._tenantName}/core`
+  get _baseUrl() {
+    return `${options.url}/v1/sparrow`
   }
 
   async _accountExists(accountNumber) {
     try {
-      await axios.get(`${this._apiUrl}/account/${accountNumber}`)
+      await axios.get(`${this._baseUrl}/account/${this._tenant}/${accountNumber}`)
       return true
     } catch (err) {
       if (err.response && err.response.status === 404) {
         return false
       } else {
-        throw new VError(err, "Request to core api failed")
+        throw new VError(err, "Account core api")
       }
     }
   }

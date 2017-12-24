@@ -5,8 +5,8 @@ services:
   dev:
     image: fio-bco/dev:base
     build:
-      context: ..
-      dockerfile: dev/image.dev.Dockerfile
+      context: .
+      dockerfile: images/dev.Dockerfile
     env_file:
       - .env
     volumes:
@@ -23,7 +23,7 @@ services:
     image: fio-bco/dev:test
     extends: dev
     volumes:
-      - ../node_modules:/opt/project/node_modules:ro
+      - ../node_modules:/opt/project/node_modules
       - ../package.json:/opt/project/package.json:ro
     entrypoint: ["/opt/lifecycle/test"]
 
@@ -31,7 +31,7 @@ services:
     image: fio-bco/dev:package
     extends: dev
     volumes:
-      - ../node_modules:/opt/project/node_modules:ro
+      - ../node_modules:/opt/project/node_modules
       - ../package.json:/opt/project/package.json:ro
     entrypoint: ["/opt/lifecycle/package"]
 
@@ -39,7 +39,11 @@ services:
     image: openbank/fio-bco:latest
     build:
       context: ..
-      dockerfile: dev/image.prod.Dockerfile
+      dockerfile: dev/images/prod.Dockerfile
     env_file:
       - .env
+    volumes:
+      - ../dev/data-real:/data
+      - ../config/default.json:/opt/fio-bco/config/default.json:ro
     restart: unless-stopped
+    network_mode: "host"

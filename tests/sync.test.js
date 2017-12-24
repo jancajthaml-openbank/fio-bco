@@ -11,11 +11,11 @@ test("get transaction checkpoint, existing tenant and existing account number", 
   jsonfile.readFile = jest.fn(() => {
     return {
       "johny": {
-        "CZ7920100000002400222233": {"idTransactionTo": 2151261787},
-        "CZ7120100000002700968855": {"idTransactionTo": 14434862430}
+        "CZ7920100000002400222233": {"idTransferTo": 2151261787},
+        "CZ7120100000002700968855": {"idTransferTo": 14434862430}
       },
-      "johny2": {"CZ7120100000002700968855": {"idTransactionTo": 14434862665}},
-      "johny3": {"CZ7120100000002700968855": {"idTransactionTo": 14438087888}}
+      "johny2": {"CZ7120100000002700968855": {"idTransferTo": 14434862665}},
+      "johny3": {"CZ7120100000002700968855": {"idTransferTo": 14438087888}}
     }
   })
 
@@ -31,11 +31,11 @@ test("get transaction checkpoint, existing tenant and none-existing account numb
   jsonfile.readFile = jest.fn(() => {
     return {
       "johny": {
-        "CZ7920100000002400222233": {"idTransactionTo": 2151261787},
-        "CZ7120100000002700968855": {"idTransactionTo": 14434862430}
+        "CZ7920100000002400222233": {"idTransferTo": 2151261787},
+        "CZ7120100000002700968855": {"idTransferTo": 14434862430}
       },
-      "johny2": {"CZ7120100000002700968855": {"idTransactionTo": 14434862665}},
-      "johny3": {"CZ7120100000002700968855": {"idTransactionTo": 14438087888}}
+      "johny2": {"CZ7120100000002700968855": {"idTransferTo": 14434862665}},
+      "johny3": {"CZ7120100000002700968855": {"idTransferTo": 14438087888}}
     }
   })
 
@@ -51,11 +51,11 @@ test("get transaction checkpoint, none-existing tenant", async () => {
   jsonfile.readFile = jest.fn(() => {
     return {
       "johny": {
-        "CZ7920100000002400222233": {"idTransactionTo": 2151261787},
-        "CZ7120100000002700968855": {"idTransactionTo": 14434862430}
+        "CZ7920100000002400222233": {"idTransferTo": 2151261787},
+        "CZ7120100000002700968855": {"idTransferTo": 14434862430}
       },
-      "johny2": {"CZ7120100000002700968855": {"idTransactionTo": 14434862665}},
-      "johny3": {"CZ7120100000002700968855": {"idTransactionTo": 14438087888}}
+      "johny2": {"CZ7120100000002700968855": {"idTransferTo": 14434862665}},
+      "johny3": {"CZ7120100000002700968855": {"idTransferTo": 14438087888}}
     }
   })
 
@@ -106,11 +106,11 @@ test("set transaction checkpoint, none-existing tenant", async () => {
   jsonfile.readFile = jest.fn(() => {
     return {
       "johny": {
-        "CZ7920100000002400222233": {"idTransactionTo": 2151261787},
-        "CZ7120100000002700968855": {"idTransactionTo": 14434862430}
+        "CZ7920100000002400222233": {"idTransferTo": 2151261787},
+        "CZ7120100000002700968855": {"idTransferTo": 14434862430}
       },
-      "johny2": {"CZ7120100000002700968855": {"idTransactionTo": 14434862665}},
-      "johny3": {"CZ7120100000002700968855": {"idTransactionTo": 14438087888}}
+      "johny2": {"CZ7120100000002700968855": {"idTransferTo": 14434862665}},
+      "johny3": {"CZ7120100000002700968855": {"idTransferTo": 14438087888}}
     }
   })
   jsonfile.writeFile = jest.fn()
@@ -119,12 +119,12 @@ test("set transaction checkpoint, none-existing tenant", async () => {
 
   expect(jsonfile.writeFile.mock.calls[0][1]).toEqual({
     "johny": {
-      "CZ7920100000002400222233": {"idTransactionTo": 2151261787},
-      "CZ7120100000002700968855": {"idTransactionTo": 14434862430}
+      "CZ7920100000002400222233": {"idTransferTo": 2151261787},
+      "CZ7120100000002700968855": {"idTransferTo": 14434862430}
     },
-    "johny2": {"CZ7120100000002700968855": {"idTransactionTo": 14434862665}},
-    "johny3": {"CZ7120100000002700968855": {"idTransactionTo": 14438087888}},
-    "newTenant": {"accountNumber": {"idTransactionTo": 12345, "token": "test_token"}}
+    "johny2": {"CZ7120100000002700968855": {"idTransferTo": 14434862665}},
+    "johny3": {"CZ7120100000002700968855": {"idTransferTo": 14438087888}},
+    "newTenant": {"accountNumber": {"idTransferTo": 12345, "token": "test_token"}}
   })
 })
 
@@ -135,11 +135,11 @@ test("set transaction checkpoint, existing tenant, none-existing account number"
   jsonfile.readFile = jest.fn(() => {
     return {
       "johny": {
-        "CZ7920100000002400222233": {"idTransactionTo": 2151261787},
-        "CZ7120100000002700968855": {"idTransactionTo": 14434862430}
+        "CZ7920100000002400222233": {"idTransferTo": 2151261787},
+        "CZ7120100000002700968855": {"idTransferTo": 14434862430}
       },
-      "johny2": {"CZ7120100000002700968855": {"idTransactionTo": 14434862665}},
-      "johny3": {"CZ7120100000002700968855": {"idTransactionTo": 14438087888}}
+      "johny2": {"CZ7120100000002700968855": {"idTransferTo": 14434862665}},
+      "johny3": {"CZ7120100000002700968855": {"idTransferTo": 14438087888}}
     }
   })
   jsonfile.writeFile = jest.fn()
@@ -148,13 +148,13 @@ test("set transaction checkpoint, existing tenant, none-existing account number"
 
   expect(jsonfile.writeFile.mock.calls[0][1]).toEqual({
     "johny": {
-      "CZ7920100000002400222233": {"idTransactionTo": 2151261787},
-      "CZ7120100000002700968855": {"idTransactionTo": 14434862430}
+      "CZ7920100000002400222233": {"idTransferTo": 2151261787},
+      "CZ7120100000002700968855": {"idTransferTo": 14434862430}
     },
-    "johny2": {"CZ7120100000002700968855": {"idTransactionTo": 14434862665}},
+    "johny2": {"CZ7120100000002700968855": {"idTransferTo": 14434862665}},
     "johny3": {
-      "CZ7120100000002700968855": {"idTransactionTo": 14438087888},
-      "accountNumber": {"idTransactionTo": 12345, "token": "test_token"}
+      "CZ7120100000002700968855": {"idTransferTo": 14438087888},
+      "accountNumber": {"idTransferTo": 12345, "token": "test_token"}
     }
   })
 })
@@ -172,7 +172,7 @@ test("set transaction checkpoint, none existing db file", async () => {
 
   await sync.setTransactionCheckpoint("testdb.json", "johny3", "accountNumber", "test_token", 12345)
 
-  expect(jsonfile.writeFile.mock.calls[0][1]).toEqual( {"johny3": {"accountNumber": {"idTransactionTo": 12345, "token": "test_token" } } } )
+  expect(jsonfile.writeFile.mock.calls[0][1]).toEqual( {"johny3": {"accountNumber": {"idTransferTo": 12345, "token": "test_token" } } } )
 })
 
 test("set transaction checkpoint, rethrow unknown error", async () => {
@@ -208,11 +208,11 @@ test("getTransactionCheckpointByToken - token exists", async () => {
     .mockImplementationOnce(() => {
        return {
         "johny": {
-          "CZ7920100000002400222233": {"idTransactionTo": 2151261787, "token": "another_token"},
-          "CZ7120100000002700968855": {"idTransactionTo": 14434862430}
+          "CZ7920100000002400222233": {"idTransferTo": 2151261787, "token": "another_token"},
+          "CZ7120100000002700968855": {"idTransferTo": 14434862430}
         },
-        "johny2": {"CZ7120100000002700968855": {"idTransactionTo": 14434862665, "token": "another_token"}},
-         [testTenantName]: {"CZ7120100000002700968855": {"idTransactionTo": testIdTransactionTo, "token": testToken}}
+        "johny2": {"CZ7120100000002700968855": {"idTransferTo": 14434862665, "token": "another_token"}},
+         [testTenantName]: {"CZ7120100000002700968855": {"idTransferTo": testIdTransactionTo, "token": testToken}}
       }
     })
 
@@ -235,10 +235,10 @@ test("getTransactionCheckpointByToken - tenant doesn't exist", async () => {
     .mockImplementationOnce(() => {
       return {
         "johny": {
-          "CZ7920100000002400222233": {"idTransactionTo": 2151261787, "token": "another_token"},
-          "CZ7120100000002700968855": {"idTransactionTo": 14434862430}
+          "CZ7920100000002400222233": {"idTransferTo": 2151261787, "token": "another_token"},
+          "CZ7120100000002700968855": {"idTransferTo": 14434862430}
         },
-        "johny2": {"CZ7120100000002700968855": {"idTransactionTo": 14434862665, "token": "another_token"}}
+        "johny2": {"CZ7120100000002700968855": {"idTransferTo": 14434862665, "token": "another_token"}}
       }
     })
 

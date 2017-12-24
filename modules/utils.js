@@ -1,43 +1,29 @@
-const getMax = (a, b) => a > b ? a : b
+const getMax = (a, b) => +a > +b ? a : b
 
-const partition = (list, chunkSize) => {
-  let groups = [], i = 0, j = chunkSize, len = list.length
-
-  while (i < len) {
-    groups.push(list.slice(i, j))
-
-    i = j
-    j += chunkSize
-  }
-
-  return groups
-}
-
-const parallelize = (items, partitionSize, processItem, andThen) => {
-
-  let withThen = () => partition(items, partitionSize)
-    .map((bulk) => Promise.all(bulk.map(processItem)).then(andThen))
-
-  let withPass = () => partition(items, partitionSize)
-    .map((bulk) => bulk.map(processItem))
-    .reduce((a, b) => a.concat(b), [])
-
-  return Promise.all(andThen ? withThen() : withPass())
-}
+// FIXME differentiate between success and failure, pass only successfull to andThen
+const parallelize = (items, processItem, andThen) => andThen
+  ? Promise.all(items.map(processItem)).then(andThen)
+  : Promise.all(items.map(processItem))
 
 const sleep = (ms) => new Promise((andThen) => setTimeout(andThen, ms))
+
+const elapsedTime = (start) => {
+  var elapsed = process.hrtime(start)[1] / 1000000;
+  return process.hrtime(start)[0] + " s, " + elapsed.toFixed(3) + " ms"
+}
 
 const parseDate = (input) => {
   let idx = input.indexOf('+')
 
   return new Date((idx === -1)
     ? `${input}T00:00:00+0000`
-    : `${input.substring(0, idx)}T00:00:00${input.substring(idx)}`)  
+    : `${input.substring(0, idx)}T00:00:00${input.substring(idx)}`)
 }
 
 module.exports = {
   getMax,
   parallelize,
   sleep,
-  parseDate
+  parseDate,
+  elapsedTime
 }

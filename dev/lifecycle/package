@@ -2,4 +2,7 @@
 set -e
 trap exit TERM INT
 
+chown $(whoami) /opt/project/node_modules
+chmod +w /opt/project/node_modules
+
 npm i --unsafe-perm
