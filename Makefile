@@ -1,9 +1,7 @@
-NAME = openbank/fio-bco
-VERSION = $$(git rev-parse --abbrev-ref HEAD 2> /dev/null | sed 's:.*/::')
 CORES := $$(getconf _NPROCESSORS_ONLN)
 
 .PHONY: all
-all: package bundle
+all: package test bundle bbtest
 
 .PHONY: package
 package:
@@ -14,6 +12,12 @@ package:
 test:
 	docker-compose -f dev/docker-compose.yml \
 		run --rm test
+
+.PHONY: bbtest
+bbtest:
+	docker rm -f $$(docker-compose -f dev/docker-compose-bbtest.yml ps -q) 2> /dev/null || :
+	docker-compose -f dev/docker-compose-bbtest.yml run bbtest
+	docker rm -f $$(docker-compose -f dev/docker-compose-bbtest.yml ps -q) 2> /dev/null || :
 
 .PHONY: bundle
 bundle:

@@ -1,0 +1,45 @@
+version: '2'
+
+services:
+
+  bbtest:
+    build:
+      context: .
+      dockerfile: images/bbtest.Dockerfile
+    image: fio-bco/dev:bbtest
+    working_dir: /opt/blackbox-test
+    depends_on:
+      - server
+      - queue
+      - vault
+    environment:
+      - PERSISTENCE_PATH=/data
+    volumes:
+      - ./tmp/data:/data
+      - ./blackbox-test:/opt/blackbox-test
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  server:
+    image: openbank/server:latest
+    restart: unless-stopped
+    environment:
+      - PERSISTENCE_PATH=/data
+    volumes:
+      - ./tmp/data:/data
+    ports:
+      - "8080"
+
+  queue:
+    image: openbank/queue:latest
+    restart: unless-stopped
+    ports:
+      - "5562"
+      - "5561"
+
+  vault:
+    image: openbank/vault:latest
+    restart: unless-stopped
+    environment:
+      - PERSISTENCE_PATH=/data
+    volumes:
+      - ./tmp/data:/data

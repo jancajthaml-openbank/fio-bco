@@ -92,7 +92,7 @@ test("Set position to the beginning", async () => {
 
   const result = await fio.getFioAccountStatement("s4cret", null, false)
 
-  expect(axios.get.mock.calls[0][0]).toBe("https://www.fio.cz/ib_api/rest/set-last-date/s4cret/1900-01-01/")
+  expect(axios.get.mock.calls[0][0]).toBe("https://www.fio.cz/ib_api/rest/set-last-date/s4cret/2012-07-27/")
 })
 
 test("Set position to the specific transaction", async () => {

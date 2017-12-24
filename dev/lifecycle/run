@@ -2,7 +2,7 @@
 set -e
 trap exit TERM INT
 
-echo "[INFO] starting"
+echo "info: starting"
 
 if [ -z "$TENANT_NAME" ] ; then
 	echo "[ERRO] missing TENANT_NAME env variable"
@@ -10,7 +10,7 @@ if [ -z "$TENANT_NAME" ] ; then
 fi
 
 if [ -z "$FIO_TOKEN" ] ; then
-	echo "[ERRO] missing FIO_TOKEN env variable"
+	echo "error: missing FIO_TOKEN env variable"
 	exit 1
 fi
 

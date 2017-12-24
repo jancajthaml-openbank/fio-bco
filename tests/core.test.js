@@ -45,10 +45,47 @@ test("Tenant.createMissingAccounts - core api returns 500", async () => {
   ]
 
   const tenant = new core.Tenant("test2")
-  // Here we test the situation that the core api returns 500 for get account request
-  await expect(tenant.createMissingAccounts(testAccounts)).rejects.toEqual(new VError(internalServerError, "Request to core api failed"))
-  // Here we test the situation that the core api returns 500 for post account request
-  await expect(tenant.createMissingAccounts(testAccounts)).rejects.toEqual(new VError(internalServerError, "Request to core api failed"))
+
+
+  await expect(tenant.createMissingAccounts(testAccounts)).rejects.toEqual(new VError(internalServerError, "Account core api"))
+  await expect(tenant.createMissingAccounts(testAccounts)).rejects.toEqual(new VError(internalServerError, "Account core api"))
+
+})
+
+test("Tenant.createTransactions - core api returns 500", async () => {
+  const axios = require("axios")
+  const VError = require("verror")
+  const core = require("../modules/core.js")
+
+  const internalServerError = new Error()
+  internalServerError.response = {"status": 500}
+
+  const testTenantName = "test"
+  const testToken = "test_token"
+  const testAccountNumber = "test_acc_num"
+  const testTransactions = [
+    {
+      "id": "2151261787",
+      "transfers": [
+        {
+          "amount": "20",
+          "credit": "CZ7920100000002400222233",
+          "currency": "CZK",
+          "debit": "FIO",
+          "id": "1158218999",
+          "valueDate": "2016-03-26T23:00:00.000Z"
+        }
+      ]
+    }
+  ]
+
+  axios.post = jest.fn()
+    .mockImplementationOnce(() => {
+      throw internalServerError
+    })
+
+  const tenant = new core.Tenant(testTenantName)
+  await expect(tenant.createTransactions(testTransactions, testAccountNumber, testToken)).rejects.toEqual(new VError(internalServerError, "Transaction core api"))
 })
 
 test("Tenant.createMissingAccounts - one account from list already exits", async () => {
@@ -84,18 +121,19 @@ test("Tenant.createMissingAccounts - one account from list already exits", async
     }
   ]
 
-  const tenant = new core.Tenant("test")
+  const tenantName = "test"
+  const tenant = new core.Tenant(tenantName)
   await tenant.createMissingAccounts(testAccounts)
 
   expect(axios.get).toHaveBeenCalledTimes(3)
   expect(axios.post).toHaveBeenCalledTimes(2)
-  expect(axios.post.mock.calls[0][0]).toBe("http://127.0.0.1:8080/v1/test/core/account")
+  expect(axios.post.mock.calls[0][0]).toBe(`http://127.0.0.1:8080/v1/sparrow/account/${tenantName}`)
   expect(axios.post.mock.calls[0][1]).toEqual({
     "accountNumber": "test1",
     "currency": "USD",
     "isBalanceCheck": false
   })
-  expect(axios.post.mock.calls[1][0]).toBe("http://127.0.0.1:8080/v1/test/core/account")
+  expect(axios.post.mock.calls[1][0]).toBe(`http://127.0.0.1:8080/v1/sparrow/account/${tenantName}`)
   expect(axios.post.mock.calls[1][1]).toEqual({
     "accountNumber": "test2",
     "currency": "CZK",
@@ -112,7 +150,6 @@ test("Tenant.createTransactions - create few transactions", async () => {
   const testToken = "test_token"
   const testTransactions = [
     {
-      "blame": "fio-bco",
       "id": "2121115983",
       "transfers": [
         {
@@ -134,7 +171,6 @@ test("Tenant.createTransactions - create few transactions", async () => {
       ]
     },
     {
-      "blame": "fio-bco",
       "id": "2151261787",
       "transfers": [
         {
@@ -152,9 +188,9 @@ test("Tenant.createTransactions - create few transactions", async () => {
   const tenant = new core.Tenant("test")
   await tenant.createTransactions(testTransactions, testAccountNumber, testToken)
 
-  expect(axios.put).toHaveBeenCalledTimes(2)
-  expect(axios.put.mock.calls[0][1]).toEqual(testTransactions[0])
-  expect(axios.put.mock.calls[1][1]).toEqual(testTransactions[1])
+  expect(axios.post).toHaveBeenCalledTimes(2)
+  expect(axios.post.mock.calls[0][1]).toEqual(testTransactions[0])
+  expect(axios.post.mock.calls[1][1]).toEqual(testTransactions[1])
 
   expect(sync.setTransactionCheckpoint).toHaveBeenCalledTimes(1)
   expect(sync.setTransactionCheckpoint.mock.calls[0][1]).toBe("test")
@@ -173,7 +209,6 @@ test("Tenant.createTransactions - creating existing transaction in core but with
   const testAccountNumber = "test_acc_num"
   const testTransactions = [
     {
-      "blame": "fio-bco",
       "id": "2151261787",
       "transfers": [
         {
@@ -190,7 +225,7 @@ test("Tenant.createTransactions - creating existing transaction in core but with
   const sameIdsDifferentDataError = new Error()
   sameIdsDifferentDataError.response = {"status": 406}
 
-  axios.put = jest.fn()
+  axios.post = jest.fn()
     .mockImplementationOnce(() => {
       throw sameIdsDifferentDataError
     })

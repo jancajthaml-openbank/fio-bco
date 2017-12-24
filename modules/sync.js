@@ -25,7 +25,7 @@ const VError = require("verror")
 
 const NoSuchFileException = 'ENOENT'
 
-async function setTransactionCheckpoint(db, tenantName, accountNumber, token, idTransactionTo) {
+async function setTransactionCheckpoint(db, tenantName, accountNumber, token, idTransferTo) {
   let checkpoints
   // Todo: add check for parameters, token is optional
 
@@ -43,13 +43,13 @@ async function setTransactionCheckpoint(db, tenantName, accountNumber, token, id
 
   if (checkpoints[tenantName]) {
     checkpoints[tenantName][accountNumber] = {
-      idTransactionTo,
+      idTransferTo,
       token
     }
   } else {
     checkpoints[tenantName] = {
       [accountNumber]: {
-        idTransactionTo,
+        idTransferTo,
         token
       }
     }
@@ -60,9 +60,9 @@ async function setTransactionCheckpoint(db, tenantName, accountNumber, token, id
 
 async function getTransactionCheckpoint(db, tenantName, accountNumber) {
   return await getCheckpoint(db, (checkpoints) =>
-      checkpoints[tenantName] && checkpoints[tenantName][accountNumber] ?
-      checkpoints[tenantName][accountNumber].idTransactionTo :
-      null
+    (checkpoints[tenantName] && checkpoints[tenantName][accountNumber])
+    ? checkpoints[tenantName][accountNumber].idTransferTo
+    : null
   )
 }
 
@@ -71,8 +71,9 @@ async function getCheckpoint(db, searchCb) {
     const checkpoints = await jsonfile.readFile(db)
     return searchCb(checkpoints)
   } catch (err) {
-    if (err.code === NoSuchFileException)
+    if (err.code === NoSuchFileException) {
       return null
+    }
     throw new VError(err, `Error when reading DB file ${db}`)
   }
 }
@@ -81,9 +82,9 @@ async function getTransactionCheckpointByToken(db, tenantName, token) {
   return await getCheckpoint(db, (checkpoints) => {
     if (checkpoints[tenantName]) {
       const result = Object.values(checkpoints[tenantName]).find((account) =>
-        account.token && account.token === token
+        account.token && (account.token === token)
       )
-      return result && result.idTransactionTo || null
+      return result && result.idTransferTo || null
     }
     return null
   })

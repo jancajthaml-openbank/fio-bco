@@ -34,8 +34,7 @@
     "rewire": "^2.5.2"
   },
   "jest": {
-    "testEnvironment": "node",
-    "testResultsProcessor": "jest-junit"
+    "testEnvironment": "node"
   },
   "repository": {
     "type": "git",
