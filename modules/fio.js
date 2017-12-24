@@ -7,9 +7,9 @@
  * "Pokyn" and transfer is called "Pohyb".
  */
 
-const axios = require('axios')
-const log = require('./logger')
-const VError = require('verror')
+const axios = require("axios")
+const log = require("./logger")
+const VError = require("verror")
 const { sleep, parseDate } = require("./utils.js")
 
 const options = require("config").get("fio")
@@ -74,14 +74,14 @@ function fioTransfersToCoreTransactions(fioTransfers, mainAccountNumber, mainAcc
     }, {})
 
   // Return as array
-  return Object.keys(result).map(transactionId => {
+  return Object.keys(result).map((transactionId) => {
     const transaction = result[transactionId]
     transaction.id = transactionId
     return transaction
   })
 }
 
-const toCoreAccountStatement = fioAccountStatement => ({
+const toCoreAccountStatement = (fioAccountStatement) => ({
   "accountNumber": extractMainAccountNumber(fioAccountStatement),
   "transactions": fioTransfersToCoreTransactions(
     fioAccountStatement.accountStatement.transactionList.transaction,
@@ -96,7 +96,7 @@ function extractUniqueCoreAccounts(fioAccountStatement) {
   const coreAccounts = fioAccountStatement.accountStatement.transactionList.transaction
     .filter((fioTransfer, currIndex, fioTransfers) => {
       const currAccountNumber = extractCounterPartAccountNumber(fioTransfer)
-      const foundIndex = fioTransfers.findIndex(fioTransferCmp =>
+      const foundIndex = fioTransfers.findIndex((fioTransferCmp) =>
         currAccountNumber === extractCounterPartAccountNumber(fioTransferCmp)
       )
       return foundIndex === currIndex
@@ -105,7 +105,7 @@ function extractUniqueCoreAccounts(fioAccountStatement) {
 
   coreAccounts.push(extractMainAccountNumber(fioAccountStatement))
 
-  return coreAccounts.map(accountNumber => ({
+  return coreAccounts.map((accountNumber) => ({
     "accountNumber": accountNumber,
     "currency": mainCurrency,
     "isBalanceCheck": false

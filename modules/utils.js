@@ -13,7 +13,7 @@ const elapsedTime = (start) => {
 }
 
 const parseDate = (input) => {
-  let idx = input.indexOf('+')
+  let idx = input.indexOf("+")
 
   return new Date((idx === -1)
     ? `${input}T00:00:00+0000`

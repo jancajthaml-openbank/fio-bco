@@ -185,7 +185,7 @@ test("Rethrow unexpected error", async () => {
 
   let error
   try {
-    const result = await fio.getFioAccountStatement("s4cret", null, true)
+    await fio.getFioAccountStatement("s4cret", null, true)
   } catch (e) {
     error = e
   }

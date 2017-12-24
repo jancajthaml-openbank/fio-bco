@@ -18,6 +18,7 @@ MAINTAINER Jan Cajthaml <jan.cajthaml@gmail.com>
 
 RUN apt-get update && \
     apt-get install -y \
+      --no-install-recommends \
       netcat-openbsd \
       bsdmainutils && \
     apt-get clean && \
