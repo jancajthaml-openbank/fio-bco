@@ -1,12 +1,12 @@
 const getMax = (a, b) => +a > +b ? a : b
 
-const parallelize = (items, processItem) => Promise.all(items.map(processItem))
+const concurrent = (items, processItem) => Promise.all(items.map(processItem))
 
 const sleep = (ms) => new Promise((andThen) => setTimeout(andThen, ms))
 
 const elapsedTime = (start) => {
-  var elapsed = process.hrtime(start)[1] / 1000000;
-  return process.hrtime(start)[0] + " s, " + elapsed.toFixed(3) + " ms"
+  var elapsed = process.hrtime(start)[1] / 1000000
+  return `${process.hrtime(start)[0]} s, ${elapsed.toFixed(3)} ms`
 }
 
 const parseDate = (input) => {
@@ -19,7 +19,7 @@ const parseDate = (input) => {
 
 module.exports = {
   getMax,
-  parallelize,
+  concurrent,
   sleep,
   parseDate,
   elapsedTime

@@ -21,14 +21,12 @@ async function main(argv) {
     await tenant.createMissingAccounts(accounts)
   } catch (err) {
     log.error(`Account creation ended with error: ${err}`)
-    throw err
   }
 
   try {
     await tenant.createTransactions(coreAccountStatement.transactions, coreAccountStatement.accountNumber, argv.token)
   } catch (err) {
     log.error(`Transaction creation ended with error: ${err}`)
-    throw err
   }
 }
 
@@ -37,5 +35,5 @@ main({
   "token": process.argv[3],
   "wait": process.argv[4] && process.argv[5] === "wait"
 }).catch((error) => {
-    log.error("Synchronization failed, exception:\n" + error.stack)
+  log.error("Synchronization failed, exception:\n" + error.stack)
 })

@@ -1,6 +1,6 @@
 const axios = require("axios")
 const sync = require("./sync.js")
-const { elapsedTime, parallelize, getMax } = require("./utils.js")
+const { elapsedTime, concurrent, getMax } = require("./utils.js")
 const log = require("./logger.js")
 const VError = require("verror")
 
@@ -21,7 +21,8 @@ class Tenant {
 
     let t0 = process.hrtime()
 
-    await parallelize(accounts,
+    await concurrent(
+      accounts,
       async (account) => {
         if (await this._accountExists(account.accountNumber)) {
           log.debug(`Account ${account.accountNumber} already exists`)
@@ -47,7 +48,9 @@ class Tenant {
     log.info(`Creating ${transactions.length} new transactions for tenant ${this._tenant}`)
 
     let t0 = process.hrtime()
-    await parallelize(transactions,
+
+    await concurrent(
+      transactions,
       async (transaction, index) => {
         try {
           await axios.post(`${this._baseUrl}/transaction/${this._tenant}`, transaction)
@@ -55,9 +58,9 @@ class Tenant {
         } catch (err) {
           // Returned by core when transaction already exists but with different data
           if (err.response && err.response.status === 409) {
-            log.warn(`Transaction ${transaction.id} already exits in core but has different data`)
+            log.warn(`Transaction ${("          " + transaction.id).slice(-10)} already exits in core but has different data`)
           } else if (err.response && err.response.status === 417) {
-            log.warn(`Transaction ${transaction.id} created but rollbacked`)
+            log.warn(`Transaction ${("          " + transaction.id).slice(-10)} created but rollbacked`)
           } else {
             throw new VError(err, "Transaction core api")
           }
