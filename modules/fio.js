@@ -61,17 +61,17 @@ const extractCounterPartAccountNumber = (row) => {
   if (fallbackMeta != undefined) {
     return fallbackMeta
   } else {
-    //log.warn(`Undefined counterpart account number at:\n
-    //                ` + JSON.stringify(row, null, 2))
+    log.warn(`Undefined counterpart account number at:\n
+                    ` + JSON.stringify(row, null, 2))
     return "Unknown"
   }
 }
 
 const extractAmount = (row) =>
-  Number(row.column1.value)
+  +row.column1.value
 
 const extractAbsAmount = (row) =>
-  Math.abs(Number(row.column1.value))
+  Math.abs(+row.column1.value)
 
 const extractDebitAccountNumber = (fioTransfer, mainAccountNumber) =>
   (extractAmount(fioTransfer) > 0)

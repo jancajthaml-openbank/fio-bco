@@ -88,9 +88,6 @@ test("Normalize account from fio statement to meta technical accounts", () => {
       "value": "Příjem převodem uvnitř banky"
     }
   })).toEqual("Unknown")
-
-
-
 })
 
 test("Extract unique core accounts from fio account statement", () => {
