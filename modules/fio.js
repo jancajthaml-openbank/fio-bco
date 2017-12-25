@@ -16,37 +16,37 @@ const { calculateCzech } = require("./iban.js")
 const options = require("config").get("fio")
 
 const extractCounterPartAccountNumber = (row) => {
-  let bankCode = undefined
-  let accountId = undefined
-  let fallbackMeta = undefined
+  let bankCode
+  let accountId
+  let fallbackMeta
 
   if (row.column3 && row.column3.value) {
     bankCode = row.column3.value
     accountId = (row.column2 && row.column2.value)
-  } else if (row.column8 && row.column8.value.replace(/ /g, '') === "Příjempřevodemuvnitřbanky") {
+  } else if (row.column8 && row.column8.value.replace(/ /g, "") === "Příjempřevodemuvnitřbanky") {
     bankcode = options.nostroBankCode
     accountId = (row.column2 && row.column2.value)
-  } else if (row.column8 && row.column8.value.replace(/ /g, '') == "Připsanýúrok") {
+  } else if (row.column8 && row.column8.value.replace(/ /g, "") === "Připsanýúrok") {
     fallbackMeta = "Interest"
     bankcode = options.nostroBankCode
     accountId = (row.column2 && row.column2.value)
-  } else if (row.column8 && row.column8.value.replace(/ /g, '') == "Odvoddanězúroků") {
+  } else if (row.column8 && row.column8.value.replace(/ /g, "") === "Odvoddanězúroků") {
     bankcode = options.nostroBankCode
     accountId = (row.column2 && row.column2.value)
     fallbackMeta = "InterestTax"
-  } else if (row.column7 && row.column7.value && row.column7.value.indexOf("Výběr") == 0) {
+  } else if (row.column7 && row.column7.value && row.column7.value.indexOf("Výběr") === 0) {
     fallbackMeta = "Withdrawal"
     bankcode = options.nostroBankCode
     accountId = (row.column2 && row.column2.value)
-  } else if (row.column8 && row.column8.value && row.column8.value.replace(/ /g, '') == "Platbakartou") {
+  } else if (row.column8 && row.column8.value && row.column8.value.replace(/ /g, "") === "Platbakartou") {
     fallbackMeta = "CardPayment"
     bankcode = options.nostroBankCode
     accountId = (row.column2 && row.column2.value)
-  } else if (row.column8 && row.column8.value && row.column8.value.replace(/ /g, '') == "Vkladpokladnou") {
+  } else if (row.column8 && row.column8.value && row.column8.value.replace(/ /g, "") === "Vkladpokladnou") {
     fallbackMeta = "Deposit"
     bankcode = options.nostroBankCode
     accountId = (row.column2 && row.column2.value)
-  } else if (row.column8 && row.column8.value && row.column8.value.indexOf("Poplatek") == 0) {
+  } else if (row.column8 && row.column8.value && row.column8.value.indexOf("Poplatek") === 0) {
     fallbackMeta = "Fee"
     bankcode = options.nostroBankCode
     accountId = (row.column2 && row.column2.value)
@@ -58,7 +58,7 @@ const extractCounterPartAccountNumber = (row) => {
     return iban
   }
 
-  if (fallbackMeta != undefined) {
+  if (fallbackMeta !== undefined) {
     return fallbackMeta
   } else {
     return "Unknown"
@@ -66,10 +66,10 @@ const extractCounterPartAccountNumber = (row) => {
 }
 
 const extractAmount = (row) =>
-  +row.column1.value
+  Number(row.column1.value)
 
 const extractAbsAmount = (row) =>
-  Math.abs(+row.column1.value)
+  Math.abs(Number(row.column1.value))
 
 const extractDebitAccountNumber = (fioTransfer, mainAccountNumber) =>
   (extractAmount(fioTransfer) > 0)

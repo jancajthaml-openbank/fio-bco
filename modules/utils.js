@@ -1,4 +1,4 @@
-const getMax = (a, b) => +a > +b ? a : b
+const getMax = (a, b) => Number(a) > Number(b) ? a : b
 
 const concurrent = (items, processItem) => Promise.all(items.map(processItem))
 

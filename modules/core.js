@@ -41,7 +41,8 @@ class Tenant {
   }
 
   async createTransactions(transactions, accountNumber, token) {
-    if (transactions.length == 0) {
+    // FIXME add test coverage
+    if (transactions.length === 0) {
       return
     }
 
@@ -60,6 +61,7 @@ class Tenant {
           if (err.response && err.response.status === 409) {
             log.warn(`Transaction ${("          " + transaction.id).slice(-10)} already exits in core but has different data`)
           } else if (err.response && err.response.status === 417) {
+            // FIXME add test coverage
             log.warn(`Transaction ${("          " + transaction.id).slice(-10)} created but rollbacked`)
           } else {
             throw new VError(err, "Transaction core api")

@@ -1,4 +1,3 @@
-const log = require("./logger.js")
 
 const mod97 = (digitString) => {
   let m = 0
@@ -10,7 +9,7 @@ const mod97 = (digitString) => {
 
 const calculateCzech = (bankCode, accountId) => {
   if (!bankCode) {
-    return !accountId ? undefined : accountId
+    return accountId ? accountId : undefined
   }
 
   // canonise input
