@@ -1,7 +1,8 @@
 {
   "fio": {
     "apiUrl": "https://www.fio.cz/ib_api/rest",
-    "backoffIntervalSec": 20
+    "backoffIntervalSec": 20,
+    "nostroBankCode": "2010"
   },
   "core": {
     "url": "http://127.0.0.1:8080",

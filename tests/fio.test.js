@@ -19,6 +19,80 @@ test("FIO Api crash is caught", async () => {
   await expect(fio.getFioAccountStatement("s4cret", null, false)).rejects.toEqual(internalServerError)
 })
 
+test("Normalize account from fio statement to IBAN", () => {
+  const fio = require("../modules/fio.js")
+  const iban = require("../modules/iban.js")
+
+  expect(fio.extractCounterPartAccountNumber({
+    "column2": {
+      "value": "7805825001",
+      "name": "Protiúčet",
+      "id": 2
+    },
+    "column3": {
+      "value": "5500",
+      "name": "Kód banky",
+      "id": 3
+    },
+  })).toEqual(iban.calculateCzech("5500", "7805825001"))
+})
+
+test("Normalize account from fio statement to meta technical accounts", () => {
+  const fio = require("../modules/fio.js")
+
+  expect(fio.extractCounterPartAccountNumber({
+    "column2": null,
+    "column8": {
+      "value": "Připsaný úrok"
+    }
+  })).toEqual("Interest")
+
+  expect(fio.extractCounterPartAccountNumber({
+    "column2": null,
+    "column8": {
+      "value": "Vklad pokladnou"
+    }
+  })).toEqual("Deposit")
+
+  expect(fio.extractCounterPartAccountNumber({
+    "column2": null,
+    "column7": {
+      "value": "Výběr"
+    }
+  })).toEqual("Withdrawal")
+
+  expect(fio.extractCounterPartAccountNumber({
+    "column2": null,
+    "column8": {
+      "value": "Odvod daně z úroků"
+    }
+  })).toEqual("InterestTax")
+
+  expect(fio.extractCounterPartAccountNumber({
+    "column2": null,
+    "column8": {
+      "value": "Platba kartou"
+    }
+  })).toEqual("CardPayment")
+
+  expect(fio.extractCounterPartAccountNumber({
+    "column2": null,
+    "column8": {
+      "value": "Poplatek"
+    }
+  })).toEqual("Fee")
+
+  expect(fio.extractCounterPartAccountNumber({
+    "column2": null,
+    "column8": {
+      "value": "Příjem převodem uvnitř banky"
+    }
+  })).toEqual("Unknown")
+
+
+
+})
+
 test("Extract unique core accounts from fio account statement", () => {
   const fio = require("../modules/fio.js")
   const sampleFioStatement = require("./test-fio-statement.json")
@@ -31,7 +105,7 @@ test("Extract unique core accounts from fio account statement", () => {
         "isBalanceCheck": false
       },
       {
-        "accountNumber": "FIO",
+        "accountNumber": "Interest",
         "currency": "CZK",
         "isBalanceCheck": false
       },

@@ -25,6 +25,6 @@ main({
   "tenantName": process.argv[2],
   "token": process.argv[3],
   "wait": process.argv[4] && process.argv[5] === "wait"
-}).catch(error => {
+}).catch((error) => {
     log.error("Synchronization failed, exception:\n" + error.stack)
 })

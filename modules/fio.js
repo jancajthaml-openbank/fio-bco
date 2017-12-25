@@ -11,11 +11,61 @@ const axios = require("axios")
 const log = require("./logger")
 const VError = require("verror")
 const { sleep, parseDate } = require("./utils.js")
+const { calculateCzech } = require("./iban.js")
 
 const options = require("config").get("fio")
 
-const extractCounterPartAccountNumber = (row) =>
-  (row.column2 && row.column2.value || "FIO")
+const extractCounterPartAccountNumber = (row) => {
+  let bankCode = undefined
+  let accountId = undefined
+  let fallbackMeta = undefined
+
+  if (row.column3 && row.column3.value) {
+    bankCode = row.column3.value
+    accountId = (row.column2 && row.column2.value)
+  } else if (row.column8 && row.column8.value.replace(/ /g, '') === "Příjempřevodemuvnitřbanky") {
+    bankcode = options.nostroBankCode
+    accountId = (row.column2 && row.column2.value)
+  } else if (row.column8 && row.column8.value.replace(/ /g, '') == "Připsanýúrok") {
+    fallbackMeta = "Interest"
+    bankcode = options.nostroBankCode
+    accountId = (row.column2 && row.column2.value)
+  } else if (row.column8 && row.column8.value.replace(/ /g, '') == "Odvoddanězúroků") {
+    bankcode = options.nostroBankCode
+    accountId = (row.column2 && row.column2.value)
+    fallbackMeta = "InterestTax"
+  } else if (row.column8 && row.column8.value && row.column8.value.replace(/ /g, '') == "Platbakartou") {
+    fallbackMeta = "CardPayment"
+    bankcode = options.nostroBankCode
+    accountId = (row.column2 && row.column2.value)
+  } else if (row.column8 && row.column8.value && row.column8.value.replace(/ /g, '') == "Vkladpokladnou") {
+    fallbackMeta = "Deposit"
+    bankcode = options.nostroBankCode
+    accountId = (row.column2 && row.column2.value)
+  } else if (row.column8 && row.column8.value && row.column8.value == "Poplatek") {
+    fallbackMeta = "Fee"
+    bankcode = options.nostroBankCode
+    accountId = (row.column2 && row.column2.value)
+  } else if (row.column7 && row.column7.value && row.column7.value.indexOf("Výběr") == 0) {
+    fallbackMeta = "Withdrawal"
+    bankcode = options.nostroBankCode
+    accountId = (row.column2 && row.column2.value)
+  }
+
+  let iban = calculateCzech(bankCode, accountId)
+
+  if (iban) {
+    return iban
+  }
+
+  if (fallbackMeta != undefined) {
+    return fallbackMeta
+  } else {
+    //log.warn(`Undefined counterpart account number at:\n
+    //                ` + JSON.stringify(row, null, 2))
+    return "Unknown"
+  }
+}
 
 const extractAmount = (row) =>
   Number(row.column1.value)
@@ -106,7 +156,7 @@ function extractUniqueCoreAccounts(fioAccountStatement) {
   coreAccounts.push(extractMainAccountNumber(fioAccountStatement))
 
   return coreAccounts.map((accountNumber) => ({
-    "accountNumber": accountNumber,
+    accountNumber,
     "currency": mainCurrency,
     "isBalanceCheck": false
   }))
@@ -152,5 +202,6 @@ async function getFioAccountStatement(token, idTransactionFrom, wait) {
 module.exports = {
   toCoreAccountStatement,
   extractUniqueCoreAccounts,
-  getFioAccountStatement
+  getFioAccountStatement,
+  extractCounterPartAccountNumber
 }

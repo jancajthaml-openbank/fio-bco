@@ -6,7 +6,7 @@
       "transfers": [
         {
           "amount": "0.02",
-          "credit": "FIO",
+          "credit": "Interest",
           "currency": "CZK",
           "debit": "CZ7920100000002400222233",
           "id": "1152125621",
@@ -21,7 +21,7 @@
           "amount": "0.66",
           "credit": "CZ7920100000002400222233",
           "currency": "CZK",
-          "debit": "FIO",
+          "debit": "Interest",
           "id": "1155172472",
           "valueDate": "2016-02-26T23:00:00.000Z"
         },
@@ -42,7 +42,7 @@
           "amount": "0.02",
           "credit": "CZ7920100000002400222233",
           "currency": "CZK",
-          "debit": "FIO",
+          "debit": "Interest",
           "id": "1158218819",
           "valueDate": "2016-03-26T23:00:00.000Z"
         }

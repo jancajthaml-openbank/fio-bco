@@ -74,7 +74,7 @@ class Tenant {
 
   async getCheckpointByAccountNumber(accountNumber) {
     const transactionCheckpoint = await sync.getTransactionCheckpoint(options.db, this._tenant, accountNumber)
-    log.info(`Checkpoint for tenant/account ${this._tenant}/${accountNumber}:${transactionCheckpoint}`)
+    log.info(`Checkpoint (by account ${accountNumber}) for tenant ${this._tenant}:${transactionCheckpoint}`)
     return transactionCheckpoint
   }
 

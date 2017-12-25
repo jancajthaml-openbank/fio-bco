@@ -23,7 +23,7 @@ const jsonfile = require("jsonfile-promised")
 const log = require("./logger.js")
 const VError = require("verror")
 
-const NoSuchFileException = 'ENOENT'
+const NoSuchFileException = "ENOENT"
 
 async function setTransactionCheckpoint(db, tenantName, accountNumber, token, idTransferTo) {
   let checkpoints
