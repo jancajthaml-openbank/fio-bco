@@ -34,6 +34,10 @@ const extractCounterPartAccountNumber = (row) => {
     bankcode = options.nostroBankCode
     accountId = (row.column2 && row.column2.value)
     fallbackMeta = "InterestTax"
+  } else if (row.column7 && row.column7.value && row.column7.value.indexOf("Výběr") == 0) {
+    fallbackMeta = "Withdrawal"
+    bankcode = options.nostroBankCode
+    accountId = (row.column2 && row.column2.value)
   } else if (row.column8 && row.column8.value && row.column8.value.replace(/ /g, '') == "Platbakartou") {
     fallbackMeta = "CardPayment"
     bankcode = options.nostroBankCode
@@ -42,12 +46,8 @@ const extractCounterPartAccountNumber = (row) => {
     fallbackMeta = "Deposit"
     bankcode = options.nostroBankCode
     accountId = (row.column2 && row.column2.value)
-  } else if (row.column8 && row.column8.value && row.column8.value == "Poplatek") {
+  } else if (row.column8 && row.column8.value && row.column8.value.indexOf("Poplatek") == 0) {
     fallbackMeta = "Fee"
-    bankcode = options.nostroBankCode
-    accountId = (row.column2 && row.column2.value)
-  } else if (row.column7 && row.column7.value && row.column7.value.indexOf("Výběr") == 0) {
-    fallbackMeta = "Withdrawal"
     bankcode = options.nostroBankCode
     accountId = (row.column2 && row.column2.value)
   }
@@ -61,8 +61,6 @@ const extractCounterPartAccountNumber = (row) => {
   if (fallbackMeta != undefined) {
     return fallbackMeta
   } else {
-    log.warn(`Undefined counterpart account number at:\n
-                    ` + JSON.stringify(row, null, 2))
     return "Unknown"
   }
 }

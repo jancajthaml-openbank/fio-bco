@@ -9,6 +9,6 @@
     "db": "./db.json"
   },
   "logger": {
-    "level": "debug"
+    "level": "error"
   }
 }

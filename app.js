@@ -17,8 +17,19 @@ async function main(argv) {
   const coreAccountStatement = fio.toCoreAccountStatement(fioAccountStatement)
   const accounts = fio.extractUniqueCoreAccounts(fioAccountStatement)
 
-  await tenant.createMissingAccounts(accounts)
-  await tenant.createTransactions(coreAccountStatement.transactions, coreAccountStatement.accountNumber, argv.token)
+  try {
+    await tenant.createMissingAccounts(accounts)
+  } catch (err) {
+    log.error(`Account creation ended with error: ${err}`)
+    throw err
+  }
+
+  try {
+    await tenant.createTransactions(coreAccountStatement.transactions, coreAccountStatement.accountNumber, argv.token)
+  } catch (err) {
+    log.error(`Transaction creation ended with error: ${err}`)
+    throw err
+  }
 }
 
 main({

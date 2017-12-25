@@ -223,7 +223,7 @@ test("Tenant.createTransactions - creating existing transaction in core but with
     }
   ]
   const sameIdsDifferentDataError = new Error()
-  sameIdsDifferentDataError.response = {"status": 406}
+  sameIdsDifferentDataError.response = {"status": 409}
 
   axios.post = jest.fn()
     .mockImplementationOnce(() => {
@@ -236,7 +236,7 @@ test("Tenant.createTransactions - creating existing transaction in core but with
   await tenant.createTransactions(testTransactions, testAccountNumber, testToken)
 
   expect(log.warn).toHaveBeenCalledTimes(1)
-  expect(log.warn.mock.calls[0][0]).toMatch(new RegExp(`Transaction with ID ${testTransactions[0].id} already exits in core but has different data`))
+  expect(log.warn.mock.calls[0][0]).toMatch(new RegExp(`Transaction ${testTransactions[0].id} already exits in core but has different data`))
 })
 
 test("Tenant.getCheckpointByToken", async () => {

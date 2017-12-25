@@ -1,9 +1,6 @@
 const getMax = (a, b) => +a > +b ? a : b
 
-// FIXME differentiate between success and failure, pass only successfull to andThen
-const parallelize = (items, processItem, andThen) => andThen
-  ? Promise.all(items.map(processItem)).then(andThen)
-  : Promise.all(items.map(processItem))
+const parallelize = (items, processItem) => Promise.all(items.map(processItem))
 
 const sleep = (ms) => new Promise((andThen) => setTimeout(andThen, ms))
 
