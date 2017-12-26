@@ -34,7 +34,7 @@ test("Normalize account from fio statement to IBAN", () => {
       "name": "Kód banky",
       "id": 3
     },
-  })).toEqual(iban.calculateCzech("5500", "7805825001"))
+  })).toEqual(iban.calculateCzech("7805825001", "5500"))
 })
 
 test("Normalize account from fio statement to meta technical accounts", () => {

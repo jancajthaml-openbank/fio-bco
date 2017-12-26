@@ -52,17 +52,13 @@ const extractCounterPartAccountNumber = (row) => {
     accountId = (row.column2 && row.column2.value)
   }
 
-  let iban = calculateCzech(bankCode, accountId)
+  let iban = calculateCzech(accountId, bankCode)
 
   if (iban) {
     return iban
   }
 
-  if (fallbackMeta !== undefined) {
-    return fallbackMeta
-  } else {
-    return "Unknown"
-  }
+  return fallbackMeta ? fallbackMeta : "Unknown"
 }
 
 const extractAmount = (row) =>

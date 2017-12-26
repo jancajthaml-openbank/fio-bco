@@ -7,13 +7,16 @@ const mod97 = (digitString) => {
   return m
 }
 
-const calculateCzech = (bankCode, accountId) => {
+const calculateCzech = (accountId, bankCode) => {
   if (!bankCode) {
-    return accountId ? accountId : undefined
+    if (accountId) {
+      return accountId
+    }
+    return
   }
 
   // canonise input
-  let account = accountId.replace(/-/g,'')
+  let account = accountId.replace(/-/g, "")
   // accountNumber of length 16
   let number = `0000000000000000${account}`.slice(-16)
   // bankCode of length 4
