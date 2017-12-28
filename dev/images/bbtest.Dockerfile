@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM library/ruby:latest
+FROM library/ruby:2
 
 MAINTAINER Jan Cajthaml <jan.cajthaml@gmail.com>
 
