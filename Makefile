@@ -26,11 +26,4 @@ bundle:
 
 .PHONY: run
 run:
-	docker-compose -f dev/docker-compose.yml \
-		run \
-		--rm \
-		--no-deps \
-		--service-ports \
-		-e TENANT=$(TENANT) \
-		-e FIO_TOKEN=$(FIO_TOKEN) \
-		artefact
+	docker-compose up

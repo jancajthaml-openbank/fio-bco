@@ -5,7 +5,7 @@
     "nostroBankCode": "2010"
   },
   "core": {
-    "url": "http://127.0.0.1:8080",
+    "url": "http://server:8080",
     "db": "/data/db.json"
   },
   "logger": {
