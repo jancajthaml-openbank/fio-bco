@@ -4,7 +4,7 @@ const log = require("./modules/logger")
 
 async function main(argv) {
   if (!argv || !argv.tenantName || !argv.token) {
-    log.error("Run program using npm start <tenant_name> <fio_token> [wait]")
+    log.error("Run program using npm start <tenant> <fio_token> [wait]")
     return
   }
 

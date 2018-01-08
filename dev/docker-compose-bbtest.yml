@@ -40,6 +40,7 @@ services:
     image: openbank/vault:latest
     restart: unless-stopped
     environment:
+      - TENANT=FIO
       - PERSISTENCE_PATH=/data
     volumes:
       - ./tmp/data:/data

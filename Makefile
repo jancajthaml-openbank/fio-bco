@@ -31,6 +31,6 @@ run:
 		--rm \
 		--no-deps \
 		--service-ports \
-		-e TENANT_NAME=$(TENANT_NAME) \
+		-e TENANT=$(TENANT) \
 		-e FIO_TOKEN=$(FIO_TOKEN) \
 		artefact
