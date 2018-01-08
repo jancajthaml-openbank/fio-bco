@@ -4,7 +4,7 @@ services:
 
   cron:
     image: openbank/fio-bco:latest
-    restart: unless-stopped
+    restart: "no"
     tty: true
     environment:
       - TENANT=FIO
