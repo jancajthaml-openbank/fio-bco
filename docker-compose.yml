@@ -2,22 +2,20 @@ version: '2'
 
 services:
 
-  bbtest:
-    build:
-      context: .
-      dockerfile: images/bbtest.Dockerfile
-    image: fio-bco/dev:bbtest
-    working_dir: /opt/blackbox-test
+  cron:
+    image: openbank/fio-bco:latest
+    restart: "no"
+    tty: true
+    environment:
+      - TENANT=FIO
+      - FIO_TOKEN=${FIO_TOKEN}
+    volumes:
+      - ./data-real:/data
+      - ./config:/opt/fio-bco/config:ro
     depends_on:
       - server
       - queue
       - vault
-    environment:
-      - PERSISTENCE_PATH=/data
-    volumes:
-      - ./tmp/data:/data
-      - ./blackbox-test:/opt/blackbox-test
-      - /var/run/docker.sock:/var/run/docker.sock
 
   server:
     image: openbank/server:latest
@@ -25,7 +23,7 @@ services:
     environment:
       - PERSISTENCE_PATH=/data
     volumes:
-      - ./tmp/data:/data
+      - ./data-real:/data
     ports:
       - "8080"
 
@@ -43,4 +41,4 @@ services:
       - TENANT=FIO
       - PERSISTENCE_PATH=/data
     volumes:
-      - ./tmp/data:/data
+      - ./data-real:/data

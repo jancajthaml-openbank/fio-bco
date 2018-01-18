@@ -1,4 +1,4 @@
-const log = require('winston')
+const log = require("winston")
 
 log.level = require("config").get("logger").level
 

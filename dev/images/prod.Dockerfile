@@ -27,6 +27,7 @@ COPY ./node_modules /opt/fio-bco/node_modules
 
 COPY ./modules/core.js /opt/fio-bco/modules/core.js
 COPY ./modules/fio.js /opt/fio-bco/modules/fio.js
+COPY ./modules/iban.js /opt/fio-bco/modules/iban.js
 COPY ./modules/logger.js /opt/fio-bco/modules/logger.js
 COPY ./modules/sync.js /opt/fio-bco/modules/sync.js
 COPY ./modules/utils.js /opt/fio-bco/modules/utils.js

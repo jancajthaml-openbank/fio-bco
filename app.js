@@ -4,7 +4,7 @@ const log = require("./modules/logger")
 
 async function main(argv) {
   if (!argv || !argv.tenantName || !argv.token) {
-    log.error("Run program using npm start <tenant_name> <fio_token> [wait]")
+    log.error("Run program using npm start <tenant> <fio_token> [wait]")
     return
   }
 
@@ -17,14 +17,23 @@ async function main(argv) {
   const coreAccountStatement = fio.toCoreAccountStatement(fioAccountStatement)
   const accounts = fio.extractUniqueCoreAccounts(fioAccountStatement)
 
-  await tenant.createMissingAccounts(accounts)
-  await tenant.createTransactions(coreAccountStatement.transactions, coreAccountStatement.accountNumber, argv.token)
+  try {
+    await tenant.createMissingAccounts(accounts)
+  } catch (err) {
+    log.error(`Account creation ended with error: ${err}`)
+  }
+
+  try {
+    await tenant.createTransactions(coreAccountStatement.transactions, coreAccountStatement.accountNumber, argv.token)
+  } catch (err) {
+    log.error(`Transaction creation ended with error: ${err}`)
+  }
 }
 
 main({
   "tenantName": process.argv[2],
   "token": process.argv[3],
   "wait": process.argv[4] && process.argv[5] === "wait"
-}).catch(error => {
-    log.error("Synchronization failed, exception:\n" + error.stack)
+}).catch((error) => {
+  log.error("Synchronization failed, exception:\n" + error.stack)
 })

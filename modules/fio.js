@@ -7,15 +7,59 @@
  * "Pokyn" and transfer is called "Pohyb".
  */
 
-const axios = require('axios')
-const log = require('./logger')
-const VError = require('verror')
+const axios = require("axios")
+const log = require("./logger")
+const VError = require("verror")
 const { sleep, parseDate } = require("./utils.js")
+const { calculateCzech } = require("./iban.js")
 
 const options = require("config").get("fio")
 
-const extractCounterPartAccountNumber = (row) =>
-  (row.column2 && row.column2.value || "FIO")
+const extractCounterPartAccountNumber = (row) => {
+  let bankCode
+  let accountId
+  let fallbackMeta
+
+  if (row.column3 && row.column3.value) {
+    bankCode = row.column3.value
+    accountId = (row.column2 && row.column2.value)
+  } else if (row.column8 && row.column8.value.replace(/ /g, "") === "Příjempřevodemuvnitřbanky") {
+    bankcode = options.nostroBankCode
+    accountId = (row.column2 && row.column2.value)
+  } else if (row.column8 && row.column8.value.replace(/ /g, "") === "Připsanýúrok") {
+    fallbackMeta = "Interest"
+    bankcode = options.nostroBankCode
+    accountId = (row.column2 && row.column2.value)
+  } else if (row.column8 && row.column8.value.replace(/ /g, "") === "Odvoddanězúroků") {
+    bankcode = options.nostroBankCode
+    accountId = (row.column2 && row.column2.value)
+    fallbackMeta = "InterestTax"
+  } else if (row.column7 && row.column7.value && row.column7.value.indexOf("Výběr") === 0) {
+    fallbackMeta = "Withdrawal"
+    bankcode = options.nostroBankCode
+    accountId = (row.column2 && row.column2.value)
+  } else if (row.column8 && row.column8.value && row.column8.value.replace(/ /g, "") === "Platbakartou") {
+    fallbackMeta = "CardPayment"
+    bankcode = options.nostroBankCode
+    accountId = (row.column2 && row.column2.value)
+  } else if (row.column8 && row.column8.value && row.column8.value.replace(/ /g, "") === "Vkladpokladnou") {
+    fallbackMeta = "Deposit"
+    bankcode = options.nostroBankCode
+    accountId = (row.column2 && row.column2.value)
+  } else if (row.column8 && row.column8.value && row.column8.value.indexOf("Poplatek") === 0) {
+    fallbackMeta = "Fee"
+    bankcode = options.nostroBankCode
+    accountId = (row.column2 && row.column2.value)
+  }
+
+  let iban = calculateCzech(accountId, bankCode)
+
+  if (iban) {
+    return iban
+  }
+
+  return fallbackMeta ? fallbackMeta : "Unknown"
+}
 
 const extractAmount = (row) =>
   Number(row.column1.value)
@@ -74,14 +118,14 @@ function fioTransfersToCoreTransactions(fioTransfers, mainAccountNumber, mainAcc
     }, {})
 
   // Return as array
-  return Object.keys(result).map(transactionId => {
+  return Object.keys(result).map((transactionId) => {
     const transaction = result[transactionId]
     transaction.id = transactionId
     return transaction
   })
 }
 
-const toCoreAccountStatement = fioAccountStatement => ({
+const toCoreAccountStatement = (fioAccountStatement) => ({
   "accountNumber": extractMainAccountNumber(fioAccountStatement),
   "transactions": fioTransfersToCoreTransactions(
     fioAccountStatement.accountStatement.transactionList.transaction,
@@ -96,7 +140,7 @@ function extractUniqueCoreAccounts(fioAccountStatement) {
   const coreAccounts = fioAccountStatement.accountStatement.transactionList.transaction
     .filter((fioTransfer, currIndex, fioTransfers) => {
       const currAccountNumber = extractCounterPartAccountNumber(fioTransfer)
-      const foundIndex = fioTransfers.findIndex(fioTransferCmp =>
+      const foundIndex = fioTransfers.findIndex((fioTransferCmp) =>
         currAccountNumber === extractCounterPartAccountNumber(fioTransferCmp)
       )
       return foundIndex === currIndex
@@ -105,8 +149,8 @@ function extractUniqueCoreAccounts(fioAccountStatement) {
 
   coreAccounts.push(extractMainAccountNumber(fioAccountStatement))
 
-  return coreAccounts.map(accountNumber => ({
-    "accountNumber": accountNumber,
+  return coreAccounts.map((accountNumber) => ({
+    accountNumber,
     "currency": mainCurrency,
     "isBalanceCheck": false
   }))
@@ -152,5 +196,6 @@ async function getFioAccountStatement(token, idTransactionFrom, wait) {
 module.exports = {
   toCoreAccountStatement,
   extractUniqueCoreAccounts,
-  getFioAccountStatement
+  getFioAccountStatement,
+  extractCounterPartAccountNumber
 }

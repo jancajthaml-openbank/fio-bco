@@ -23,28 +23,27 @@ const jsonfile = require("jsonfile-promised")
 const log = require("./logger.js")
 const VError = require("verror")
 
-const NoSuchFileException = 'ENOENT'
+const NoSuchFileException = "ENOENT"
 
 async function setTransactionCheckpoint(db, tenantName, accountNumber, token, idTransferTo) {
   let checkpoints
-  // Todo: add check for parameters, token is optional
+  // TODO: add check for parameters, token is optional
 
   try {
     checkpoints = await jsonfile.readFile(db)
-  } catch (error) {
-    if (error.code === NoSuchFileException) {
+  } catch (err) {
+    if (err.code === NoSuchFileException) {
       log.info(`Database ${db} will be created for the first time`)
       checkpoints = {}
     } else {
-      // fixme: add verror
-      throw error
+      throw new VError(err, "Failed to create checkpoint database")
     }
   }
 
   if (checkpoints[tenantName]) {
     checkpoints[tenantName][accountNumber] = {
       idTransferTo,
-      token
+      token: (token || checkpoints[tenantName][accountNumber])
     }
   } else {
     checkpoints[tenantName] = {
@@ -66,10 +65,10 @@ async function getTransactionCheckpoint(db, tenantName, accountNumber) {
   )
 }
 
-async function getCheckpoint(db, searchCb) {
+async function getCheckpoint(db, withFunction) {
   try {
     const checkpoints = await jsonfile.readFile(db)
-    return searchCb(checkpoints)
+    return withFunction(checkpoints)
   } catch (err) {
     if (err.code === NoSuchFileException) {
       return null
