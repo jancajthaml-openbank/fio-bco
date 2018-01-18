@@ -4,8 +4,8 @@ trap exit TERM INT
 
 echo "info: starting"
 
-if [ -z "$TENANT_NAME" ] ; then
-	echo "[ERRO] missing TENANT_NAME env variable"
+if [ -z "$TENANT" ] ; then
+	echo "[ERRO] missing TENANT env variable"
 	exit 1
 fi
 
@@ -15,4 +15,4 @@ if [ -z "$FIO_TOKEN" ] ; then
 fi
 
 cd /opt/fio-bco && \
-	dumb-init node app.js $TENANT_NAME $FIO_TOKEN
+	dumb-init node app.js ${TENANT} ${FIO_TOKEN}

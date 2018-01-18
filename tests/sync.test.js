@@ -175,24 +175,43 @@ test("set transaction checkpoint, none existing db file", async () => {
   expect(jsonfile.writeFile.mock.calls[0][1]).toEqual( {"johny3": {"accountNumber": {"idTransferTo": 12345, "token": "test_token" } } } )
 })
 
-test("set transaction checkpoint, rethrow unknown error", async () => {
+
+test("get transaction checkpoint, rethrowing unknown error", async () => {
   const sync = require("../modules/sync.js")
   const jsonfile = require("jsonfile-promised")
-  const mockedError = new Error()
-  mockedError.code = "UNKNOWN"
+  const VError = require("verror")
+  const error = new Error("some error")
 
   jsonfile.readFile = jest.fn(() => {
-    throw mockedError
+    throw error
   })
 
-  let error
   try {
-    await sync.setTransactionCheckpoint("testdb.json", "johny3", "accountNumber", "test_token", 12345)
-  } catch (e) {
-    error = e
+    await sync.getTransactionCheckpoint("testdb.json", "the_tenant", "CZ7120100000002700968855")
+  } catch (err) {
+    expect(err).toEqual(new VError(error, "Error when reading DB file testdb.json"))
   }
 
-  expect(error).toEqual(mockedError)
+  expect(jsonfile.readFile.mock.calls[0][0]).toBe("testdb.json")
+})
+
+
+test("set transaction checkpoint, error", async () => {
+  const sync = require("../modules/sync.js")
+  const jsonfile = require("jsonfile-promised")
+  const VError = require("verror")
+  const error = new Error("some error")
+
+  jsonfile.readFile = jest.fn(() => {
+    throw error
+  })
+
+  try {
+    await sync.setTransactionCheckpoint("testdb.json", "johny3", "accountNumber", "test_token", 12345)
+  } catch (err) {
+    expect(err).toEqual(new VError(error, "Failed to create checkpoint database"))
+  }
+
 })
 
 test("getTransactionCheckpointByToken - token exists", async () => {

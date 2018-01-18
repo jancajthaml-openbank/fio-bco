@@ -52,6 +52,13 @@ test("Tenant.createMissingAccounts - core api returns 500", async () => {
 
 })
 
+test("Tenant.createTransactions - do nothing on nothing", async () => {
+  const core = require("../modules/core.js")
+
+  const tenant = new core.Tenant("test")
+  await expect(tenant.createTransactions([], "", "")).resolves.toBeUndefined()
+})
+
 test("Tenant.createTransactions - core api returns 500", async () => {
   const axios = require("axios")
   const VError = require("verror")
@@ -223,7 +230,7 @@ test("Tenant.createTransactions - creating existing transaction in core but with
     }
   ]
   const sameIdsDifferentDataError = new Error()
-  sameIdsDifferentDataError.response = {"status": 406}
+  sameIdsDifferentDataError.response = {"status": 409}
 
   axios.post = jest.fn()
     .mockImplementationOnce(() => {
@@ -236,7 +243,47 @@ test("Tenant.createTransactions - creating existing transaction in core but with
   await tenant.createTransactions(testTransactions, testAccountNumber, testToken)
 
   expect(log.warn).toHaveBeenCalledTimes(1)
-  expect(log.warn.mock.calls[0][0]).toMatch(new RegExp(`Transaction with ID ${testTransactions[0].id} already exits in core but has different data`))
+  expect(log.warn.mock.calls[0][0]).toMatch(new RegExp(`Transaction ${testTransactions[0].id} already exits in core but has different data`))
+})
+
+test("Tenant.createTransactions - creating existing transaction in core that was rejected previously", async () => {
+  const core = require("../modules/core.js")
+  const axios = require("axios")
+  const log = require("../modules/logger.js")
+
+  const testTenantName = "test"
+  const testToken = "test_token"
+  const testAccountNumber = "test_acc_num"
+  const testTransactions = [
+    {
+      "id": "2151261787",
+      "transfers": [
+        {
+          "amount": "20",
+          "credit": "CZ7920100000002400222233",
+          "currency": "CZK",
+          "debit": "FIO",
+          "id": "1158218999",
+          "valueDate": "2016-03-26T23:00:00.000Z"
+        }
+      ]
+    }
+  ]
+  const sameIdsDifferentDataError = new Error()
+  sameIdsDifferentDataError.response = {"status": 417}
+
+  axios.post = jest.fn()
+    .mockImplementationOnce(() => {
+      throw sameIdsDifferentDataError
+    })
+  log.warn = jest.fn()
+    .mockImplementationOnce(() => null)
+
+  const tenant = new core.Tenant(testTenantName)
+  await tenant.createTransactions(testTransactions, testAccountNumber, testToken)
+
+  expect(log.warn).toHaveBeenCalledTimes(1)
+  expect(log.warn.mock.calls[0][0]).toMatch(new RegExp(`Transaction ${testTransactions[0].id} created but rollbacked`))
 })
 
 test("Tenant.getCheckpointByToken", async () => {

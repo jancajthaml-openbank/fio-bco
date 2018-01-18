@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM library/ruby:latest
+FROM library/ruby:2
 
 MAINTAINER Jan Cajthaml <jan.cajthaml@gmail.com>
 
 RUN apt-get update && \
     apt-get install -y \
+      --no-install-recommends \
       netcat-openbsd \
       bsdmainutils && \
     apt-get clean && \

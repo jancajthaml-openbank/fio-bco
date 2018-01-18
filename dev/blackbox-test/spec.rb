@@ -8,7 +8,7 @@ RSpec.configure do |config|
   config.include EventuallyHelper, :type => :feature
   Dir.glob("./**/*_steps.rb") { |f| load f, true }
 
-  config.after(:suite) do |suite|
+  config.after(:suite) do |_suite|
     FileUtils.rm_rf("/data/.", secure: true)
   end
 
@@ -20,7 +20,7 @@ class Hash
 
   def deep_diff(b)
     a = self
-    (a.keys | b.keys).inject({}) do |diff, k|
+    (a.keys | b.keys).each_with_object({}) do |k, diff|
       if a[k] != b[k]
         if a[k].respond_to?(:deep_diff) && b[k].respond_to?(:deep_diff)
           diff[k] = a[k].deep_diff(b[k])
@@ -28,7 +28,6 @@ class Hash
           diff[k] = [a[k], b[k]]
         end
       end
-      diff
     end
   end
 
