@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/jancajthaml/fio-bco.svg?style=svg&circle-token=dca7fe834e3de7b35f226069ae4729e283ff1df5)](https://circleci.com/gh/jancajthaml/fio-bco) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c68588793efb4f0ca3b33b74d174fc8a)](https://www.codacy.com/app/jan-cajthaml/fio-bco?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=jancajthaml/fio-bco&amp;utm_campaign=Badge_Grade)
+[![CircleCI](https://circleci.com/gh/jancajthaml-openbank/fio-bco.svg?style=svg&circle-token=dca7fe834e3de7b35f226069ae4729e283ff1df5)](https://circleci.com/gh/jancajthaml-openbank/fio-bco) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c68588793efb4f0ca3b33b74d174fc8a)](https://www.codacy.com/app/jan-cajthaml/fio-bco?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=jancajthaml/fio-bco&amp;utm_campaign=Badge_Grade) [![Known Vulnerabilities](https://snyk.io/test/github/jancajthaml-openbank/fio-bco/badge.svg)](https://snyk.io/test/github/jancajthaml-openbank/fio-bco)
 
 ### How to run it
 
@@ -9,24 +9,24 @@ To run fio-sync you have to install npm and nodeJS. Then run commands below, use
 ```
 npm install
 
-npm start <tenant_name> <fio_token> [wait]
+npm start <tenant> <fio_token> [wait]
 ```
 
-- <tenant_name> - name of tenant in core
+- <tenant> - name of tenant in core
 - <fio_token> - token that is used to access account via FIO api, read-only token is sufficient
 - [wait] - optional just type wait as last argument if you want to wait for fio api to be available otherwise fio-sync will end
 
-**Warning - fio_token is stored in DB, due to performance issues, consider this when running in production !!!** 
+**Warning - fio_token is stored in DB, due to performance issues, consider this when running in production !!!**
 #### dockerized lifecycle
 
 ```
 make
 
-TENANT_NAME=<tenant_name>  FIO_TOKEN=<fio_token> \
+TENANT=<tenant>  FIO_TOKEN=<fio_token> \
 make run
 ```
 
-- <tenant_name> - name of tenant in core
+- <tenant> - name of tenant in core
 - <fio_token> - token that is used to access account via FIO api, read-only token is sufficient
 
 ### What it does
@@ -39,4 +39,4 @@ once per 20 seconds. If you run application twice in that window app will simply
 
 ### TODO
 
-* Unify code style through the project 
+* Unify code style through the project
