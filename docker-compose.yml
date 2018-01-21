@@ -3,12 +3,12 @@ version: '2'
 services:
 
   cron:
-    image: openbank/fio-bco:latest
+    image: openbank/fio-bco
     restart: "no"
     tty: true
     environment:
-      - TENANT=FIO
-      - FIO_TOKEN=${FIO_TOKEN}
+      - TENANT
+      - FIO_TOKEN
     volumes:
       - ./data-real:/data
       - ./config:/opt/fio-bco/config:ro
@@ -18,7 +18,7 @@ services:
       - vault
 
   server:
-    image: openbank/server:latest
+    image: openbank/server
     restart: unless-stopped
     environment:
       - PERSISTENCE_PATH=/data
@@ -28,17 +28,18 @@ services:
       - "8080"
 
   queue:
-    image: openbank/queue:latest
-    restart: unless-stopped
+    image: openbank/lake
+    restart: "no"
     ports:
       - "5562"
       - "5561"
+    command: ["run"]
 
   vault:
-    image: openbank/vault:latest
+    image: openbank/vault
     restart: unless-stopped
     environment:
-      - TENANT=FIO
+      - TENANT
       - PERSISTENCE_PATH=/data
     volumes:
       - ./data-real:/data
