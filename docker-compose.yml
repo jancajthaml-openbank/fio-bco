@@ -18,7 +18,7 @@ services:
       - vault
 
   server:
-    image: openbank/server
+    image: openbank/wall
     restart: unless-stopped
     environment:
       - PERSISTENCE_PATH=/data
@@ -33,7 +33,6 @@ services:
     ports:
       - "5562"
       - "5561"
-    command: ["run"]
 
   vault:
     image: openbank/vault

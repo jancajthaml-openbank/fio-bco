@@ -20,7 +20,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
   server:
-    image: openbank/server:latest
+    image: openbank/wall
     restart: unless-stopped
     environment:
       - PERSISTENCE_PATH=/data
@@ -30,14 +30,14 @@ services:
       - "8080"
 
   queue:
-    image: openbank/queue:latest
+    image: openbank/lake
     restart: unless-stopped
     ports:
       - "5562"
       - "5561"
 
   vault:
-    image: openbank/vault:latest
+    image: openbank/vault
     restart: unless-stopped
     environment:
       - TENANT=FIO
