@@ -1,42 +1,27 @@
-[![CircleCI](https://circleci.com/gh/jancajthaml-openbank/fio-bco.svg?style=shield&circle-token=dca7fe834e3de7b35f226069ae4729e283ff1df5)](https://circleci.com/gh/jancajthaml-openbank/fio-bco) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c68588793efb4f0ca3b33b74d174fc8a)](https://www.codacy.com/app/jan-cajthaml/fio-bco?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=jancajthaml/fio-bco&amp;utm_campaign=Badge_Grade) [![Known Vulnerabilities](https://snyk.io/test/github/jancajthaml-openbank/fio-bco/badge.svg)](https://snyk.io/test/github/jancajthaml-openbank/fio-bco)
+# fio-bco
 
-### How to run it
+FIO Bank Connector
 
-#### local lifecycle
+[![godoc for jancajthaml-openbank/fio-bco](https://godoc.org/github.com/nathany/looper?status.svg)](https://godoc.org/github.com/jancajthaml-openbank/fio-bco) [![CircleCI](https://circleci.com/gh/jancajthaml-openbank/fio-bco/tree/master.svg?style=shield)](https://circleci.com/gh/jancajthaml-openbank/fio-bco/tree/master)
 
-To run fio-sync you have to install npm and nodeJS. Then run commands below, user has to have write permissions for working directory.
+[![Go Report Card](https://goreportcard.com/badge/github.com/jancajthaml-openbank/fio-bco)](https://goreportcard.com/report/github.com/jancajthaml-openbank/fio-bco) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c3185b6c5940475c8773c98d754bd17c)](https://www.codacy.com/app/jancajthaml-openbank/fio-bco?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=jancajthaml-openbank/fio-bco&amp;utm_campaign=Badge_Grade) [![codebeat badge](https://codebeat.co/badges/2baf283e-9f92-4e61-af1c-d8d37a688b87)](https://codebeat.co/projects/github-com-jancajthaml-openbank-fio-bco-master)
 
-```
-npm install
+## License
 
-npm start <tenant> <fio_token> [wait]
-```
+Licensed under Apache 2.0 see LICENSE.md for details
 
-- <tenant> - name of tenant in core
-- <fio_token> - token that is used to access account via FIO api, read-only token is sufficient
-- [wait] - optional just type wait as last argument if you want to wait for fio api to be available otherwise fio-sync will end
+## Contributing
 
-**Warning - fio_token is stored in DB, due to performance issues, consider this when running in production !!!**
-#### dockerized lifecycle
+1. Fork it
+2. Create your feature branch (`git checkout -b feature/my-new-feature`)
+3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Push to the branch (`git push origin feature/my-new-feature`)
+5. Create new Pull Request
 
-```
-make
+## Responsible Disclosure
 
-TENANT=<tenant>  FIO_TOKEN=<fio_token> \
-make run
-```
+I take the security of my systems seriously, and I value input from the security community. The disclosure of security vulnerabilities helps me ensure the security and privacy of my users. If you believe you've found a security vulnerability in one of my products or platforms please [tell me via email](mailto:jan.cajthaml@gmail.com).
 
-- <tenant> - name of tenant in core
-- <fio_token> - token that is used to access account via FIO api, read-only token is sufficient
+## Author
 
-### What it does
-
-Application get all transactions for given account via FIO api and store it in core. It also save the last
-transaction that was synced, so when run again it get from FIO only transactions that are new.
-
-> Note: There is a FIO limitation that request for account statement from which is transactions gathered can be requested
-once per 20 seconds. If you run application twice in that window app will simply wait 20 seconds and then continue.
-
-### TODO
-
-* Unify code style through the project
+Jan Cajthaml (a.k.a johnny)

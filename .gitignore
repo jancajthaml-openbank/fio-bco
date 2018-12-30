@@ -1,6 +1,3 @@
-.idea
-node_modules
-dev/journal
+vendor
+reports
 coverage
-junit.xml
-data-real
