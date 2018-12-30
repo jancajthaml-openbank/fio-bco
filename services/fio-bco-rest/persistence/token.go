@@ -22,6 +22,11 @@ import (
 // LoadTokens rehydrates token entity state from storage
 func LoadTokens(root, tenant string) ([]model.Token, error) {
 	path := utils.TokensPath(root, tenant)
+
+	if utils.NotExists(path) {
+		return make([]model.Token, 0), nil
+	}
+
 	tokens, err := utils.ListDirectory(path, true)
 	if err != nil {
 		return nil, err
