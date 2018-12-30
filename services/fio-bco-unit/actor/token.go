@@ -23,6 +23,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// TokenManagement represents token actor behaviour
 func TokenManagement(s *daemon.ActorSystem) func(interface{}, system.Context) {
 	return func(t_state interface{}, context system.Context) {
 
@@ -66,6 +67,7 @@ func TokenManagement(s *daemon.ActorSystem) func(interface{}, system.Context) {
 	}
 }
 
+// NewTokenSignletonActor returns new instance of actor named "token"
 func NewTokenSignletonActor() *system.Envelope {
 	return system.NewEnvelope("token", nil)
 }

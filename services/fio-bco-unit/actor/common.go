@@ -66,7 +66,7 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 			return
 		}
 
-		var message interface{} = nil
+		var message interface{}
 
 		switch payload {
 
@@ -75,17 +75,21 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 				message = model.CreateToken{
 					Value: parts[4],
 				}
+			} else {
+				message = nil
 			}
 
 		case ReqDeleteToken:
-			{
-				if len(parts) == 5 {
-					message = model.DeleteToken{
-						Value: parts[4],
-					}
+			if len(parts) == 5 {
+				message = model.DeleteToken{
+					Value: parts[4],
 				}
+			} else {
+				message = nil
 			}
 
+		default:
+			message = nil
 		}
 
 		if message == nil {
@@ -98,6 +102,7 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 	}
 }
 
+// SpawnTokenSignletonActor spawns actor for token CRUD operations
 func SpawnTokenSignletonActor(s *daemon.ActorSystem) (*system.Envelope, error) {
 	envelope := NewTokenSignletonActor()
 
