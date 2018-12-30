@@ -1,41 +1,259 @@
 version: 2
+
+# ---------------------------------------------------------------------------- #
+
+workflows:
+
+  version: 2
+
+  commit:
+    jobs:
+      - setup:
+          filters:
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.+)?/
+      - test:
+          requires:
+            - setup
+          filters:
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.+)?/
+      - build:
+          requires:
+            - setup
+          filters:
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.+)?/
+      - package:
+          requires:
+            - build
+            - test
+          filters:
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.+)?/
+      - bbtest:
+          requires:
+            - package
+          filters:
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.+)?/
+      - release:
+          requires:
+            - bbtest
+          filters:
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*(-.+)?/
+            branches:
+              ignore: /.*/
+
+# ---------------------------------------------------------------------------- #
+
 jobs:
-  build:
+
+  # -------------------------------------------------------------------------- #
+
+  setup:
     docker:
-      - image: circleci/node:7.10
-
-    working_directory: ~/project
-
+      - image: docker:17.09.0-ce-git
+        environment:
+          - LANG: C.UTF-8
+          - GOARCH: amd64
+          - GOOS: linux
+          - GOBIN: /usr/lib/go/bin/go
+    working_directory: /home/circleci/project
     steps:
       - checkout
+      - setup_remote_docker
+      - run: docker build -t openbankdev/fio_bco_base ./dev
+      - run: docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
+      - deploy:
+          name: Push dev docker images to DockerHUB
+          command: |
+            upload_to_docker_hub() {
+              docker tag ${1} "${1}:${2}"
+              docker push "${1}:${2}"
+            }
 
+            upload_to_docker_hub openbankdev/fio_bco_base latest
+      - save_cache:
+          key: fio-base-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
+          paths:
+            - /home/circleci/project
+
+  # -------------------------------------------------------------------------- #
+
+  test:
+    docker:
+      - image: openbankdev/fio_bco_base
+    working_directory: /home/circleci/project
+    steps:
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "package.json" }}
-          - v1-dependencies-
-
+            - fio-base-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
       - run:
-          name: install
-          command: npm i
+          name: ensure services namespace
+          command: |
+            mkdir -p /go/src/github.com/jancajthaml-openbank
+            ln -s /home/circleci/project/services/fio-bco-rest /go/src/github.com/jancajthaml-openbank/fio-bco-rest
+            ln -s /home/circleci/project/services/fio-bco-unit /go/src/github.com/jancajthaml-openbank/fio-bco-unit
+      - run:
+          name: sync dependencies
+          command: |
+            ./dev/lifecycle/sync --pkg fio-bco-rest
+            ./dev/lifecycle/sync --pkg fio-bco-unit
+      - run:
+          name: unit test fio-bco-rest
+          command: |
+            ./dev/lifecycle/test --pkg fio-bco-rest
+      - run:
+          name: unit test fio-bco-unit
+          command: |
+            ./dev/lifecycle/test --pkg fio-bco-unit
 
+  # -------------------------------------------------------------------------- #
+
+  build:
+    docker:
+      - image: openbankdev/fio_bco_base
+    working_directory: /home/circleci/project
+    steps:
+      - restore_cache:
+          keys:
+            - fio-base-{{ .Environment.CIRCLE_SHA1 }}
+      - run:
+          name: ensure services namespace
+          command: |
+            mkdir -p /go/src/github.com/jancajthaml-openbank
+            ln -s /home/circleci/project/services/fio-bco-rest /go/src/github.com/jancajthaml-openbank/fio-bco-rest
+            ln -s /home/circleci/project/services/fio-bco-unit /go/src/github.com/jancajthaml-openbank/fio-bco-unit
+      - run:
+          name: sync dependencies
+          command: |
+            ./dev/lifecycle/sync --pkg fio-bco-rest
+            ./dev/lifecycle/sync --pkg fio-bco-unit
+      - run:
+          name: package binary of fio-bco-unit
+          command: |
+            ./dev/lifecycle/package --arch linux/amd64 --pkg fio-bco-unit
+            ./dev/lifecycle/package --arch linux/armhf --pkg fio-bco-unit
+      - run:
+          name: package binary of fio-bco-rest
+          command: |
+            ./dev/lifecycle/package --arch linux/amd64 --pkg fio-bco-rest
+            ./dev/lifecycle/package --arch linux/armhf --pkg fio-bco-rest
+      - run:
+          name: Package debian of fio-bco
+          command: |
+            if [ -z ${CIRCLE_TAG} ] ; then
+              tags=($(git tag --sort=-v:refname))
+              if [ ${#tags[@]} -eq 0 ] ; then
+                VERSION=v0.0.0
+              else
+                VERSION=${tags[0]}
+              fi
+              META=$(sed 's:.*/::' <<< ${CIRCLE_BRANCH})
+              VERSION=${VERSION}+${META}
+            else
+              VERSION=${CIRCLE_TAG}
+            fi
+
+            ./dev/lifecycle/debian -v ${VERSION} --arch amd64 --pkg fio-bco
+            ./dev/lifecycle/debian -v ${VERSION} --arch armhf --pkg fio-bco
       - save_cache:
+          key: fio-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
           paths:
-            - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
+            - /home/circleci/project
+      - persist_to_workspace:
+          root: /home/circleci/project/packaging
+          paths:
+            - bin
+  # -------------------------------------------------------------------------- #
 
+  package:
+    docker:
+      - image: openbankdev/fio_bco_base
+    working_directory: /home/circleci/project
+    steps:
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - fio-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
+      - run: docker build -t openbank/fio-bco .
+      - run: docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD}
+      - deploy:
+          name: Push snapshot docker images to DockerHUB
+          command: |
+            upload() {
+              if [ -z ${CIRCLE_TAG} ] ; then
+                VERSION=$(sed 's:.*/::' <<< ${CIRCLE_BRANCH})
+                echo "snapshot ${VERSION}"
+
+                docker tag ${1} ${1}:${VERSION}
+                docker push ${1}:${VERSION}
+              else
+                VERSION=${CIRCLE_TAG}
+                echo "release ${VERSION}"
+
+                docker tag ${1} ${1}:${VERSION}
+                docker push ${1}:${VERSION}
+
+                docker tag ${1} ${1}:latest
+                docker push ${1}:latest
+              fi
+            }
+
+            upload openbank/fio-bco
+
+  # -------------------------------------------------------------------------- #
+
+  bbtest:
+    machine: true
+    working_directory: /home/circleci/project
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /home/circleci/project/packaging
+      - run: docker build -t openbankdev/fio_bco_bbtest -f ./bbtest/Dockerfile .
       - run:
-          name: test
-          command: npm test
-          environment:
-            JEST_JUNIT_OUTPUT: "$CIRCLE_TEST_REPORTS/junit/test-results.xml"
-
-      - store_artifacts:
-          path: coverage/lcov-report/
-          destination: unit-test-coverage
-
+          name: Run blackbox tests
+          command: |
+            docker exec -it $(\
+              docker run -d -ti \
+                -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
+                -v /home/circleci/project/bbtest:/opt/bbtest \
+                -v /home/circleci/project/reports:/reports \
+              openbankdev/fio_bco_bbtest \
+            ) rspec --require /opt/bbtest/spec.rb \
+              --format documentation \
+              --format RspecJunitFormatter \
+              --out junit.xml \
+              --pattern /opt/bbtest/features/*.feature
       - store_test_results:
-          path: $CIRCLE_TEST_REPORTS
-
+          path: /home/circleci/project/bbtest
       - store_artifacts:
-          path: $CIRCLE_TEST_REPORTS
+          path: /home/circleci/project/reports
+          destination: reports
 
+  # -------------------------------------------------------------------------- #
+
+  release:
+    docker:
+      - image: openbankdev/fio_bco_base
+    working_directory: /home/circleci/project
+    steps:
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - fio-binaries-{{ .Environment.CIRCLE_SHA1 }}-{{ .Environment.CIRCLE_TAG }}
+      - run: if [ ! -f ./packaging/bin/fio-bco-rest-linux-amd64 ] ; then exit 1 ; fi
+      - run: if [ ! -f ./packaging/bin/fio-bco-unit-linux-amd64 ] ; then exit 1 ; fi
+      - run: if [ ! -f ./packaging/bin/fio-bco-rest-linux-armhf ] ; then exit 1 ; fi
+      - run: if [ ! -f ./packaging/bin/fio-bco-unit-linux-armhf ] ; then exit 1 ; fi
+      - run: if [ ! -f ./packaging/bin/fio_bco_${CIRCLE_TAG#v}_amd64.deb ] ; then exit 1 ; fi
+      - run: if [ ! -f ./packaging/bin/fio_bco_${CIRCLE_TAG#v}_armhf.deb ] ; then exit 1 ; fi
+      - deploy:
+          name: Release artifacts to github
+          command: |
+            ./dev/lifecycle/release -v ${CIRCLE_TAG} -t ${GITHUB_RELEASE_TOKEN}
+
+# ---------------------------------------------------------------------------- #

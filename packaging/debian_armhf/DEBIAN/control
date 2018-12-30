@@ -1,0 +1,9 @@
+Package: fio-bco
+Version: 0.0.0+convert-to-golang
+Architecture: armhf
+Maintainer: Jan Cajthaml <jan.cajthaml@gmail.com>
+Depends: init-system-helpers (>= 1.18~), libzmq5 (= 4.2.1-4)
+Section: openbank
+Priority: extra
+Vcs-Git: git@github.com:jancajthaml-openbank/fio-bco.git
+Description: Openbank FIO Bank Connection

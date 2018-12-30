@@ -1,0 +1,32 @@
+#!/bin/sh
+
+set -e
+
+case "$1" in
+
+  purge)
+    systemctl stop fio-bco.service
+    systemctl disable fio-bco.service
+    (rm /lib/systemd/system/fio-bco.service || :)
+    (rm /lib/systemd/system/fio-bco.service || :)
+    (rm /etc/init/fio-bco.conf || :)
+    (rm /opt/fio-bco/metrics/metrics.json || :)
+    systemctl daemon-reload
+    systemctl reset-failed
+  ;;
+
+  remove)
+    systemctl mask fio-bco.service
+  ;;
+
+  upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+  ;;
+
+  *)
+    (>&2 echo "postrm called with unknown argument \`$1'")
+    exit 1
+  ;;
+
+esac
+
+exit 0
