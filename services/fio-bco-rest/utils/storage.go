@@ -128,3 +128,15 @@ func ReadFileFully(absPath string) ([]byte, error) {
 
 	return buf, nil
 }
+
+// Exists returns true if absolute path exists
+func Exists(absPath string) bool {
+	_, err := os.Stat(absPath)
+	return !os.IsNotExist(err)
+}
+
+// NotExists returns true if absolute path does not exists
+func NotExists(absPath string) bool {
+	_, err := os.Stat(absPath)
+	return os.IsNotExist(err)
+}

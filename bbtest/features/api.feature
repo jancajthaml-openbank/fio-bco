@@ -1,5 +1,19 @@
 Feature: API test
 
+  Scenario: Token API - get tokens when application is from scratch
+    Given tenant API is onbdoarded
+    And fio-bco is reconfigured with
+    """
+      FIO_BCO_SYNC_RATE=1s
+      FIO_BCO_HTTP_PORT=443
+    """
+
+    When I request curl GET https://localhost/tokens/API
+    Then curl responds with 200
+    """
+      []
+    """
+
   Scenario: Token API - create non existant token
     Given tenant API is onbdoarded
     And fio-bco is reconfigured with

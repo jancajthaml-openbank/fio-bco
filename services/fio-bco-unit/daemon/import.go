@@ -70,9 +70,9 @@ func (fio FioImport) setLastSyncedID(token string, lastID int64) error {
 	)
 
 	if lastID != 0 {
-		uri = fio.fioGateway + "/ib_api/rest/set-last-id/" + token + "/" + strconv.FormatInt(lastID, 10)
+		uri = fio.fioGateway + "/ib_api/rest/set-last-id/" + token + "/" + strconv.FormatInt(lastID, 10) + "/"
 	} else {
-		uri = fio.fioGateway + "/ib_api/rest/set-last-date/" + token + "/2012-07-27"
+		uri = fio.fioGateway + "/ib_api/rest/set-last-date/" + token + "/2012-07-27/"
 	}
 
 	_, code, err = fio.httpClient.Get(uri)
@@ -178,12 +178,12 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 
 func (fio FioImport) importStatements(token model.Token) {
 	if err := fio.setLastSyncedID(token.Value, token.LastSyncedID); err != nil {
-		log.Warnf("FIO Gateway returned error %+v for %+v", err, token.Value)
+		log.Warnf("set Last Synced ID Failed : FIO Gateway returned error %+v for %+v", err, token.Value)
 		return
 	}
 
 	if err := fio.importNewTransactions(token); err != nil {
-		log.Warnf("FIO Gateway returned error %+v for %+v", err, token.Value)
+		log.Warnf("import statements Failed : FIO Gateway returned error %+v for %+v", err, token.Value)
 		return
 	}
 }
