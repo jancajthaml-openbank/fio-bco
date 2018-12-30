@@ -30,6 +30,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// FioImport represents fio gateway to wall import subroutine
 type FioImport struct {
 	Support
 	tenant      string
@@ -42,6 +43,7 @@ type FioImport struct {
 	httpClient  http.Client
 }
 
+// NewFioImport returns fio import fascade
 func NewFioImport(ctx context.Context, cfg config.Configuration, metrics *Metrics, system *ActorSystem) FioImport {
 	return FioImport{
 		Support:     NewDaemonSupport(ctx),
@@ -131,13 +133,13 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 
 	transactions := envelope.GetTransactions()
 
-	var lastId int64 = 0
+	var lastID int64
 
 	for _, transaction := range transactions {
 
 		for _, transfer := range transaction.Transfers {
-			if transfer.IDTransfer > lastId {
-				lastId = transfer.IDTransfer
+			if transfer.IDTransfer > lastID {
+				lastID = transfer.IDTransfer
 			}
 		}
 
@@ -162,8 +164,8 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 			return fmt.Errorf("%d", code)
 		}
 
-		if lastId != 0 {
-			token.LastSyncedID = lastId
+		if lastID != 0 {
+			token.LastSyncedID = lastID
 			if !persistence.UpdateToken(fio.storage, &token) {
 				log.Warnf("Unable to update token %+v", token)
 			}
@@ -206,6 +208,7 @@ func (fio FioImport) importRoundtrip() {
 	wg.Wait()
 }
 
+// Start handles everything needed to start fio import daemon
 func (fio FioImport) Start() {
 	defer fio.MarkDone()
 

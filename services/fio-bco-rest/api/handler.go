@@ -31,8 +31,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var EmptyJsonObject = []byte("{}")
-var EmptyJsonArray = []byte("[]")
+var emptyJSONObject = []byte("{}")
+var emptyJSONArray = []byte("[]")
 
 // HealtCheck returns 200 OK
 func HealtCheck(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +40,7 @@ func HealtCheck(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(EmptyJsonObject)
+	w.Write(emptyJSONObject)
 }
 
 // CreateTokenPartial returns http handler for creating new token
@@ -60,7 +60,7 @@ func CreateTokenPartial(system *daemon.ActorSystem) func(w http.ResponseWriter, 
 		defer r.Body.Close()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(EmptyJsonObject)
+			w.Write(emptyJSONObject)
 			return
 		}
 
@@ -69,7 +69,7 @@ func CreateTokenPartial(system *daemon.ActorSystem) func(w http.ResponseWriter, 
 
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write(EmptyJsonObject)
+			w.Write(emptyJSONObject)
 			return
 		}
 
@@ -81,19 +81,19 @@ func CreateTokenPartial(system *daemon.ActorSystem) func(w http.ResponseWriter, 
 			log.Debug("Smiley ok here")
 
 			w.WriteHeader(http.StatusOK)
-			w.Write(EmptyJsonObject)
+			w.Write(emptyJSONObject)
 			return
 
 		case *model.ReplyTimeout:
 			log.Debug("Sad timeout here")
 
 			w.WriteHeader(http.StatusGatewayTimeout)
-			w.Write(EmptyJsonObject)
+			w.Write(emptyJSONObject)
 			return
 
 		default:
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(EmptyJsonObject)
+			w.Write(emptyJSONObject)
 			return
 
 		}
@@ -119,17 +119,17 @@ func DeleteTokenPartial(system *daemon.ActorSystem) func(w http.ResponseWriter, 
 
 		case *model.TokenDeleted:
 			w.WriteHeader(http.StatusOK)
-			w.Write(EmptyJsonObject)
+			w.Write(emptyJSONObject)
 			return
 
 		case *model.ReplyTimeout:
 			w.WriteHeader(http.StatusGatewayTimeout)
-			w.Write(EmptyJsonObject)
+			w.Write(emptyJSONObject)
 			return
 
 		default:
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(EmptyJsonObject)
+			w.Write(emptyJSONObject)
 			return
 
 		}
@@ -149,14 +149,14 @@ func GetTokensPartial(cfg config.Configuration, system *daemon.ActorSystem) func
 		tokens, err := persistence.LoadTokens(cfg.RootStorage, vars["tenant_id"])
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(EmptyJsonArray)
+			w.Write(emptyJSONArray)
 			return
 		}
 
 		resp, err := utils.JSON.Marshal(tokens)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(EmptyJsonArray)
+			w.Write(emptyJSONArray)
 			return
 		}
 

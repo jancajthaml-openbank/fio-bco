@@ -249,8 +249,8 @@ jobs:
       - run: if [ ! -f ./packaging/bin/fio-bco-unit-linux-amd64 ] ; then exit 1 ; fi
       - run: if [ ! -f ./packaging/bin/fio-bco-rest-linux-armhf ] ; then exit 1 ; fi
       - run: if [ ! -f ./packaging/bin/fio-bco-unit-linux-armhf ] ; then exit 1 ; fi
-      - run: if [ ! -f ./packaging/bin/fio_bco_${CIRCLE_TAG#v}_amd64.deb ] ; then exit 1 ; fi
-      - run: if [ ! -f ./packaging/bin/fio_bco_${CIRCLE_TAG#v}_armhf.deb ] ; then exit 1 ; fi
+      - run: if [ ! -f ./packaging/bin/fio-bco_${CIRCLE_TAG#v}_amd64.deb ] ; then exit 1 ; fi
+      - run: if [ ! -f ./packaging/bin/fio-bco_${CIRCLE_TAG#v}_armhf.deb ] ; then exit 1 ; fi
       - deploy:
           name: Release artifacts to github
           command: |
