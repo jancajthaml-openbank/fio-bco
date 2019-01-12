@@ -80,7 +80,7 @@ func (fio FioImport) setLastSyncedID(token string, lastID int64) error {
 	if err != nil {
 		return err
 	} else if code != 200 {
-		return fmt.Errorf("FIO Gateway %d %+v", code, string(data))
+		return fmt.Errorf("FIO Gateway Error %d %+v", code, string(data))
 	}
 
 	return nil
@@ -120,7 +120,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 			if code == 200 || code == 409 {
 				return
 			} else if code >= 500 && err == nil {
-				err = fmt.Errorf("Wall Account %d %+v", code, string(data))
+				err = fmt.Errorf("Wall Account Error %d %+v", code, string(data))
 			}
 			return
 		})
@@ -128,7 +128,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 		if err != nil {
 			return err
 		} else if code != 200 && code != 409 {
-			return fmt.Errorf("Wall Account %d %+v", code, string(data))
+			return fmt.Errorf("Wall Account Error %d %+v", code, string(data))
 		}
 	}
 
@@ -154,15 +154,17 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 			if code == 200 || code == 201 {
 				return
 			} else if code >= 500 && err == nil {
-				err = fmt.Errorf("Wall Transaction %d %+v", code, string(data))
+				err = fmt.Errorf("Wall Transaction Error %d %+v", code, string(data))
 			}
 			return
 		})
 
 		if err != nil {
 			return err
+		} else if code == 409 {
+			return fmt.Errorf("Wall Transaction Duplicate %+v", transaction)
 		} else if code != 200 && code != 201 {
-			return fmt.Errorf("Wall Transaction %d %+v", code, string(data))
+			return fmt.Errorf("Wall Transaction Error %d %+v", code, string(data))
 		}
 
 		if lastID != 0 {

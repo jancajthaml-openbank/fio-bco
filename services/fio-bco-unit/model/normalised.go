@@ -19,12 +19,12 @@ import (
 )
 
 type Transaction struct {
-	IDTransaction int64      `json:"id,string"`
+	IDTransaction string     `json:"id"`
 	Transfers     []Transfer `json:"transfers"`
 }
 
 type Transfer struct {
-	IDTransfer int64   `json:"id,string"`
+	IDTransfer int64   `json:"id"`
 	Credit     string  `json:"credit"`
 	Debit      string  `json:"debit"`
 	ValueDate  string  `json:"valueDate"`

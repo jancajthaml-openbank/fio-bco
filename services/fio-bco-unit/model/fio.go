@@ -17,6 +17,7 @@ package model
 import (
 	"math"
 	"sort"
+	"strconv"
 	"time"
 )
 
@@ -119,12 +120,14 @@ func (envelope *FioImportEnvelope) GetTransactions() []Transaction {
 			if transfer.Column2 == nil {
 				debit = envelope.Statement.Info.BIC
 			} else {
+				// FIXME NormalizeAccountNumber(account, transfer.Column3.Value, envelope.Statement.Info.BankId)
 				debit = transfer.Column2.Value
 			}
 		} else {
 			if transfer.Column2 == nil {
 				credit = envelope.Statement.Info.BIC
 			} else {
+				// FIXME NormalizeAccountNumber(account, transfer.Column3.Value, envelope.Statement.Info.BankId)
 				credit = transfer.Column2.Value
 			}
 			debit = envelope.Statement.Info.IBAN
@@ -138,6 +141,8 @@ func (envelope *FioImportEnvelope) GetTransactions() []Transaction {
 			valueDate = now
 		}
 
+		// FIXME there is a problem with context idTransaction can behave as duplicate if created from
+		// different tokens, need prefix with something
 		set[transfer.Column17.Value] = append(set[transfer.Column17.Value], Transfer{
 			IDTransfer: transfer.Column22.Value,
 			Credit:     credit,
@@ -151,7 +156,7 @@ func (envelope *FioImportEnvelope) GetTransactions() []Transaction {
 	result := make([]Transaction, 0)
 	for transaction, transfers := range set {
 		result = append(result, Transaction{
-			IDTransaction: transaction,
+			IDTransaction: envelope.Statement.Info.IBAN + "/" + strconv.FormatInt(transaction, 10),
 			Transfers:     transfers,
 		})
 	}
