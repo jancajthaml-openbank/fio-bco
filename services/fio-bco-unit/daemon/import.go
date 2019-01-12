@@ -65,6 +65,7 @@ func (fio FioImport) getActiveTokens() ([]model.Token, error) {
 func (fio FioImport) setLastSyncedID(token string, lastID int64) error {
 	var (
 		err  error
+		data []byte
 		code int
 		uri  string
 	)
@@ -75,11 +76,11 @@ func (fio FioImport) setLastSyncedID(token string, lastID int64) error {
 		uri = fio.fioGateway + "/ib_api/rest/set-last-date/" + token + "/2012-07-27/"
 	}
 
-	_, code, err = fio.httpClient.Get(uri)
+	data, code, err = fio.httpClient.Get(uri)
 	if err != nil {
 		return err
 	} else if code != 200 {
-		return fmt.Errorf("%d", code)
+		return fmt.Errorf("FIO Gateway %d %+v", code, string(data))
 	}
 
 	return nil
@@ -96,7 +97,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 	if err != nil {
 		return err
 	} else if code != 200 {
-		return fmt.Errorf("%d %+v", code, string(data))
+		return fmt.Errorf("FIO Gateway %d %+v", code, string(data))
 	}
 
 	var envelope model.FioImportEnvelope
@@ -119,7 +120,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 			if code == 200 || code == 409 {
 				return
 			} else if code >= 500 && err == nil {
-				err = fmt.Errorf("%d %+v", code, string(data))
+				err = fmt.Errorf("Wall Account %d %+v", code, string(data))
 			}
 			return
 		})
@@ -127,7 +128,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 		if err != nil {
 			return err
 		} else if code != 200 && code != 409 {
-			return fmt.Errorf("%d Fatal Error", code)
+			return fmt.Errorf("Wall Account %d %+v", code, string(data))
 		}
 	}
 
@@ -153,7 +154,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 			if code == 200 || code == 201 {
 				return
 			} else if code >= 500 && err == nil {
-				err = fmt.Errorf("%d %+v", code, string(data))
+				err = fmt.Errorf("Wall Transaction %d %+v", code, string(data))
 			}
 			return
 		})
@@ -161,7 +162,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 		if err != nil {
 			return err
 		} else if code != 200 && code != 201 {
-			return fmt.Errorf("%d Fatal Error", code)
+			return fmt.Errorf("Wall Transaction %d %+v", code, string(data))
 		}
 
 		if lastID != 0 {
@@ -178,12 +179,12 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 
 func (fio FioImport) importStatements(token model.Token) {
 	if err := fio.setLastSyncedID(token.Value, token.LastSyncedID); err != nil {
-		log.Warnf("set Last Synced ID Failed : FIO Gateway returned error %+v for %+v", err, token.Value)
+		log.Warnf("set Last Synced ID Failed : %+v for %+v", err, token.Value)
 		return
 	}
 
 	if err := fio.importNewTransactions(token); err != nil {
-		log.Warnf("import statements Failed : FIO Gateway returned error %+v for %+v", err, token.Value)
+		log.Warnf("import statements Failed : %+v for %+v", err, token.Value)
 		return
 	}
 }
