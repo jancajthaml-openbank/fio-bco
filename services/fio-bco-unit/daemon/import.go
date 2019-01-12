@@ -96,7 +96,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 	if err != nil {
 		return err
 	} else if code != 200 {
-		return fmt.Errorf("%d", code)
+		return fmt.Errorf("%d %+v", code, string(data))
 	}
 
 	var envelope model.FioImportEnvelope
@@ -119,7 +119,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 			if code == 200 || code == 409 {
 				return
 			} else if code >= 500 && err == nil {
-				err = fmt.Errorf("%d", code)
+				err = fmt.Errorf("%d %+v", code, string(data))
 			}
 			return
 		})
@@ -127,7 +127,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 		if err != nil {
 			return err
 		} else if code != 200 && code != 409 {
-			return fmt.Errorf("%d", code)
+			return fmt.Errorf("%d Fatal Error", code)
 		}
 	}
 
@@ -153,7 +153,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 			if code == 200 || code == 201 {
 				return
 			} else if code >= 500 && err == nil {
-				err = fmt.Errorf("%d", code)
+				err = fmt.Errorf("%d %+v", code, string(data))
 			}
 			return
 		})
@@ -161,7 +161,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 		if err != nil {
 			return err
 		} else if code != 200 && code != 201 {
-			return fmt.Errorf("%d", code)
+			return fmt.Errorf("%d Fatal Error", code)
 		}
 
 		if lastID != 0 {
