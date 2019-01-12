@@ -1,0 +1,17 @@
+fio-bco (v1.0.1+tokens) unstable; urgency=low
+
+  * includes non-released commits
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sun, 30 Dec 2018 22:09:25 +0100
+
+fio-bco (1.0.1) unstable; urgency=low
+
+  * Merge pull request #22 from jancajthaml-openbank/bugfix/fio-integration
+  * Merge branch 'master' into bugfix/fio-integration
+  * bugfix trailing slash mandatory for setting of pivot by id or date
+  * Update release
+  * Merge pull request #20 from jancajthaml-openbank/feature/more-stable-release-script
+  * more stable release script added
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sun, 30 Dec 2018 22:09:25 +0100
+
