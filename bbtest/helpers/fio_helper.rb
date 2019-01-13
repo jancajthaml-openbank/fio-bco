@@ -23,8 +23,6 @@ class FioDownloadNewStatemetsHandler < WEBrick::HTTPServlet::AbstractServlet
   end
 
   def process(request)
-    return 404, "application/json", "{}" unless request.request_uri.end_with?("/")
-
     params = request.path_info.split("/").map(&:strip).reject(&:empty?)
 
     return 404, "application/json", "{}" if params.length < 2
@@ -56,7 +54,7 @@ class FioSetLastStatemetPivotIdHandler < WEBrick::HTTPServlet::AbstractServlet
   end
 
   def process(request)
-    return 404, "application/json", "{}" unless request.request_uri.end_with?("/")
+    return 404, "application/json", "{}" unless request.request_uri.to_s.end_with?("/")
 
     params = request.path_info.split("/").map(&:strip).reject(&:empty?)
 
@@ -64,7 +62,6 @@ class FioSetLastStatemetPivotIdHandler < WEBrick::HTTPServlet::AbstractServlet
 
     token = params[0]
     transferId = params[1]
-
 
     FioMock.set_confirmed_transfer_pivot_id(transferId)
 
@@ -80,8 +77,6 @@ end
 class FioSetLastStatemetPivotDateHandler < WEBrick::HTTPServlet::AbstractServlet
 
   def do_GET(request, response)
-    puts request.request_uri
-
     # FIXME check if url ends with slash (be robust againts real fio gateway)
     status, content_type, body = process(request)
 

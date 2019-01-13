@@ -14,15 +14,17 @@ class WallAccountHandler < WEBrick::HTTPServlet::AbstractServlet
   end
 
   def create_account(request)
+    #puts "creating wall account #{request.body}"
+
     begin
       body = JSON.parse(request.body)
 
       raise JSON::ParserError if body["accountNumber"].nil? || body["accountNumber"].empty?
       raise JSON::ParserError if body["currency"].nil? || body["currency"].empty?
-      raise JSON::ParserError if body["isBalanceCheck"].nil? || body["isBalanceCheck"].empty?
+      raise JSON::ParserError if body["isBalanceCheck"].nil?
 
       if VaultMock.create_account(body["accountNumber"], body["currency"], body["isBalanceCheck"] != "false")
-        puts "created account #{body}"
+        #puts "created account #{body}"
         return 200, "application/json", "{}"
       else
         #puts "already exists #{body}"
@@ -30,7 +32,8 @@ class WallAccountHandler < WEBrick::HTTPServlet::AbstractServlet
       end
     rescue JSON::ParserError
       return 400, "application/json", "{}"
-    rescue Exception => _
+    rescue Exception => err
+      puts err
       return 500, "application/json", "{}"
     end
 
@@ -48,13 +51,14 @@ class WallTransactionHandler < WEBrick::HTTPServlet::AbstractServlet
   end
 
   def create_transaction(request)
+    #puts "creating wall transaction #{request.body}"
     begin
       body = JSON.parse(request.body)
 
       raise JSON::ParserError if body["transfers"].nil? || body["transfers"].empty?
 
       if VaultMock.create_transaction(body["id"], body["transfers"])
-        puts "created transaction #{body}"
+        #puts "created transaction #{body}"
         return 200, "application/json", "{}"
       else
         return 409, "application/json", "{}"
