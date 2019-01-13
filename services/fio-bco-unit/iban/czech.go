@@ -33,7 +33,7 @@ func CalculateCzech(number, bankCode string) string {
 	// checksum of length 2
 	var paddedChecksum string
 	// checksum mod 97
-	checksum := (98 - mod97(countryCode+paddedNumber+countryDigits))
+	checksum := (98 - mod97(paddedBankCode+paddedNumber+countryDigits))
 	switch checksum {
 	case 99: // 98 - -1
 		return ""
