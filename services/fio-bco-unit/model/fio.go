@@ -151,7 +151,7 @@ func (envelope *FioImportEnvelope) GetTransactions() []Transaction {
 			IDTransfer: transfer.Column22.Value,
 			Credit:     credit,
 			Debit:      debit,
-			ValueDate:  valueDate.Format("2006-01-02T15:04:05Z0700"), // FIXME not formatted with Z but instead with +100
+			ValueDate:  valueDate.Format("2006-01-02T15:04:05Z0700"),
 			Amount:     math.Abs(transfer.Column1.Value),
 			Currency:   envelope.Statement.Info.Currency, // FIXME not true in all cases
 		})
@@ -160,7 +160,7 @@ func (envelope *FioImportEnvelope) GetTransactions() []Transaction {
 	result := make([]Transaction, 0)
 	for transaction, transfers := range set {
 		result = append(result, Transaction{
-			IDTransaction: envelope.Statement.Info.IBAN + "/" + strconv.FormatInt(transaction, 10),
+			IDTransaction: envelope.Statement.Info.IBAN + strconv.FormatInt(transaction, 10),
 			Transfers:     transfers,
 		})
 	}
