@@ -15,8 +15,6 @@
 package model
 
 import (
-	"unicode"
-
 	"github.com/jancajthaml-openbank/fio-bco-unit/iban"
 )
 
@@ -41,7 +39,7 @@ type Account struct {
 }
 
 func NormalizeAccountNumber(number string, bankCode string, nostroBankCode string) string {
-	if len(number) > 2 && unicode.IsLetter(number[0]) && unicode.IsLetter(number[1]) {
+	if len(number) > 2 && (number[0] >= 'A' && number[0] <= 'Z') && (number[1] >= 'A' && number[1] <= 'Z') {
 		return number
 	}
 
