@@ -1,5 +1,5 @@
 Package: fio-bco
-Version: 1.0.1+tokens
+Version: 1.0.2+import-wall-duplicate-transaction
 Architecture: amd64
 Maintainer: Jan Cajthaml <jan.cajthaml@gmail.com>
 Depends: init-system-helpers (>= 1.18~), libzmq5 (= 4.2.1-4)

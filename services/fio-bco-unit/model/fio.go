@@ -17,6 +17,7 @@ package model
 import (
 	"math"
 	"sort"
+	"strconv"
 	"time"
 )
 
@@ -119,13 +120,21 @@ func (envelope *FioImportEnvelope) GetTransactions() []Transaction {
 			if transfer.Column2 == nil {
 				debit = envelope.Statement.Info.BIC
 			} else {
-				debit = transfer.Column2.Value
+				if transfer.Column3 != nil {
+					debit = NormalizeAccountNumber(transfer.Column2.Value, transfer.Column3.Value, envelope.Statement.Info.BankId)
+				} else {
+					debit = NormalizeAccountNumber(transfer.Column2.Value, "", envelope.Statement.Info.BankId)
+				}
 			}
 		} else {
 			if transfer.Column2 == nil {
 				credit = envelope.Statement.Info.BIC
 			} else {
-				credit = transfer.Column2.Value
+				if transfer.Column3 != nil {
+					credit = NormalizeAccountNumber(transfer.Column2.Value, transfer.Column3.Value, envelope.Statement.Info.BankId)
+				} else {
+					credit = NormalizeAccountNumber(transfer.Column2.Value, "", envelope.Statement.Info.BankId)
+				}
 			}
 			debit = envelope.Statement.Info.IBAN
 		}
@@ -151,7 +160,7 @@ func (envelope *FioImportEnvelope) GetTransactions() []Transaction {
 	result := make([]Transaction, 0)
 	for transaction, transfers := range set {
 		result = append(result, Transaction{
-			IDTransaction: transaction,
+			IDTransaction: envelope.Statement.Info.IBAN + "/" + strconv.FormatInt(transaction, 10),
 			Transfers:     transfers,
 		})
 	}
@@ -203,6 +212,7 @@ func (envelope *FioImportEnvelope) GetAccounts() []Account {
 	for _, item := range deduplicated {
 		result = append(result, item)
 	}
+
 	return result
 }
 

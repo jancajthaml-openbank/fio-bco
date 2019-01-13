@@ -64,10 +64,10 @@ func (fio FioImport) getActiveTokens() ([]model.Token, error) {
 
 func (fio FioImport) setLastSyncedID(token string, lastID int64) error {
 	var (
-		err  error
-		data []byte
-		code int
-		uri  string
+		err      error
+		response []byte
+		code     int
+		uri      string
 	)
 
 	if lastID != 0 {
@@ -76,11 +76,11 @@ func (fio FioImport) setLastSyncedID(token string, lastID int64) error {
 		uri = fio.fioGateway + "/ib_api/rest/set-last-date/" + token + "/2012-07-27/"
 	}
 
-	data, code, err = fio.httpClient.Get(uri)
+	response, code, err = fio.httpClient.Get(uri)
 	if err != nil {
 		return err
 	} else if code != 200 {
-		return fmt.Errorf("FIO Gateway %d %+v", code, string(data))
+		return fmt.Errorf("FIO Gateway Error %d %+v", code, string(response))
 	}
 
 	return nil
@@ -88,20 +88,21 @@ func (fio FioImport) setLastSyncedID(token string, lastID int64) error {
 
 func (fio FioImport) importNewTransactions(token model.Token) error {
 	var (
-		err  error
-		data []byte
-		code int
+		err      error
+		request  []byte
+		response []byte
+		code     int
 	)
 
-	data, code, err = fio.httpClient.Get(fio.fioGateway + "/ib_api/rest/last/" + token.Value + "/transactions.json")
+	response, code, err = fio.httpClient.Get(fio.fioGateway + "/ib_api/rest/last/" + token.Value + "/transactions.json")
 	if err != nil {
 		return err
 	} else if code != 200 {
-		return fmt.Errorf("FIO Gateway %d %+v", code, string(data))
+		return fmt.Errorf("FIO Gateway %d %+v", code, string(response))
 	}
 
 	var envelope model.FioImportEnvelope
-	err = utils.JSON.Unmarshal(data, &envelope)
+	err = utils.JSON.Unmarshal(response, &envelope)
 
 	if err != nil {
 		return err
@@ -110,25 +111,27 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 	accounts := envelope.GetAccounts()
 
 	for _, account := range accounts {
-		data, err = utils.JSON.Marshal(account)
+		request, err = utils.JSON.Marshal(account)
 		if err != nil {
 			return err
 		}
 
 		err = utils.Retry(10, time.Second, func() (err error) {
-			data, code, err = fio.httpClient.Post(fio.wallGateway+"/account/"+fio.tenant, data)
-			if code == 200 || code == 409 {
+			response, code, err = fio.httpClient.Post(fio.wallGateway+"/account/"+fio.tenant, request)
+			if code == 200 || code == 409 || code == 400 {
 				return
 			} else if code >= 500 && err == nil {
-				err = fmt.Errorf("Wall Account %d %+v", code, string(data))
+				err = fmt.Errorf("Wall Account Error %d %+v", code, string(response))
 			}
 			return
 		})
 
 		if err != nil {
 			return err
+		} else if code == 400 {
+			return fmt.Errorf("Wall Account Malformed request %d %+v", code, string(response))
 		} else if code != 200 && code != 409 {
-			return fmt.Errorf("Wall Account %d %+v", code, string(data))
+			return fmt.Errorf("Wall Account Error %d %+v", code, string(response))
 		}
 	}
 
@@ -144,25 +147,27 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 			}
 		}
 
-		data, err = utils.JSON.Marshal(transaction)
+		request, err = utils.JSON.Marshal(transaction)
 		if err != nil {
 			return err
 		}
 
 		err = utils.Retry(10, time.Second, func() (err error) {
-			data, code, err = fio.httpClient.Post(fio.wallGateway+"/transaction/"+fio.tenant, data)
+			response, code, err = fio.httpClient.Post(fio.wallGateway+"/transaction/"+fio.tenant, request)
 			if code == 200 || code == 201 {
 				return
 			} else if code >= 500 && err == nil {
-				err = fmt.Errorf("Wall Transaction %d %+v", code, string(data))
+				err = fmt.Errorf("Wall Transaction Error %d %+v", code, string(response))
 			}
 			return
 		})
 
 		if err != nil {
 			return err
+		} else if code == 409 {
+			return fmt.Errorf("Wall Transaction Duplicate %+v", transaction)
 		} else if code != 200 && code != 201 {
-			return fmt.Errorf("Wall Transaction %d %+v", code, string(data))
+			return fmt.Errorf("Wall Transaction Error %d %+v", code, string(response))
 		}
 
 		if lastID != 0 {
