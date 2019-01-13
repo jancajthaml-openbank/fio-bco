@@ -17,9 +17,30 @@ package iban
 import (
 	"strconv"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
-func CalculateCzech(number, bankCode string) string {
+var checkSumToString = make([]string, 98)
+
+func init() {
+	for i := 0; i < 10; i++ {
+		checkSumToString[i] = "0" + strconv.Itoa(i)
+	}
+
+	for i := 10; i < 98; i++ {
+		checkSumToString[i] = strconv.Itoa(i)
+	}
+}
+
+func CalculateCzech(number, bankCode string) (result string) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Errorf("iban.CalculateCzech(%s, %s) recovered in %+v", number, bankCode, r)
+			result = ""
+		}
+	}()
+
 	// canonise input
 	canonisedNumber := strings.Replace(number, "-", "", -1)
 	// accountNumber of length 16
@@ -30,25 +51,13 @@ func CalculateCzech(number, bankCode string) string {
 	countryCode := "CZ"
 	// country code converted to digits
 	countryDigits := "123500"
-	// checksum of length 2
-	var paddedChecksum string
 	// checksum mod 97
 	checksum := (98 - mod97(paddedBankCode+paddedNumber+countryDigits))
-	switch checksum {
-	case 99: // 98 - -1
-		return ""
-	case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9:
-		{
-			paddedChecksum = "0" + strconv.Itoa(checksum)
-			break
-		}
-	default:
-		{
-			paddedChecksum = strconv.Itoa(checksum)
-			break
-		}
-
+	if checksum == 99 {
+		return
 	}
 
-	return countryCode + paddedChecksum + paddedBankCode + paddedNumber
+	result = countryCode + checkSumToString[checksum] + paddedBankCode + paddedNumber
+
+	return
 }
