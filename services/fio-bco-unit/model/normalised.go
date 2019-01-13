@@ -39,6 +39,10 @@ type Account struct {
 }
 
 func NormalizeAccountNumber(number string, bankCode string, nostroBankCode string) string {
+	if len(number) > 2 && (number[0] >= 'A' && number[0] <= 'Z') && (number[1] >= 'A' && number[1] <= 'Z') {
+		return number
+	}
+
 	var calculatedIBAN string
 
 	if bankCode == "" {
