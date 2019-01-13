@@ -1,11 +1,20 @@
 fio-bco (1.0.2) unstable; urgency=low
 
+  * Update czech.go
+  * Update normalised.go
+  * Merge pull request #29 from jancajthaml-openbank/bugfix/valid-transaction-id
+  * valid transaction id without a slash in name
+  * Merge pull request #28 from jancajthaml-openbank/bugfix/log-malformed-requests
+  * log malformed requests
+  * Merge pull request #27 from jancajthaml-openbank/feature/import-wall-duplicate-transaction
+  * normalising credit and debit accounts
+  * mitigation of duplicate transactions
   * Merge pull request #26 from jancajthaml-openbank/bugfix/better-error-logging
   * better error logging
   * Merge pull request #24 from jancajthaml-openbank/bufix/tokens
   * ensure token folder and log more if fio gateway returns error
 
- -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sat, 12 Jan 2019 17:20:30 +0100
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sun, 13 Jan 2019 12:27:56 +0100
 
 fio-bco (1.0.1) unstable; urgency=low
 

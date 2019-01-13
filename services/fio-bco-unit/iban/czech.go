@@ -21,6 +21,18 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var checkSumToString = make([]string, 98)
+
+func init() {
+	for i := 0; i < 10; i++ {
+		checkSumToString[i] = "0" + strconv.Itoa(i)
+	}
+
+	for i := 10; i < 98; i++ {
+		checkSumToString[i] = strconv.Itoa(i)
+	}
+}
+
 func CalculateCzech(number, bankCode string) (result string) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -39,25 +51,13 @@ func CalculateCzech(number, bankCode string) (result string) {
 	countryCode := "CZ"
 	// country code converted to digits
 	countryDigits := "123500"
-	// checksum of length 2
-	var paddedChecksum string
 	// checksum mod 97
 	checksum := (98 - mod97(paddedBankCode+paddedNumber+countryDigits))
-	switch checksum {
-	case 99: // 98 - -1
+	if checksum == 99 {
 		return
-	case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9:
-		{
-			paddedChecksum = "0" + strconv.Itoa(checksum)
-			break
-		}
-	default:
-		{
-			paddedChecksum = strconv.Itoa(checksum)
-			break
-		}
-
 	}
 
-	result = countryCode + paddedChecksum + paddedBankCode + paddedNumber
+	result = countryCode + checkSumToString[checksum] + paddedBankCode + paddedNumber
+
+	return
 }
