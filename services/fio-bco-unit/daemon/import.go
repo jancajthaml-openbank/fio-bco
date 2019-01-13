@@ -129,7 +129,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 		if err != nil {
 			return err
 		} else if code == 400 {
-			return fmt.Errorf("Wall Account Malformed request %d %+v", code, string(response))
+			return fmt.Errorf("Wall Account Malformed request %+v", string(request))
 		} else if code != 200 && code != 409 {
 			return fmt.Errorf("Wall Account Error %d %+v", code, string(response))
 		}
@@ -154,7 +154,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 
 		err = utils.Retry(10, time.Second, func() (err error) {
 			response, code, err = fio.httpClient.Post(fio.wallGateway+"/transaction/"+fio.tenant, request)
-			if code == 200 || code == 201 {
+			if code == 200 || code == 201 || code == 400 {
 				return
 			} else if code >= 500 && err == nil {
 				err = fmt.Errorf("Wall Transaction Error %d %+v", code, string(response))
@@ -165,7 +165,9 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 		if err != nil {
 			return err
 		} else if code == 409 {
-			return fmt.Errorf("Wall Transaction Duplicate %+v", transaction)
+			return fmt.Errorf("Wall Transaction Duplicate %+v", string(request))
+		} else if code == 400 {
+			return fmt.Errorf("Wall Transaction Malformed request %+v", string(request))
 		} else if code != 200 && code != 201 {
 			return fmt.Errorf("Wall Transaction Error %d %+v", code, string(response))
 		}
