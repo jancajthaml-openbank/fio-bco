@@ -24,7 +24,7 @@ type Transaction struct {
 }
 
 type Transfer struct {
-	IDTransfer int64   `json:"id"`
+	IDTransfer int64   `json:"id,string"`
 	Credit     string  `json:"credit"`
 	Debit      string  `json:"debit"`
 	ValueDate  string  `json:"valueDate"`
