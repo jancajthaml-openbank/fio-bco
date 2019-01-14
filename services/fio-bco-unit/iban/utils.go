@@ -15,12 +15,22 @@
 package iban
 
 func mod97(number string) int {
-	var m = 0
-	for _, c := range number {
-		if c < '0' || c > '9' {
-			return -1
-		}
-		m = (((m * 10) + (int(c) - '0')) % 97)
+	var (
+		d uint
+		i int
+		x uint
+		l int = len(number)
+	)
+
+scan:
+	d = uint(number[i]) - 48
+	if d > 9 {
+		return -1
 	}
-	return m
+	x = (((x * 10) + d) % 97)
+	i++
+	if i != l {
+		goto scan
+	}
+	return int(x)
 }
