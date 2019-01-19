@@ -60,19 +60,19 @@ end
 step "fio-bco is reconfigured with" do |configuration|
   params = Hash[configuration.split("\n").map(&:strip).reject(&:empty?).map {|el| el.split '='}]
   defaults = {
-    "FIO_BCO_STORAGE" => "/data",
-    "FIO_BCO_LOG_LEVEL" => "DEBUG",
-    "FIO_BCO_FIO_GATEWAY" => "https://localhost:4000",
-    "FIO_BCO_SYNC_RATE" => "1h",
-    "FIO_BCO_WALL_GATEWAY" => "https://localhost:3000",
-    "FIO_BCO_METRICS_OUTPUT" => "/reports/metrics.json",
-    "FIO_BCO_LAKE_HOSTNAME" => "localhost",
-    "FIO_BCO_METRICS_REFRESHRATE" => "1h",
-    "FIO_BCO_HTTP_PORT" => "443",
-    "FIO_BCO_SECRETS" => "/opt/fio-bco/secrets"
+    "STORAGE" => "/data",
+    "LOG_LEVEL" => "DEBUG",
+    "FIO_GATEWAY" => "https://localhost:4000",
+    "SYNC_RATE" => "1h",
+    "WALL_GATEWAY" => "https://localhost:3000",
+    "METRICS_OUTPUT" => "/reports/metrics.json",
+    "LAKE_HOSTNAME" => "localhost",
+    "METRICS_REFRESHRATE" => "1h",
+    "HTTP_PORT" => "443",
+    "SECRETS" => "/opt/fio-bco/secrets"
   }
 
-  config = Array[defaults.merge(params).map {|k,v| "#{k}=#{v}"}]
+  config = Array[defaults.merge(params).map {|k,v| "FIO_BCO_#{k}=#{v}"}]
   config = config.join("\n").inspect.delete('\"')
 
   %x(mkdir -p /etc/init)

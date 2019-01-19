@@ -6,9 +6,7 @@ step "token :slash_pair is created" do |slash_pair|
 
   (tenant, token) = slash_pair.split('/')
 
-  send "I request curl :http_method :url", "POST", "https://localhost/token/#{tenant}", {
-    "value" => token
-  }.to_json
+  send "I request curl :http_method :url", "POST", "https://localhost/token/#{tenant}/#{token}"
 
   @resp = Hash.new
   resp = %x(#{@http_req})
@@ -25,7 +23,7 @@ step "token :slash_pair should exist" do |slash_pair|
 
   (tenant, token) = slash_pair.split('/')
 
-  send "I request curl :http_method :url", "GET", "https://localhost/tokens/#{tenant}"
+  send "I request curl :http_method :url", "GET", "https://localhost/token/#{tenant}"
 
   @resp = Hash.new
   resp = %x(#{@http_req})

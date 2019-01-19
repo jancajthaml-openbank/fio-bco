@@ -1,3 +1,4 @@
+
 step "systemctl contains following" do |packages|
   items = packages.split("\n").map(&:strip).reject(&:empty?)
 

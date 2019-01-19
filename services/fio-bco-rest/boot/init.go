@@ -71,9 +71,8 @@ func Initialize() Application {
 
 	rest := daemon.NewServer(ctx, cfg, &actorSystem)
 	rest.HandleFunc("/health", api.HealtCheck, "GET", "HEAD")
-	rest.HandleFunc("/token/{tenant_id}", api.CreateTokenPartial(&actorSystem), "POST")
-	rest.HandleFunc("/token/{tenant_id}/{token_id}", api.DeleteTokenPartial(&actorSystem), "DELETE")
-	rest.HandleFunc("/tokens/{tenant_id}", api.GetTokensPartial(cfg, &actorSystem), "GET")
+	rest.HandleFunc("/token/{tenant}", api.TokensPartial(cfg, &actorSystem), "GET")
+	rest.HandleFunc("/token/{tenant}/{token}", api.TokenPartial(&actorSystem), "POST", "DELETE")
 
 	return Application{
 		cfg:         cfg,

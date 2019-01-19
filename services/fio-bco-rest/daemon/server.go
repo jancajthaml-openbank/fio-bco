@@ -103,9 +103,10 @@ func NewServer(ctx context.Context, cfg config.Configuration, system *ActorSyste
 	}
 }
 
-// HandleFunc registerer route
+// HandleFunc registeres route
 func (server Server) HandleFunc(path string, handle func(w http.ResponseWriter, r *http.Request), methods ...string) *mux.Route {
-	return server.router.HandleFunc(path, handle).Methods(methods...)
+	log.Debugf("HTTP route %+v %+v registered", methods, path)
+	return server.router.HandleFunc(path, handle).Methods(methods...).Schemes("https")
 }
 
 // Start handles everything needed to start http-server daemon

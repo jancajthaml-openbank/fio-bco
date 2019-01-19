@@ -251,8 +251,8 @@ Feature: FIO Gateway import
     Given tenant IMPORT is onbdoarded
     And fio-bco is reconfigured with
     """
-      FIO_BCO_SYNC_RATE=1s
-      FIO_BCO_HTTP_PORT=443
+      SYNC_RATE=1s
+      HTTP_PORT=443
     """
     And token IMPORT/importToken is created
     And I sleep for 5 seconds
