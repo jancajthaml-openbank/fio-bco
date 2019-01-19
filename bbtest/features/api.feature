@@ -4,11 +4,11 @@ Feature: API test
     Given tenant API is onbdoarded
     And fio-bco is reconfigured with
     """
-      FIO_BCO_SYNC_RATE=1s
-      FIO_BCO_HTTP_PORT=443
+      SYNC_RATE=1s
+      HTTP_PORT=443
     """
 
-    When I request curl GET https://localhost/tokens/API
+    When I request curl GET https://localhost/token/API
     Then curl responds with 200
     """
       []
@@ -18,16 +18,11 @@ Feature: API test
     Given tenant API is onbdoarded
     And fio-bco is reconfigured with
     """
-      FIO_BCO_SYNC_RATE=1s
-      FIO_BCO_HTTP_PORT=443
+      SYNC_RATE=1s
+      HTTP_PORT=443
     """
 
-    When I request curl POST https://localhost/token/API
-    """
-      {
-        "value": "A"
-      }
-    """
+    When I request curl POST https://localhost/token/API/A
     Then curl responds with 200
     """
       {}
@@ -37,22 +32,17 @@ Feature: API test
     Given tenant API is onbdoarded
     And fio-bco is reconfigured with
     """
-      FIO_BCO_SYNC_RATE=1s
-      FIO_BCO_HTTP_PORT=443
+      SYNC_RATE=1s
+      HTTP_PORT=443
     """
 
-    When I request curl POST https://localhost/token/API
-    """
-      {
-        "value": "B"
-      }
-    """
+    When I request curl POST https://localhost/token/API/B
     Then curl responds with 200
     """
       {}
     """
 
-    When I request curl GET https://localhost/tokens/API
+    When I request curl GET https://localhost/token/API
     Then curl responds with 200
     """
       [
@@ -69,16 +59,11 @@ Feature: API test
     Given tenant API is onbdoarded
     And fio-bco is reconfigured with
     """
-      FIO_BCO_SYNC_RATE=1s
-      FIO_BCO_HTTP_PORT=443
+      SYNC_RATE=1s
+      HTTP_PORT=443
     """
 
-    When I request curl POST https://localhost/token/API
-    """
-      {
-        "value": "C"
-      }
-    """
+    When I request curl POST https://localhost/token/API/C
     Then curl responds with 200
     """
       {}

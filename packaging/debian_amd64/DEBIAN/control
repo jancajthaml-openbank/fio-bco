@@ -1,5 +1,5 @@
 Package: fio-bco
-Version: 1.0.2+recover-iban-calculation-more-czech-bankcodes
+Version: 1.0.2+delete-token-api
 Architecture: amd64
 Maintainer: Jan Cajthaml <jan.cajthaml@gmail.com>
 Depends: init-system-helpers (>= 1.18~), libzmq5 (= 4.2.1-4)

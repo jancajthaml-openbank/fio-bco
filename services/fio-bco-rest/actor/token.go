@@ -27,13 +27,15 @@ import (
 )
 
 // CreateToken creates new token for target tenant
-func CreateToken(s *daemon.ActorSystem, token string, tenant string) (result interface{}) {
+func CreateToken(s *daemon.ActorSystem, tenant string, token string) (result interface{}) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Errorf("CreateToken recovered in %v", r)
 			result = nil
 		}
 	}()
+
+	// FIXME check if token or tenant is empty string and return error if so
 
 	ch := make(chan interface{})
 	defer close(ch)
@@ -64,13 +66,15 @@ func CreateToken(s *daemon.ActorSystem, token string, tenant string) (result int
 }
 
 // DeleteToken deletes existing token for target tenant
-func DeleteToken(s *daemon.ActorSystem, token string, tenant string) (result interface{}) {
+func DeleteToken(s *daemon.ActorSystem, tenant string, token string) (result interface{}) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Errorf("DeleteToken recovered in %v", r)
 			result = nil
 		}
 	}()
+
+	// FIXME check if token or tenant is empty string and return error if so
 
 	ch := make(chan interface{})
 	defer close(ch)

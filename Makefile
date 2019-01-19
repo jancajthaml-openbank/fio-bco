@@ -85,4 +85,3 @@ bbtest:
 		--pattern /opt/bbtest/features/*.feature || :)
 	@echo "[info] removing bbtest image"
 	@(docker rm -f $$(docker ps -a --filter="name=fio_bco_bbtest" -q) &> /dev/null || :)
-
