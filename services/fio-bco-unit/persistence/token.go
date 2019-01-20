@@ -28,17 +28,13 @@ func LoadTokens(root string) ([]model.Token, error) {
 	}
 	result := make([]model.Token, len(tokens))
 	for i, value := range tokens {
-
 		token := model.Token{
 			Value: value,
 		}
-
 		if HydrateToken(root, &token) != nil {
 			result[i] = token
 		}
-
 	}
-
 	return result, nil
 }
 

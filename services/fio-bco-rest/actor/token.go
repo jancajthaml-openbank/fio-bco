@@ -43,7 +43,7 @@ func CreateToken(s *daemon.ActorSystem, tenant string, token string) (result int
 	envelope := system.NewEnvelope("relay/"+xid.New().String(), nil)
 	defer s.UnregisterActor(envelope.Name)
 
-	s.RegisterActor(envelope, func(state interface{}, context system.Context) {
+	err := s.RegisterActor(envelope, func(state interface{}, context system.Context) {
 		switch msg := context.Data.(type) {
 		case model.TokenCreated:
 			ch <- &msg
@@ -51,6 +51,9 @@ func CreateToken(s *daemon.ActorSystem, tenant string, token string) (result int
 			ch <- nil
 		}
 	})
+	if err != nil {
+		return
+	}
 
 	s.SendRemote("FioUnit/"+tenant, CreateTokenMessage(envelope.Name, token))
 
@@ -82,7 +85,7 @@ func DeleteToken(s *daemon.ActorSystem, tenant string, token string) (result int
 	envelope := system.NewEnvelope("relay/"+xid.New().String(), nil)
 	defer s.UnregisterActor(envelope.Name)
 
-	s.RegisterActor(envelope, func(state interface{}, context system.Context) {
+	err := s.RegisterActor(envelope, func(state interface{}, context system.Context) {
 		switch msg := context.Data.(type) {
 		case model.TokenDeleted:
 			ch <- &msg
@@ -90,6 +93,9 @@ func DeleteToken(s *daemon.ActorSystem, tenant string, token string) (result int
 			ch <- nil
 		}
 	})
+	if err != nil {
+		return
+	}
 
 	s.SendRemote("FioUnit/"+tenant, DeleteTokenMessage(envelope.Name, token))
 

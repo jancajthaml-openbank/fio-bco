@@ -67,7 +67,7 @@ func (client Client) Post(url string, body []byte) (contents []byte, code int, e
 		}
 
 		if err != nil && resp != nil {
-			io.Copy(ioutil.Discard, resp.Body)
+			_, err = io.Copy(ioutil.Discard, resp.Body)
 			resp.Body.Close()
 		} else if resp == nil && err != nil {
 			err = fmt.Errorf("Runtime Error no response")
@@ -110,7 +110,7 @@ func (client Client) Get(url string) (contents []byte, code int, err error) {
 		}
 
 		if err != nil && resp != nil {
-			io.Copy(ioutil.Discard, resp.Body)
+			_, err = io.Copy(ioutil.Discard, resp.Body)
 			resp.Body.Close()
 		} else if resp == nil && err != nil {
 			err = fmt.Errorf("Runtime Error no response")

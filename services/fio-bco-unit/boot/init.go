@@ -71,7 +71,6 @@ func Initialize() Application {
 	actorSystem := daemon.NewActorSystem(ctx, cfg, &metrics)
 	actorSystem.Support.RegisterOnRemoteMessage(actor.ProcessRemoteMessage(&actorSystem))
 	actorSystem.Support.RegisterOnLocalMessage(actor.ProcessLocalMessage(&actorSystem))
-	actor.SpawnTokenSignletonActor(&actorSystem)
 
 	fio := daemon.NewFioImport(ctx, cfg, &metrics, &actorSystem)
 

@@ -1,5 +1,5 @@
 Package: fio-bco
-Version: 1.0.2+delete-token-api
+Version: 1.0.2+security-fixes-for-storage-go11-module-support
 Architecture: amd64
 Maintainer: Jan Cajthaml <jan.cajthaml@gmail.com>
 Depends: init-system-helpers (>= 1.18~), libzmq5 (= 4.2.1-4)
