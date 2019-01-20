@@ -16,6 +16,7 @@ package utils
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -50,25 +51,41 @@ func nameFromDirent(dirent *syscall.Dirent) []byte {
 
 // ListDirectory returns sorted slice of item names in given absolute path
 // default sorting is ascending
-func ListDirectory(absPath string, ascending bool) ([]string, error) {
-	v := make([]string, 0)
+func ListDirectory(absPath string, ascending bool) (result []string, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if err == nil {
+				err = fmt.Errorf("ListDirectory paniced: %+v", r)
+			}
+		}
+		if err != nil {
+			result = nil
+		}
+	}()
 
-	dh, err := os.Open(absPath)
+	var (
+		n  int
+		dh *os.File
+		de *syscall.Dirent
+	)
+
+	dh, err = os.Open(filepath.Clean(absPath))
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	fd := int(dh.Fd())
+	result = make([]string, 0)
 
 	scratchBuffer := make([]byte, defaultBufferSize)
 
-	var de *syscall.Dirent
-
 	for {
-		n, err := syscall.ReadDirent(fd, scratchBuffer)
+		n, err = syscall.ReadDirent(fd, scratchBuffer)
 		if err != nil {
-			_ = dh.Close()
-			return nil, err
+			if r := dh.Close(); r != nil {
+				err = r
+			}
+			return
 		}
 		if n <= 0 {
 			break
@@ -83,50 +100,75 @@ func ListDirectory(absPath string, ascending bool) ([]string, error) {
 			}
 
 			nameSlice := nameFromDirent(de)
-			namlen := len(nameSlice)
-			if (namlen == 0) || (namlen == 1 && nameSlice[0] == '.') || (namlen == 2 && nameSlice[0] == '.' && nameSlice[1] == '.') {
+			switch len(nameSlice) {
+			case 0:
 				continue
+			case 1:
+				if nameSlice[0] == '.' {
+					continue
+				}
+			case 2:
+				if nameSlice[0] == '.' && nameSlice[1] == '.' {
+					continue
+				}
 			}
-			v = append(v, string(nameSlice))
+			result = append(result, string(nameSlice))
 		}
 	}
 
-	if err = dh.Close(); err != nil {
-		return nil, err
+	if r := dh.Close(); r != nil {
+		err = r
+		return
 	}
 
 	if ascending {
-		sort.Slice(v, func(i, j int) bool {
-			return v[i] < v[j]
+		sort.Slice(result, func(i, j int) bool {
+			return result[i] < result[j]
 		})
 	} else {
-		sort.Slice(v, func(i, j int) bool {
-			return v[i] > v[j]
+		sort.Slice(result, func(i, j int) bool {
+			return result[i] > result[j]
 		})
 	}
 
-	return v, nil
+	return
 }
 
 // CountFiles returns number of items in directory
-func CountFiles(absPath string) int {
-	dh, err := os.Open(absPath)
+func CountFiles(absPath string) (result int, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if err == nil {
+				err = fmt.Errorf("CountFiles paniced: %+v", r)
+			}
+		}
+		if err != nil {
+			result = -1
+		}
+	}()
+
+	var (
+		n  int
+		dh *os.File
+		de *syscall.Dirent
+	)
+
+	dh, err = os.Open(filepath.Clean(absPath))
 	if err != nil {
-		return -1
+		return
 	}
 
-	nodes := 0
 	fd := int(dh.Fd())
 
 	scratchBuffer := make([]byte, defaultBufferSize)
 
-	var de *syscall.Dirent
-
 	for {
-		n, err := syscall.ReadDirent(fd, scratchBuffer)
+		n, err = syscall.ReadDirent(fd, scratchBuffer)
 		if err != nil {
-			_ = dh.Close()
-			return -1
+			if r := dh.Close(); r != nil {
+				err = r
+			}
+			return
 		}
 		if n <= 0 {
 			break
@@ -140,26 +182,32 @@ func CountFiles(absPath string) int {
 				continue
 			}
 
-			nodes++
+			result++
 		}
 	}
 
-	return nodes
+	if r := dh.Close(); r != nil {
+		err = r
+	}
+
+	return
 }
 
 // Exists returns true if absolute path exists
 func Exists(absPath string) bool {
-	_, err := os.Stat(absPath)
+	_, err := os.Stat(filepath.Clean(absPath))
 	return !os.IsNotExist(err)
 }
 
 // TouchFile creates files given absolute path if file does not already exist
 func TouchFile(absPath string) bool {
-	if err := os.MkdirAll(filepath.Dir(absPath), os.ModePerm); err != nil {
+	cleanedPath := filepath.Clean(absPath)
+
+	if err := os.MkdirAll(filepath.Dir(cleanedPath), os.ModePerm); err != nil {
 		return false
 	}
 
-	f, err := os.OpenFile(absPath, os.O_RDONLY|os.O_CREATE|os.O_EXCL, os.ModePerm)
+	f, err := os.OpenFile(cleanedPath, os.O_RDONLY|os.O_CREATE|os.O_EXCL, os.ModePerm)
 	if err != nil {
 		return false
 	}
@@ -170,7 +218,7 @@ func TouchFile(absPath string) bool {
 
 // ReadFileFully reads whole file given absolute path
 func ReadFileFully(absPath string) ([]byte, error) {
-	f, err := os.OpenFile(absPath, os.O_RDONLY, os.ModePerm)
+	f, err := os.OpenFile(filepath.Clean(absPath), os.O_RDONLY, os.ModePerm)
 	if err != nil {
 		return nil, err
 	}
@@ -193,11 +241,13 @@ func ReadFileFully(absPath string) ([]byte, error) {
 // WriteFile writes data given absolute path to a file if that file does not
 // already exists
 func WriteFile(absPath string, data []byte) bool {
-	if err := os.MkdirAll(filepath.Dir(absPath), os.ModePerm); err != nil {
+	cleanedPath := filepath.Clean(absPath)
+
+	if err := os.MkdirAll(filepath.Dir(cleanedPath), os.ModePerm); err != nil {
 		return false
 	}
 
-	f, err := os.OpenFile(absPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, os.ModePerm)
+	f, err := os.OpenFile(cleanedPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, os.ModePerm)
 	if err != nil {
 		return false
 	}
@@ -212,7 +262,7 @@ func WriteFile(absPath string, data []byte) bool {
 
 // DeleteFile removes file given absolute path if that file does exists
 func DeleteFile(absPath string) bool {
-	if err := os.Remove(absPath); err != nil {
+	if err := os.Remove(filepath.Clean(absPath)); err != nil {
 		return false
 	}
 
@@ -222,7 +272,7 @@ func DeleteFile(absPath string) bool {
 // UpdateFile rewrite file with data given absolute path to a file if that file
 // exist
 func UpdateFile(absPath string, data []byte) bool {
-	f, err := os.OpenFile(absPath, os.O_WRONLY|os.O_TRUNC, os.ModePerm)
+	f, err := os.OpenFile(filepath.Clean(absPath), os.O_WRONLY|os.O_TRUNC, os.ModePerm)
 	if err != nil {
 		return false
 	}
@@ -238,11 +288,13 @@ func UpdateFile(absPath string, data []byte) bool {
 // AppendFile appens data given absolute path to a file, creates it if it does
 // not exist
 func AppendFile(absPath string, data []byte) bool {
-	if err := os.MkdirAll(filepath.Dir(absPath), os.ModePerm); err != nil {
+	cleanedPath := filepath.Clean(absPath)
+
+	if err := os.MkdirAll(filepath.Dir(cleanedPath), os.ModePerm); err != nil {
 		return false
 	}
 
-	f, err := os.OpenFile(absPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, os.ModePerm)
+	f, err := os.OpenFile(cleanedPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, os.ModePerm)
 	if err != nil {
 		return false
 	}

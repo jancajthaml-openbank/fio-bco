@@ -22,29 +22,22 @@ import (
 // LoadTokens rehydrates token entity state from storage
 func LoadTokens(root, tenant string) ([]model.Token, error) {
 	path := utils.TokensPath(root, tenant)
-
 	if utils.NotExists(path) {
 		return make([]model.Token, 0), nil
 	}
-
 	tokens, err := utils.ListDirectory(path, true)
 	if err != nil {
 		return nil, err
 	}
-
 	result := make([]model.Token, len(tokens))
 	for i, value := range tokens {
-
 		token := model.Token{
 			Value: value,
 		}
-
 		if HydrateToken(root, tenant, &token) != nil {
 			result[i] = token
 		}
-
 	}
-
 	return result, nil
 }
 

@@ -102,8 +102,8 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 	}
 }
 
-// SpawnTokenSignletonActor spawns actor for token CRUD operations
-func SpawnTokenSignletonActor(s *daemon.ActorSystem) (*system.Envelope, error) {
+// SpawnTokenActor spawns actor for token CRUD operations
+func SpawnTokenActor(s *daemon.ActorSystem) (*system.Envelope, error) {
 	envelope := NewTokenSignletonActor()
 
 	err := s.RegisterActor(envelope, TokenManagement(s))

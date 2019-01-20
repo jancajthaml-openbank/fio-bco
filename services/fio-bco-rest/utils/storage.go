@@ -16,8 +16,10 @@ package utils
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"syscall"
@@ -49,25 +51,41 @@ func nameFromDirent(dirent *syscall.Dirent) []byte {
 
 // ListDirectory returns sorted slice of item names in given absolute path
 // default sorting is ascending
-func ListDirectory(absPath string, ascending bool) ([]string, error) {
-	v := make([]string, 0)
+func ListDirectory(absPath string, ascending bool) (result []string, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if err == nil {
+				err = fmt.Errorf("ListDirectory paniced: %+v", r)
+			}
+		}
+		if err != nil {
+			result = nil
+		}
+	}()
 
-	dh, err := os.Open(absPath)
+	var (
+		n  int
+		dh *os.File
+		de *syscall.Dirent
+	)
+
+	dh, err = os.Open(filepath.Clean(absPath))
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	fd := int(dh.Fd())
+	result = make([]string, 0)
 
 	scratchBuffer := make([]byte, defaultBufferSize)
 
-	var de *syscall.Dirent
-
 	for {
-		n, err := syscall.ReadDirent(fd, scratchBuffer)
+		n, err = syscall.ReadDirent(fd, scratchBuffer)
 		if err != nil {
-			_ = dh.Close()
-			return nil, err
+			if r := dh.Close(); r != nil {
+				err = r
+			}
+			return
 		}
 		if n <= 0 {
 			break
@@ -82,29 +100,38 @@ func ListDirectory(absPath string, ascending bool) ([]string, error) {
 			}
 
 			nameSlice := nameFromDirent(de)
-			namlen := len(nameSlice)
-			if (namlen == 0) || (namlen == 1 && nameSlice[0] == '.') || (namlen == 2 && nameSlice[0] == '.' && nameSlice[1] == '.') {
+			switch len(nameSlice) {
+			case 0:
 				continue
+			case 1:
+				if nameSlice[0] == '.' {
+					continue
+				}
+			case 2:
+				if nameSlice[0] == '.' && nameSlice[1] == '.' {
+					continue
+				}
 			}
-			v = append(v, string(nameSlice))
+			result = append(result, string(nameSlice))
 		}
 	}
 
-	if err = dh.Close(); err != nil {
-		return nil, err
+	if r := dh.Close(); r != nil {
+		err = r
+		return
 	}
 
 	if ascending {
-		sort.Slice(v, func(i, j int) bool {
-			return v[i] < v[j]
+		sort.Slice(result, func(i, j int) bool {
+			return result[i] < result[j]
 		})
 	} else {
-		sort.Slice(v, func(i, j int) bool {
-			return v[i] > v[j]
+		sort.Slice(result, func(i, j int) bool {
+			return result[i] > result[j]
 		})
 	}
 
-	return v, nil
+	return
 }
 
 // ReadFileFully reads whole file given absolute path
