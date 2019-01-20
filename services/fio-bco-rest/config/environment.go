@@ -41,12 +41,12 @@ func loadConfFromEnv() Configuration {
 
 	cert, err := storage.ReadFileFully(secrets + "/domain.local.crt")
 	if err != nil {
-		log.Fatalf("unable to load certificate %s/domain.local.crt", secrets)
+		log.Fatalf("unable to load certificate %s/domain.local.crt with error %+v", secrets, err)
 	}
 
 	key, err := storage.ReadFileFully(secrets + "/domain.local.key")
 	if err != nil {
-		log.Fatalf("unable to load certificate %s/domain.local.key", secrets)
+		log.Fatalf("unable to load certificate %s/domain.local.key with error %+v", secrets, err)
 	}
 
 	return Configuration{
