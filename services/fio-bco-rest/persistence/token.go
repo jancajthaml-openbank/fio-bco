@@ -15,6 +15,8 @@
 package persistence
 
 import (
+	storage "github.com/jancajthaml-openbank/local-fs"
+
 	"github.com/jancajthaml-openbank/fio-bco-rest/model"
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 )
@@ -22,10 +24,11 @@ import (
 // LoadTokens rehydrates token entity state from storage
 func LoadTokens(root, tenant string) ([]model.Token, error) {
 	path := utils.TokensPath(root, tenant)
-	if utils.NotExists(path) {
+	ok, err := storage.Exists(path)
+	if err != nil || !ok {
 		return make([]model.Token, 0), nil
 	}
-	tokens, err := utils.ListDirectory(path, true)
+	tokens, err := storage.ListDirectory(path, true)
 	if err != nil {
 		return nil, err
 	}
@@ -46,15 +49,11 @@ func HydrateToken(root, tenant string, entity *model.Token) *model.Token {
 	if entity == nil {
 		return nil
 	}
-
 	path := utils.TokenPath(root, tenant, entity.Value)
-
-	data, err := utils.ReadFileFully(path)
+	data, err := storage.ReadFileFully(path)
 	if err != nil {
 		return nil
 	}
-
 	entity.Hydrate(data)
-
 	return entity
 }

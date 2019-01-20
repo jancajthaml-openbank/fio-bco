@@ -15,6 +15,8 @@
 package persistence
 
 import (
+	storage "github.com/jancajthaml-openbank/local-fs"
+
 	"github.com/jancajthaml-openbank/fio-bco-unit/model"
 	"github.com/jancajthaml-openbank/fio-bco-unit/utils"
 )
@@ -22,7 +24,7 @@ import (
 // LoadTokens rehydrates token entity state from storage
 func LoadTokens(root string) ([]model.Token, error) {
 	path := utils.TokensPath(root)
-	tokens, err := utils.ListDirectory(path, true)
+	tokens, err := storage.ListDirectory(path, true)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +52,7 @@ func CreateToken(root, value string) bool {
 // DeleteToken deletes existing token entity
 func DeleteToken(root, value string) bool {
 	path := utils.TokenPath(root, value)
-	return utils.DeleteFile(path)
+	return storage.DeleteFile(path) == nil
 }
 
 // PersistToken persist new token entity to storage
@@ -58,13 +60,10 @@ func PersistToken(root string, entity *model.Token) *model.Token {
 	if entity == nil {
 		return nil
 	}
-
 	path := utils.TokenPath(root, entity.Value)
-
-	if !utils.TouchFile(path) {
+	if storage.TouchFile(path) != nil {
 		return nil
 	}
-
 	return entity
 }
 
@@ -73,16 +72,12 @@ func HydrateToken(root string, entity *model.Token) *model.Token {
 	if entity == nil {
 		return nil
 	}
-
 	path := utils.TokenPath(root, entity.Value)
-
-	data, err := utils.ReadFileFully(path)
+	data, err := storage.ReadFileFully(path)
 	if err != nil {
 		return nil
 	}
-
 	entity.Hydrate(data)
-
 	return entity
 }
 
@@ -91,9 +86,7 @@ func UpdateToken(root string, entity *model.Token) bool {
 	if entity == nil {
 		return false
 	}
-
 	path := utils.TokenPath(root, entity.Value)
 	data := entity.Persist()
-
-	return utils.UpdateFile(path, data)
+	return storage.UpdateFile(path, data) == nil
 }
