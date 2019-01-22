@@ -15,11 +15,11 @@
 package utils
 
 // TokensPath returns filepath for tokens
-func TokensPath(root string) string {
-	return root + "/token"
+func TokensPath() string {
+	return "token"
 }
 
 // TokenPath returns filepath for token
-func TokenPath(root, value string) string {
-	return root + "/token/" + value
+func TokenPath(value string) string {
+	return "token/" + value
 }

@@ -15,17 +15,16 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/jancajthaml-openbank/fio-bco-rest/actor"
-	"github.com/jancajthaml-openbank/fio-bco-rest/config"
 	"github.com/jancajthaml-openbank/fio-bco-rest/daemon"
 	"github.com/jancajthaml-openbank/fio-bco-rest/model"
 	"github.com/jancajthaml-openbank/fio-bco-rest/persistence"
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 
-	"net/http"
-
 	"github.com/gorilla/mux"
-
+	localfs "github.com/jancajthaml-openbank/local-fs"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -127,7 +126,7 @@ func DeleteToken(system *daemon.ActorSystem, tenant string, token string, w http
 }
 
 // TokensPartial returns http handler for tokens
-func TokensPartial(cfg config.Configuration, system *daemon.ActorSystem) func(w http.ResponseWriter, r *http.Request) {
+func TokensPartial(storage *localfs.Storage) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
@@ -140,7 +139,7 @@ func TokensPartial(cfg config.Configuration, system *daemon.ActorSystem) func(w 
 			return
 		}
 
-		tokens, err := persistence.LoadTokens(cfg.RootStorage, tenant)
+		tokens, err := persistence.LoadTokens(storage, tenant)
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)

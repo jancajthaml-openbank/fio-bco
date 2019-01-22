@@ -25,6 +25,7 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-unit/daemon"
 	"github.com/jancajthaml-openbank/fio-bco-unit/utils"
 
+	localfs "github.com/jancajthaml-openbank/local-fs"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -67,12 +68,13 @@ func Initialize() Application {
 	}
 
 	metrics := daemon.NewMetrics(ctx, cfg)
+	storage := localfs.NewStorage(cfg.RootStorage)
 
-	actorSystem := daemon.NewActorSystem(ctx, cfg, &metrics)
+	actorSystem := daemon.NewActorSystem(ctx, cfg, &metrics, &storage)
 	actorSystem.Support.RegisterOnRemoteMessage(actor.ProcessRemoteMessage(&actorSystem))
 	actorSystem.Support.RegisterOnLocalMessage(actor.ProcessLocalMessage(&actorSystem))
 
-	fio := daemon.NewFioImport(ctx, cfg, &metrics, &actorSystem)
+	fio := daemon.NewFioImport(ctx, cfg, &metrics, &actorSystem, &storage)
 
 	return Application{
 		cfg:         cfg,

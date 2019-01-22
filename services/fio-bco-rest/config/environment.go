@@ -15,11 +15,11 @@
 package config
 
 import (
+	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
 
-	storage "github.com/jancajthaml-openbank/local-fs"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -35,16 +35,12 @@ func loadConfFromEnv() Configuration {
 		log.Fatal("missing required parameter to run")
 	}
 
-	if os.MkdirAll(rootStorage, os.ModePerm) != nil {
-		log.Fatal("unable to assert storage directory")
-	}
-
-	cert, err := storage.ReadFileFully(secrets + "/domain.local.crt")
+	cert, err := ioutil.ReadFile(secrets + "/domain.local.crt")
 	if err != nil {
 		log.Fatalf("unable to load certificate %s/domain.local.crt with error %+v", secrets, err)
 	}
 
-	key, err := storage.ReadFileFully(secrets + "/domain.local.key")
+	key, err := ioutil.ReadFile(secrets + "/domain.local.key")
 	if err != nil {
 		log.Fatalf("unable to load certificate %s/domain.local.key with error %+v", secrets, err)
 	}

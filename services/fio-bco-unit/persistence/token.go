@@ -15,15 +15,15 @@
 package persistence
 
 import (
-	storage "github.com/jancajthaml-openbank/local-fs"
+	localfs "github.com/jancajthaml-openbank/local-fs"
 
 	"github.com/jancajthaml-openbank/fio-bco-unit/model"
 	"github.com/jancajthaml-openbank/fio-bco-unit/utils"
 )
 
 // LoadTokens rehydrates token entity state from storage
-func LoadTokens(root string) ([]model.Token, error) {
-	path := utils.TokensPath(root)
+func LoadTokens(storage *localfs.Storage) ([]model.Token, error) {
+	path := utils.TokensPath()
 	tokens, err := storage.ListDirectory(path, true)
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func LoadTokens(root string) ([]model.Token, error) {
 		token := model.Token{
 			Value: value,
 		}
-		if HydrateToken(root, &token) != nil {
+		if HydrateToken(storage, &token) != nil {
 			result[i] = token
 		}
 	}
@@ -41,26 +41,26 @@ func LoadTokens(root string) ([]model.Token, error) {
 }
 
 // CreateToken creates and persist new token entity
-func CreateToken(root, value string) bool {
+func CreateToken(storage *localfs.Storage, value string) bool {
 	token := model.NewToken(value)
-	if PersistToken(root, &token) == nil {
+	if PersistToken(storage, &token) == nil {
 		return false
 	}
 	return true
 }
 
 // DeleteToken deletes existing token entity
-func DeleteToken(root, value string) bool {
-	path := utils.TokenPath(root, value)
+func DeleteToken(storage *localfs.Storage, value string) bool {
+	path := utils.TokenPath(value)
 	return storage.DeleteFile(path) == nil
 }
 
 // PersistToken persist new token entity to storage
-func PersistToken(root string, entity *model.Token) *model.Token {
+func PersistToken(storage *localfs.Storage, entity *model.Token) *model.Token {
 	if entity == nil {
 		return nil
 	}
-	path := utils.TokenPath(root, entity.Value)
+	path := utils.TokenPath(entity.Value)
 	if storage.TouchFile(path) != nil {
 		return nil
 	}
@@ -68,11 +68,11 @@ func PersistToken(root string, entity *model.Token) *model.Token {
 }
 
 // HydrateToken hydrate existing token from storage
-func HydrateToken(root string, entity *model.Token) *model.Token {
+func HydrateToken(storage *localfs.Storage, entity *model.Token) *model.Token {
 	if entity == nil {
 		return nil
 	}
-	path := utils.TokenPath(root, entity.Value)
+	path := utils.TokenPath(entity.Value)
 	data, err := storage.ReadFileFully(path)
 	if err != nil {
 		return nil
@@ -82,11 +82,11 @@ func HydrateToken(root string, entity *model.Token) *model.Token {
 }
 
 // UpdateToken updates data of existing token to storage
-func UpdateToken(root string, entity *model.Token) bool {
+func UpdateToken(storage *localfs.Storage, entity *model.Token) bool {
 	if entity == nil {
 		return false
 	}
-	path := utils.TokenPath(root, entity.Value)
+	path := utils.TokenPath(entity.Value)
 	data := entity.Persist()
 	return storage.UpdateFile(path, data) == nil
 }

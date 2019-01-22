@@ -15,11 +15,11 @@
 package utils
 
 // TokensPath returns filepath of tokens for given tenant
-func TokensPath(root, tenant string) string {
-	return root + "/" + tenant + "/import/fio/token"
+func TokensPath(tenant string) string {
+	return tenant + "/import/fio/token"
 }
 
 // TokenPath returns filepath of token for given tenant and token
-func TokenPath(root, tenant, value string) string {
-	return root + "/" + tenant + "/import/fio/token/" + value
+func TokenPath(tenant, value string) string {
+	return tenant + "/import/fio/token/" + value
 }

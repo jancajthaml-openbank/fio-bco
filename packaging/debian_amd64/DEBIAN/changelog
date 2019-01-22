@@ -1,3 +1,13 @@
+fio-bco (1.0.3) unstable; urgency=low
+
+  * Error logging in config.go
+  * Using provided and local-fs for persistence, dropping support for legacy vendoring
+  * Go11+ modules support, security patches
+  * Better release notes
+  * More RESTful http api
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sun, 20 Jan 2019 14:17:58 +0100
+
 fio-bco (1.0.2) unstable; urgency=low
 
   * 10 times faster mod97
