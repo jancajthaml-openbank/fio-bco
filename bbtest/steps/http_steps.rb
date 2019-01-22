@@ -1,8 +1,6 @@
-require_relative '../shims/deep_diff'
-
+require 'json-diff'
+require 'deepsort'
 require 'json'
-require 'net/http'
-require 'time'
 
 step "I request curl :http_method :url" do |http_method, url, body = nil|
   cmd = ["curl --insecure"]
@@ -26,17 +24,20 @@ step "curl responds with :http_status" do |http_status, body = nil|
 
   return if body.nil?
 
-  expected_body = { wrap: JSON.parse(body) }
+  expectation = JSON.parse(body)
+  expectation.deep_sort!
 
   begin
-    resp_body = { wrap: JSON.parse(@resp[:body]) }
-    resp_body.deep_diff(expected_body).each do |key, array|
-      (have, want) = array
-      raise "unexpected attribute \"#{key}\" in response \"#{@resp[:body]}\" expected \"#{expected_body.to_json}\"" if want.nil?
-      raise "\"#{key}\" expected \"#{want}\" but got \"#{have}\" instead"
-    end
+    resp_body = JSON.parse(@resp[:body])
+    resp_body.deep_sort!
+
+    diff = JsonDiff.diff(resp_body, expectation).select{ |item| item["op"] != "remove" }
+    return if diff == []
+
+    raise "expectation failure:\ngot:\n#{JSON.pretty_generate(resp_body)}\nexpected:\n#{JSON.pretty_generate(expectation)}"
+
   rescue JSON::ParserError
-    raise "invalid response got \"#{@resp[:body].strip}\", expected \"#{expected_body.to_json}\""
+    raise "invalid response got \"#{@resp[:body].strip}\", expected \"#{expectation.to_json}\""
   end
 
 end
