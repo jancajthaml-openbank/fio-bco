@@ -135,7 +135,7 @@ func TokensPartial(storage *localfs.Storage) func(w http.ResponseWriter, r *http
 		if tenant == "" {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusNotFound)
-			w.Write(emptyJSONObject)
+			w.Write(emptyJSONArray)
 			return
 		}
 
