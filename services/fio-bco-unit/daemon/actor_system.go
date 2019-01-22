@@ -21,24 +21,25 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-unit/http"
 
 	system "github.com/jancajthaml-openbank/actor-system"
+	localfs "github.com/jancajthaml-openbank/local-fs"
 )
 
 // ActorSystem represents actor system subroutine
 type ActorSystem struct {
 	system.Support
 	Tenant     string
-	Storage    string
 	Metrics    *Metrics
+	Storage    *localfs.Storage
 	ClientHTTP http.Client
 }
 
 // NewActorSystem returns actor system fascade
-func NewActorSystem(ctx context.Context, cfg config.Configuration, metrics *Metrics) ActorSystem {
+func NewActorSystem(ctx context.Context, cfg config.Configuration, metrics *Metrics, storage *localfs.Storage) ActorSystem {
 	return ActorSystem{
 		Support:    system.NewSupport(ctx, "FioUnit/"+cfg.Tenant, cfg.LakeHostname),
-		Storage:    cfg.RootStorage,
 		Tenant:     cfg.Tenant,
 		Metrics:    metrics,
+		Storage:    storage,
 		ClientHTTP: http.NewClient(),
 	}
 }

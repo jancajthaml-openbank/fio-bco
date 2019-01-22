@@ -27,6 +27,7 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-unit/persistence"
 	"github.com/jancajthaml-openbank/fio-bco-unit/utils"
 
+	localfs "github.com/jancajthaml-openbank/local-fs"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -36,7 +37,7 @@ type FioImport struct {
 	tenant      string
 	fioGateway  string
 	wallGateway string
-	storage     string
+	storage     *localfs.Storage
 	refreshRate time.Duration
 	metrics     *Metrics
 	system      *ActorSystem
@@ -44,11 +45,11 @@ type FioImport struct {
 }
 
 // NewFioImport returns fio import fascade
-func NewFioImport(ctx context.Context, cfg config.Configuration, metrics *Metrics, system *ActorSystem) FioImport {
+func NewFioImport(ctx context.Context, cfg config.Configuration, metrics *Metrics, system *ActorSystem, storage *localfs.Storage) FioImport {
 	return FioImport{
 		Support:     NewDaemonSupport(ctx),
 		tenant:      cfg.Tenant,
-		storage:     cfg.RootStorage,
+		storage:     storage,
 		fioGateway:  cfg.FioGateway,
 		wallGateway: cfg.WallGateway,
 		refreshRate: cfg.SyncRate,

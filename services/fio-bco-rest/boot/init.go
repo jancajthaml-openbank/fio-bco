@@ -26,6 +26,7 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-rest/daemon"
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 
+	localfs "github.com/jancajthaml-openbank/local-fs"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -66,13 +67,15 @@ func Initialize() Application {
 		log.SetLevel(log.WarnLevel)
 	}
 
+	storage := localfs.NewStorage(cfg.RootStorage)
+
 	actorSystem := daemon.NewActorSystem(ctx, cfg)
 	actorSystem.Support.RegisterOnRemoteMessage(actor.ProcessRemoteMessage(&actorSystem))
 
-	rest := daemon.NewServer(ctx, cfg, &actorSystem)
+	rest := daemon.NewServer(ctx, cfg)
 	rest.HandleFunc("/health", api.HealtCheck, "GET", "HEAD")
 	rest.HandleFunc("/token/{tenant}/{token}", api.TokenPartial(&actorSystem), "POST", "DELETE")
-	rest.HandleFunc("/token/{tenant}", api.TokensPartial(cfg, &actorSystem), "GET")
+	rest.HandleFunc("/token/{tenant}", api.TokensPartial(&storage), "GET")
 
 	return Application{
 		cfg:         cfg,

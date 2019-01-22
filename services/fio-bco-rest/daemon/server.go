@@ -26,7 +26,6 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 
 	"github.com/gorilla/mux"
-
 	log "github.com/sirupsen/logrus"
 )
 
@@ -35,7 +34,6 @@ import (
 type Server struct {
 	Support
 	underlying *http.Server
-	system     *ActorSystem
 	router     *mux.Router
 	key        []byte
 	cert       []byte
@@ -73,12 +71,11 @@ func cloneTLSConfig(cfg *tls.Config) *tls.Config {
 }
 
 // NewServer returns new secure server instance
-func NewServer(ctx context.Context, cfg config.Configuration, system *ActorSystem) Server {
+func NewServer(ctx context.Context, cfg config.Configuration) Server {
 	router := mux.NewRouter()
 
 	return Server{
 		Support: NewDaemonSupport(ctx),
-		system:  system,
 		router:  router,
 		underlying: &http.Server{
 			Addr:         fmt.Sprintf(":%d", cfg.ServerPort),

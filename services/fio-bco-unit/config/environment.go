@@ -40,10 +40,6 @@ func loadConfFromEnv() Configuration {
 		log.Fatal("missing required parameter to run")
 	}
 
-	if os.MkdirAll(storage+"/"+tenant+"/import/fio/token", os.ModePerm) != nil {
-		log.Fatal("unable to assert storage directory")
-	}
-
 	if metricsOutput != "" && os.MkdirAll(filepath.Dir(metricsOutput), os.ModePerm) != nil {
 		log.Fatal("unable to assert metrics output")
 	}

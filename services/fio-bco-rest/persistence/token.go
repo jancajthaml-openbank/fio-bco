@@ -15,15 +15,15 @@
 package persistence
 
 import (
-	storage "github.com/jancajthaml-openbank/local-fs"
+	localfs "github.com/jancajthaml-openbank/local-fs"
 
 	"github.com/jancajthaml-openbank/fio-bco-rest/model"
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 )
 
 // LoadTokens rehydrates token entity state from storage
-func LoadTokens(root, tenant string) ([]model.Token, error) {
-	path := utils.TokensPath(root, tenant)
+func LoadTokens(storage *localfs.Storage, tenant string) ([]model.Token, error) {
+	path := utils.TokensPath(tenant)
 	ok, err := storage.Exists(path)
 	if err != nil || !ok {
 		return make([]model.Token, 0), nil
@@ -37,7 +37,7 @@ func LoadTokens(root, tenant string) ([]model.Token, error) {
 		token := model.Token{
 			Value: value,
 		}
-		if HydrateToken(root, tenant, &token) != nil {
+		if HydrateToken(storage, tenant, &token) != nil {
 			result[i] = token
 		}
 	}
@@ -45,11 +45,11 @@ func LoadTokens(root, tenant string) ([]model.Token, error) {
 }
 
 // HydrateToken hydrate existing token from storage
-func HydrateToken(root, tenant string, entity *model.Token) *model.Token {
+func HydrateToken(storage *localfs.Storage, tenant string, entity *model.Token) *model.Token {
 	if entity == nil {
 		return nil
 	}
-	path := utils.TokenPath(root, tenant, entity.Value)
+	path := utils.TokenPath(tenant, entity.Value)
 	data, err := storage.ReadFileFully(path)
 	if err != nil {
 		return nil
