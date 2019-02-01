@@ -12,24 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package persistence
+package api
 
-import (
-	localfs "github.com/jancajthaml-openbank/local-fs"
-
-	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
-)
-
-// LoadTokens rehydrates token entity state from storage
-func LoadTokens(storage *localfs.Storage, tenant string) ([]string, error) {
-	path := utils.TokensPath(tenant)
-	ok, err := storage.Exists(path)
-	if err != nil || !ok {
-		return make([]string, 0), nil
-	}
-	tokens, err := storage.ListDirectory(path, true)
-	if err != nil {
-		return nil, err
-	}
-	return tokens, nil
-}
+var emptyJSONObject = []byte("{}")
+var emptyJSONArray = []byte("[]")

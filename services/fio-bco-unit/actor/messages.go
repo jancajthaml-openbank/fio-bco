@@ -33,15 +33,15 @@ const (
 
 // FatalErrorMessage is reply message carrying failure
 func FatalErrorMessage(self, sender string) string {
-	return self + " " + sender + " " + FatalError
+	return sender + " " + self + " " + FatalError
 }
 
 // TokenCreatedMessage is reply message informing that token was created
 func TokenCreatedMessage(self, sender string) string {
-	return self + " " + sender + " " + RespCreateToken
+	return sender + " " + self + " " + RespCreateToken
 }
 
 // TokenDeletedMessage is reply message informing that token was deleted
 func TokenDeletedMessage(self, sender string) string {
-	return self + " " + sender + " " + RespDeleteToken
+	return sender + " " + self + " " + RespDeleteToken
 }

@@ -27,7 +27,7 @@ import (
 func loadConfFromEnv() Configuration {
 	logOutput := getEnvString("FIO_BCO_LOG", "")
 	logLevel := strings.ToUpper(getEnvString("FIO_BCO_LOG_LEVEL", "DEBUG"))
-	storage := getEnvString("FIO_BCO_STORAGE", "/data")
+	rootStorage := getEnvString("FIO_BCO_STORAGE", "/data")
 	tenant := getEnvString("FIO_BCO_TENANT", "")
 	fioGateway := getEnvString("FIO_BCO_FIO_GATEWAY", "https://www.fio.cz/ib_api/rest")
 	syncRate := getEnvDuration("FIO_BCO_SYNC_RATE", 22*time.Second)
@@ -36,7 +36,7 @@ func loadConfFromEnv() Configuration {
 	metricsOutput := getEnvString("FIO_BCO_METRICS_OUTPUT", "")
 	metricsRefreshRate := getEnvDuration("FIO_BCO_METRICS_REFRESHRATE", time.Second)
 
-	if tenant == "" || lakeHostname == "" || storage == "" {
+	if tenant == "" || lakeHostname == "" || rootStorage == "" {
 		log.Fatal("missing required parameter to run")
 	}
 
@@ -46,7 +46,7 @@ func loadConfFromEnv() Configuration {
 
 	return Configuration{
 		Tenant:             tenant,
-		RootStorage:        storage + "/" + tenant + "/import/fio",
+		RootStorage:        rootStorage + "/" + tenant + "/import/fio",
 		FioGateway:         fioGateway,
 		SyncRate:           syncRate,
 		WallGateway:        wallGateway,

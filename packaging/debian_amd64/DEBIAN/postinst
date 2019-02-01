@@ -8,6 +8,7 @@ case "$1" in
     if [ -f "/etc/init/fio-bco.conf" ] ; then
       systemctl unmask fio-bco.service >/dev/null
       systemctl enable fio-bco.service >/dev/null
+      (systemctl start fio-bco.service >/dev/null || :)
     else
       (>&2 echo "/etc/init/fio-bco.conf file not found")
       exit 1

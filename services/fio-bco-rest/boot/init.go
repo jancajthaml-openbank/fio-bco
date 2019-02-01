@@ -32,11 +32,12 @@ import (
 
 // Application encapsulate initialized application
 type Application struct {
-	cfg         config.Configuration
-	interrupt   chan os.Signal
-	actorSystem daemon.ActorSystem
-	rest        daemon.Server
-	cancel      context.CancelFunc
+	cfg           config.Configuration
+	interrupt     chan os.Signal
+	actorSystem   daemon.ActorSystem
+	rest          daemon.Server
+	systemControl daemon.SystemControl
+	cancel        context.CancelFunc
 }
 
 // Initialize application
@@ -67,6 +68,8 @@ func Initialize() Application {
 		log.SetLevel(log.WarnLevel)
 	}
 
+	systemControl := daemon.NewSystemControl(ctx, cfg)
+
 	storage := localfs.NewStorage(cfg.RootStorage)
 
 	actorSystem := daemon.NewActorSystem(ctx, cfg)
@@ -74,14 +77,17 @@ func Initialize() Application {
 
 	rest := daemon.NewServer(ctx, cfg)
 	rest.HandleFunc("/health", api.HealtCheck, "GET", "HEAD")
+	rest.HandleFunc("/tenant/{tenant}", api.TenantPartial(&systemControl), "POST", "DELETE")
+	rest.HandleFunc("/tenant", api.TenantsPartial(&systemControl), "GET")
 	rest.HandleFunc("/token/{tenant}/{token}", api.TokenPartial(&actorSystem), "POST", "DELETE")
 	rest.HandleFunc("/token/{tenant}", api.TokensPartial(&storage), "GET")
 
 	return Application{
-		cfg:         cfg,
-		interrupt:   make(chan os.Signal, 1),
-		actorSystem: actorSystem,
-		rest:        rest,
-		cancel:      cancel,
+		cfg:           cfg,
+		interrupt:     make(chan os.Signal, 1),
+		actorSystem:   actorSystem,
+		rest:          rest,
+		systemControl: systemControl,
+		cancel:        cancel,
 	}
 }

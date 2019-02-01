@@ -29,7 +29,7 @@ func loadConfFromEnv() Configuration {
 	secrets := getEnvString("FIO_BCO_SECRETS", "")
 	rootStorage := getEnvString("FIO_BCO_STORAGE", "/data")
 	lakeHostname := getEnvString("FIO_BCO_LAKE_HOSTNAME", "")
-	port := getEnvInteger("FIO_BCO_HTTP_PORT", 443)
+	port := getEnvInteger("FIO_BCO_HTTP_PORT", 4000)
 
 	if lakeHostname == "" || secrets == "" || rootStorage == "" {
 		log.Fatal("missing required parameter to run")

@@ -8,7 +8,7 @@ step "tenant :tenant responds with :data" do |_, data|
 
   eventually() {
     ok = LakeMock.pulled_message?(expected)
-    expect(ok).to be(true), "message \"#{expected}\" was not found in #{LakeMock.mailbox()}"
+    expect(ok).to be(true), "message \"#{expected}\" was not found in #{LakeMock.parsed_mailbox()}"
   }
   LakeMock.ack(expected)
 end

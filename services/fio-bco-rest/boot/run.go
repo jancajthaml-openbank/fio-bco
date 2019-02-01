@@ -47,7 +47,7 @@ func (app Application) WaitReady(deadline time.Duration) (err error) {
 	}()
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 
 	go func() {
 		ticker := time.NewTicker(deadline)
@@ -75,6 +75,19 @@ func (app Application) WaitReady(deadline time.Duration) (err error) {
 		}
 	}()
 
+	go func() {
+		ticker := time.NewTicker(deadline)
+
+		select {
+		case <-app.systemControl.IsReady:
+			wg.Done()
+			ticker.Stop()
+			return
+		case <-ticker.C:
+			panic("systemControl was not ready within 5 seconds")
+		}
+	}()
+
 	wg.Wait()
 
 	return
@@ -90,6 +103,7 @@ func (app Application) Run() {
 	log.Info(">>> Start <<<")
 
 	go app.actorSystem.Start()
+	go app.systemControl.Start()
 	go app.rest.Start()
 
 	if err := app.WaitReady(5 * time.Second); err != nil {
@@ -106,6 +120,7 @@ func (app Application) Run() {
 
 	app.rest.Stop()
 	app.actorSystem.Stop()
+	app.systemControl.Stop()
 	app.cancel()
 
 	log.Info(">>> Stop <<<")

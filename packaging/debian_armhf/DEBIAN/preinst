@@ -18,7 +18,7 @@ case "$1" in
       echo "FIO_BCO_WALL_GATEWAY=https://localhost" >> /etc/init/fio-bco.conf
       echo "FIO_BCO_METRICS_OUTPUT=/opt/fio-bco/metrics/metrics.json" >> /etc/init/fio-bco.conf
       echo "FIO_BCO_LAKE_HOSTNAME=localhost" >> /etc/init/fio-bco.conf
-      echo "FIO_BCO_HTTP_PORT=7443" >> /etc/init/fio-bco.conf
+      echo "FIO_BCO_HTTP_PORT=4002" >> /etc/init/fio-bco.conf
       echo "FIO_BCO_SECRETS=/opt/fio-bco/secrets" >> /etc/init/fio-bco.conf
     fi
 
