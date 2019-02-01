@@ -221,9 +221,10 @@ func (fio FioImport) importRoundtrip() {
 func (fio FioImport) Start() {
 	defer fio.MarkDone()
 
-	log.Infof("Start fio-import daemon, sync %v each %v", fio.fioGateway, fio.refreshRate)
-
+	log.Infof("Start fio-import daemon, sync %v now and then each %v", fio.fioGateway, fio.refreshRate)
 	fio.MarkReady()
+
+	fio.importRoundtrip()
 
 	for {
 		select {

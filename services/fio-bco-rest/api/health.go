@@ -12,24 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package persistence
+package api
 
-import (
-	localfs "github.com/jancajthaml-openbank/local-fs"
+import "net/http"
 
-	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
-)
-
-// LoadTokens rehydrates token entity state from storage
-func LoadTokens(storage *localfs.Storage, tenant string) ([]string, error) {
-	path := utils.TokensPath(tenant)
-	ok, err := storage.Exists(path)
-	if err != nil || !ok {
-		return make([]string, 0), nil
-	}
-	tokens, err := storage.ListDirectory(path, true)
-	if err != nil {
-		return nil, err
-	}
-	return tokens, nil
+// HealtCheck returns 200 OK
+func HealtCheck(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(emptyJSONObject)
 }

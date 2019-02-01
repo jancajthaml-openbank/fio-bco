@@ -32,14 +32,13 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 
 		region, receiver, sender, payload := parts[0], parts[1], parts[2], parts[3]
 
-		// FIXME receiver and sender are swapped
 		from := system.Coordinates{
-			Name:   receiver, //sender,
+			Name:   sender,
 			Region: region,
 		}
 
 		to := system.Coordinates{
-			Name:   sender, //receiver,
+			Name:   receiver,
 			Region: s.Name,
 		}
 

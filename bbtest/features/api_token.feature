@@ -46,12 +46,8 @@ Feature: API test
     Then curl responds with 200
     """
       [
-        {
-          "value": "A"
-        },
-        {
-          "value": "B"
-        }
+        "A",
+        "B"
       ]
     """
 

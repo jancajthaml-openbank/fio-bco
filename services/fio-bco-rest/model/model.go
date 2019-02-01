@@ -34,6 +34,10 @@ type Token struct {
 	LastSyncedID int64  `json:"-"`
 }
 
+func (entity *Token) MarshalJSON() ([]byte, error) {
+	return []byte("{\"value\":\"" + entity.Value + "\"}"), nil
+}
+
 // Hydrate deserializes Token entity from persistent data
 func (entity *Token) Hydrate(data []byte) {
 	// FIXME more efficient read-split-inplace

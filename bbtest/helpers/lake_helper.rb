@@ -62,27 +62,27 @@ module LakeMock
 
   def self.parse_message(msg)
 
-    if groups = msg.match(/^Wall\/bbtest FioUnit\/([^\s]{1,100}) token ([^\s]{1,100}) TN$/i)
+    if groups = msg.match(/^Wall\/bbtest FioUnit\/([^\s]{1,100}) ([^\s]{1,100}) token TN$/i)
       tenantId, reqId = groups.captures
       return LakeMessageTokenCreated.new(tenantId, reqId)
 
-    elsif groups = msg.match(/^token ([^\s]{1,100}) TN$/i)
+    elsif groups = msg.match(/^([^\s]{1,100}) token TN$/i)
       reqId, _ = groups.captures
       return LakeMessageTokenCreated.new(nil, reqId)
 
-    elsif groups = msg.match(/^Wall\/bbtest FioUnit\/([^\s]{1,100}) token ([^\s]{1,100}) TD$/i)
+    elsif groups = msg.match(/^Wall\/bbtest FioUnit\/([^\s]{1,100}) ([^\s]{1,100}) token TD$/i)
       tenantId, reqId = groups.captures
       return LakeMessageTokenDeleted.new(tenantId, reqId)
 
-    elsif groups = msg.match(/^token ([^\s]{1,100}) TD$/i)
+    elsif groups = msg.match(/^([^\s]{1,100}) token TD$/i)
       reqId, _ = groups.captures
       return LakeMessageTokenDeleted.new(nil, reqId)
 
-    elsif groups = msg.match(/^Wall\/bbtest FioUnit\/([^\s]{1,100}) token ([^\s]{1,100}) EE$/i)
+    elsif groups = msg.match(/^Wall\/bbtest FioUnit\/([^\s]{1,100}) ([^\s]{1,100}) token EE$/i)
       tenantId, reqId = groups.captures
       return LakeMessageError.new(tenantId, reqId)
 
-    elsif groups = msg.match(/^token ([^\s]{1,100}) EE$/i)
+    elsif groups = msg.match(/^([^\s]{1,100}) token EE$/i)
       reqId, _ = groups.captures
       return LakeMessageError.new(nil, reqId)
 
@@ -161,6 +161,10 @@ module LakeMock
     LakeMock.ack(data)
   end
 
+  def parsed_mailbox()
+    LakeMock.parsed_mailbox()
+  end
+
   def mailbox()
     LakeMock.mailbox()
   end
@@ -187,6 +191,11 @@ module LakeMock
 
   self.mutex = Mutex.new
   self.poisonPill = false
+
+
+  def self.parsed_mailbox()
+    return self.recv_backlog.map { |item| self.parse_message(item) }
+  end
 
   def self.mailbox()
     return self.recv_backlog
