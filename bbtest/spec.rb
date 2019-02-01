@@ -39,8 +39,6 @@ RSpec.configure do |config|
         end
       }
 
-    puts %x(journalctl -o short-precise -u fio-bco.service --no-pager)
-
     print "[ suite started  ]\n"
   end
 

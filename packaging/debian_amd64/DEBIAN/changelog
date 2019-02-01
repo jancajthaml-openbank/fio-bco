@@ -1,9 +1,3 @@
-fio-bco (v1.0.3+metrics) unstable; urgency=low
-
-  * Includes non-released commits
-
- -- Jan Cajthaml <jan.cajthaml@gmail.com>  Tue, 22 Jan 2019 13:05:46 +0100
-
 fio-bco (1.0.3) unstable; urgency=low
 
   * Error logging in config.go

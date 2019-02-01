@@ -34,28 +34,30 @@ import (
 // FioImport represents fio gateway to wall import subroutine
 type FioImport struct {
 	Support
-	tenant      string
-	fioGateway  string
-	wallGateway string
-	storage     *localfs.Storage
-	refreshRate time.Duration
-	metrics     *Metrics
-	system      *ActorSystem
-	httpClient  http.Client
+	tenant       string
+	fioGateway   string
+	wallGateway  string
+	vaultGateway string
+	storage      *localfs.Storage
+	refreshRate  time.Duration
+	metrics      *Metrics
+	system       *ActorSystem
+	httpClient   http.Client
 }
 
 // NewFioImport returns fio import fascade
 func NewFioImport(ctx context.Context, cfg config.Configuration, metrics *Metrics, system *ActorSystem, storage *localfs.Storage) FioImport {
 	return FioImport{
-		Support:     NewDaemonSupport(ctx),
-		tenant:      cfg.Tenant,
-		storage:     storage,
-		fioGateway:  cfg.FioGateway,
-		wallGateway: cfg.WallGateway,
-		refreshRate: cfg.SyncRate,
-		metrics:     metrics,
-		system:      system,
-		httpClient:  http.NewClient(),
+		Support:      NewDaemonSupport(ctx),
+		tenant:       cfg.Tenant,
+		storage:      storage,
+		fioGateway:   cfg.FioGateway,
+		wallGateway:  cfg.WallGateway,
+		vaultGateway: cfg.VaultGateway,
+		refreshRate:  cfg.SyncRate,
+		metrics:      metrics,
+		system:       system,
+		httpClient:   http.NewClient(),
 	}
 }
 
@@ -118,7 +120,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 		}
 
 		err = utils.Retry(10, time.Second, func() (err error) {
-			response, code, err = fio.httpClient.Post(fio.wallGateway+"/account/"+fio.tenant, request)
+			response, code, err = fio.httpClient.Post(fio.vaultGateway+"/account/"+fio.tenant, request)
 			if code == 200 || code == 409 || code == 400 {
 				return
 			} else if code >= 500 && err == nil {
