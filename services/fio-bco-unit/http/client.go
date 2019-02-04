@@ -25,10 +25,12 @@ import (
 	"time"
 )
 
+// Client represents fascade for http client
 type Client struct {
 	underlying *http.Client
 }
 
+// NewClient returns new http client
 func NewClient() Client {
 	return Client{
 		underlying: &http.Client{
@@ -55,6 +57,7 @@ func NewClient() Client {
 	}
 }
 
+// Post performs http POST request for given url with given body
 func (client Client) Post(url string, body []byte) (contents []byte, code int, err error) {
 	var (
 		req  *http.Request
@@ -63,14 +66,14 @@ func (client Client) Post(url string, body []byte) (contents []byte, code int, e
 
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("Runtime Error %v", r)
+			err = fmt.Errorf("runtime error %+v", r)
 		}
 
 		if err != nil && resp != nil {
 			_, err = io.Copy(ioutil.Discard, resp.Body)
 			resp.Body.Close()
 		} else if resp == nil && err != nil {
-			err = fmt.Errorf("Runtime Error no response")
+			err = fmt.Errorf("runtime error, no response")
 		}
 
 		if err != nil {
@@ -98,6 +101,7 @@ func (client Client) Post(url string, body []byte) (contents []byte, code int, e
 	return
 }
 
+// Get performs http GET request for given url
 func (client Client) Get(url string) (contents []byte, code int, err error) {
 	var (
 		req  *http.Request
@@ -106,14 +110,14 @@ func (client Client) Get(url string) (contents []byte, code int, err error) {
 
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("Runtime Error %v", r)
+			err = fmt.Errorf("runtime error %+v", r)
 		}
 
 		if err != nil && resp != nil {
 			_, err = io.Copy(ioutil.Discard, resp.Body)
 			resp.Body.Close()
 		} else if resp == nil && err != nil {
-			err = fmt.Errorf("Runtime Error no response")
+			err = fmt.Errorf("runtime error, no response")
 		}
 
 		if err != nil {

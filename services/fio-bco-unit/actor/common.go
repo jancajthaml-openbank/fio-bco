@@ -15,6 +15,8 @@
 package actor
 
 import (
+	"fmt"
+
 	"github.com/jancajthaml-openbank/fio-bco-unit/daemon"
 	"github.com/jancajthaml-openbank/fio-bco-unit/model"
 
@@ -22,36 +24,49 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// ProcessLocalMessage processing of local message to this fio-bco
-func ProcessLocalMessage(s *daemon.ActorSystem) system.ProcessLocalMessage {
-	return func(message interface{}, to system.Coordinates, from system.Coordinates) {
-		if to.Region != "" && to.Region != s.Name {
-			log.Warnf("Invalid region received [local %s -> local %s]", from, to)
-			return
-		}
+var nilCoordinates = system.Coordinates{}
 
-		log.Debugf("Inherited Actor System received local message %+v", message)
+func asEnvelopes(s *daemon.ActorSystem, parts []string) (system.Coordinates, system.Coordinates, string, error) {
+	if len(parts) < 4 {
+		return nilCoordinates, nilCoordinates, "", fmt.Errorf("invalid message received %+v", parts)
 	}
+
+	region, receiver, sender, payload := parts[0], parts[1], parts[2], parts[3]
+
+	from := system.Coordinates{
+		Name:   sender,
+		Region: region,
+	}
+
+	to := system.Coordinates{
+		Name:   receiver,
+		Region: s.Name,
+	}
+
+	return from, to, payload, nil
+}
+
+// SpawnTokenActor spawns actor for token CRUD operations
+func SpawnTokenActor(s *daemon.ActorSystem) (*system.Envelope, error) {
+	envelope := NewTokenSignletonActor()
+
+	err := s.RegisterActor(envelope, TokenManagement(s))
+	if err != nil {
+		log.Warn("token ~ Spawning Actor Error unable to register")
+		return nil, err
+	}
+
+	log.Debug("token ~ Actor Spawned")
+	return envelope, nil
 }
 
 // ProcessRemoteMessage processing of remote message to this fio-bco
 func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 	return func(parts []string) {
-		if len(parts) < 4 {
-			log.Warnf("invalid message received %+v", parts)
+		from, to, payload, err := asEnvelopes(s, parts)
+		if err != nil {
+			log.Warn(err.Error())
 			return
-		}
-
-		region, receiver, sender, payload := parts[0], parts[1], parts[2], parts[3]
-
-		from := system.Coordinates{
-			Name:   sender,
-			Region: region,
-		}
-
-		to := system.Coordinates{
-			Name:   receiver,
-			Region: s.Name,
 		}
 
 		defer func() {
@@ -94,7 +109,7 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 
 		if message == nil {
 			log.Warnf("Deserialization of unsuported message [remote %v -> local %v] : %+v", from, to, parts)
-			s.SendRemote(region, FatalErrorMessage(to.Name, from.Name))
+			s.SendRemote(from.Region, FatalErrorMessage(to.Name, from.Name))
 			return
 		}
 
@@ -102,16 +117,14 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 	}
 }
 
-// SpawnTokenActor spawns actor for token CRUD operations
-func SpawnTokenActor(s *daemon.ActorSystem) (*system.Envelope, error) {
-	envelope := NewTokenSignletonActor()
+// ProcessLocalMessage processing of local message to this fio-bco
+func ProcessLocalMessage(s *daemon.ActorSystem) system.ProcessLocalMessage {
+	return func(message interface{}, to system.Coordinates, from system.Coordinates) {
+		if to.Region != "" && to.Region != s.Name {
+			log.Warnf("Invalid region received [local %s -> local %s]", from, to)
+			return
+		}
 
-	err := s.RegisterActor(envelope, TokenManagement(s))
-	if err != nil {
-		log.Warn("token ~ Spawning Actor Error unable to register")
-		return nil, err
+		log.Debugf("Inherited Actor System received local message %+v", message)
 	}
-
-	log.Debug("token ~ Actor Spawned")
-	return envelope, nil
 }

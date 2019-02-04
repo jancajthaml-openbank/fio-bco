@@ -14,6 +14,7 @@
 
 package iban
 
+// Calculate calculates IBAN given number and bank identity code
 func Calculate(number, identityCode string) string {
 	// https://www.cnb.cz/miranda2/export/sites/www.cnb.cz/en/payment_systems/accounts_bank_codes/download/bank_codes_CR_128.pdf
 

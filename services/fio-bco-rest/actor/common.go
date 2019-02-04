@@ -15,6 +15,8 @@
 package actor
 
 import (
+	"fmt"
+
 	"github.com/jancajthaml-openbank/fio-bco-rest/daemon"
 	"github.com/jancajthaml-openbank/fio-bco-rest/model"
 
@@ -22,24 +24,35 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var nilCoordinates = system.Coordinates{}
+
+func asEnvelopes(s *daemon.ActorSystem, parts []string) (system.Coordinates, system.Coordinates, string, error) {
+	if len(parts) < 4 {
+		return nilCoordinates, nilCoordinates, "", fmt.Errorf("invalid message received %+v", parts)
+	}
+
+	region, receiver, sender, payload := parts[0], parts[1], parts[2], parts[3]
+
+	from := system.Coordinates{
+		Name:   sender,
+		Region: region,
+	}
+
+	to := system.Coordinates{
+		Name:   receiver,
+		Region: s.Name,
+	}
+
+	return from, to, payload, nil
+}
+
 // ProcessRemoteMessage processing of remote message to this wall
 func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 	return func(parts []string) {
-		if len(parts) < 4 {
-			log.Warnf("invalid message received %+v", parts)
+		from, to, payload, err := asEnvelopes(s, parts)
+		if err != nil {
+			log.Warn(err.Error())
 			return
-		}
-
-		region, receiver, sender, payload := parts[0], parts[1], parts[2], parts[3]
-
-		from := system.Coordinates{
-			Name:   sender,
-			Region: region,
-		}
-
-		to := system.Coordinates{
-			Name:   receiver,
-			Region: s.Name,
 		}
 
 		defer func() {

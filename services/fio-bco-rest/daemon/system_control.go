@@ -28,6 +28,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// SystemControl represents systemctl subroutine
 type SystemControl struct {
 	Support
 	underlying *dbus.Conn
@@ -48,8 +49,6 @@ func NewSystemControl(ctx context.Context, cfg config.Configuration) SystemContr
 
 // ListUnits returns list of unit names
 func (sys SystemControl) ListUnits(prefix string) ([]string, error) {
-	log.Debugf("Listing units %+v", prefix)
-
 	units, err := sys.underlying.ListUnits()
 	if err != nil {
 		return nil, err
@@ -78,26 +77,26 @@ func (sys SystemControl) DisableUnit(name string) error {
 
 	// FIXME
 	if _, err := sys.underlying.StopUnit(name, "replace", ch); err != nil {
-		return fmt.Errorf("Unable to stop unit %s because %+v", name, err)
+		return fmt.Errorf("unable to stop unit %s because %+v", name, err)
 	}
 
 	select {
 
 	case result := <-ch:
 		if result != "done" {
-			return fmt.Errorf("Unable to stop unit %s", name)
+			return fmt.Errorf("unable to stop unit %s", name)
 		}
 		log.Infof("Stopped unit %s", name)
 		log.Infof("Disabling unit %s", name)
 
 		if _, err := sys.underlying.DisableUnitFiles([]string{name}, false); err != nil {
-			return fmt.Errorf("Unable to disable unit %s because %+v", name, err)
+			return fmt.Errorf("unable to disable unit %s because %+v", name, err)
 		}
 
 		return nil
 
 	case <-time.After(3 * time.Second):
-		return fmt.Errorf("Unable to stop unit %s because timeout", name)
+		return fmt.Errorf("unable to stop unit %s because timeout", name)
 
 	}
 }
@@ -107,26 +106,26 @@ func (sys SystemControl) EnableUnit(name string) error {
 	log.Debugf("Enabling units %s", name)
 
 	if _, _, err := sys.underlying.EnableUnitFiles([]string{name}, false, false); err != nil {
-		return fmt.Errorf("Unable to enable unit %s because %+v", name, err)
+		return fmt.Errorf("unable to enable unit %s because %+v", name, err)
 	}
 
 	ch := make(chan string)
 
 	if _, err := sys.underlying.StartUnit(name, "replace", ch); err != nil {
-		return fmt.Errorf("Unable to start unit %s because %+v", name, err)
+		return fmt.Errorf("unable to start unit %s because %+v", name, err)
 	}
 
 	select {
 
 	case result := <-ch:
 		if result != "done" {
-			return fmt.Errorf("Unable to start unit %s", name)
+			return fmt.Errorf("unable to start unit %s", name)
 		}
 		log.Infof("Started unit %s", name)
 		return nil
 
 	case <-time.After(3 * time.Second):
-		return fmt.Errorf("Unable to start unit %s because timeout", name)
+		return fmt.Errorf("unable to start unit %s because timeout", name)
 
 	}
 

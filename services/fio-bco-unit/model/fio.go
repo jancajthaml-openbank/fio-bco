@@ -21,78 +21,80 @@ import (
 	"time"
 )
 
+// FioImportEnvelope represents fio gateway import statement entity
 type FioImportEnvelope struct {
-	Statement FioAccountStatement `json:"accountStatement"`
+	Statement accountStatement `json:"accountStatement"`
 }
 
-type FioAccountStatement struct {
-	Info            FioInfo            `json:"info"`
-	TransactionList FioTransactionList `json:"transactionList"`
+type accountStatement struct {
+	Info            accountInfo     `json:"info"`
+	TransactionList transactionList `json:"transactionList"`
 }
 
-type FioInfo struct {
-	AccountId      string  `json:"accountId"`
-	BankId         string  `json:"bankId"`
+type accountInfo struct {
+	AccountID      string  `json:"accountId"`
+	BankID         string  `json:"bankId"`
 	Currency       string  `json:"currency"`
 	IBAN           string  `json:"iban"`
 	BIC            string  `json:"bic"`
 	OpeningBalance float64 `json:"openingBalance"`
 	ClosingBalance float64 `json:"closingBalance"`
-	IdFrom         int     `json:"idFrom"`
-	IdTo           int     `json:"idTo"`
-	IdLastDownload int     `json:"idLastDownload"`
+	IDFrom         int     `json:"idFrom"`
+	IDTo           int     `json:"idTo"`
+	IDLastDownload int     `json:"idLastDownload"`
 }
 
-type FioTransactionList struct {
-	Transactions []FioTransaction `json:"transaction"`
+type transactionList struct {
+	Transactions []fioTransaction `json:"transaction"`
 }
 
-type FioTransaction struct {
-	Column0  *FioStringNode `json:"column0"`
-	Column1  *FioFloatNode  `json:"column1"`
-	Column2  *FioStringNode `json:"column2"`
-	Column3  *FioStringNode `json:"column3"`
-	Column4  *FioStringNode `json:"column4"`
-	Column5  *FioStringNode `json:"column5"`
-	Column6  *FioStringNode `json:"column6"`
-	Column7  *FioStringNode `json:"column7"`
-	Column8  *FioStringNode `json:"column8"`
-	Column9  *FioStringNode `json:"column9"`
-	Column10 *FioStringNode `json:"column10"`
-	Column12 *FioStringNode `json:"column12"`
-	Column14 *FioStringNode `json:"column14"`
-	Column16 *FioStringNode `json:"column16"`
-	Column17 *FioIntNode    `json:"column17"`
-	Column18 *FioStringNode `json:"column18"`
-	Column22 *FioIntNode    `json:"column22"`
-	Column25 *FioStringNode `json:"column25"`
-	Column26 *FioStringNode `json:"column26"`
+type fioTransaction struct {
+	Column0  *stringNode `json:"column0"`
+	Column1  *floatNode  `json:"column1"`
+	Column2  *stringNode `json:"column2"`
+	Column3  *stringNode `json:"column3"`
+	Column4  *stringNode `json:"column4"`
+	Column5  *stringNode `json:"column5"`
+	Column6  *stringNode `json:"column6"`
+	Column7  *stringNode `json:"column7"`
+	Column8  *stringNode `json:"column8"`
+	Column9  *stringNode `json:"column9"`
+	Column10 *stringNode `json:"column10"`
+	Column12 *stringNode `json:"column12"`
+	Column14 *stringNode `json:"column14"`
+	Column16 *stringNode `json:"column16"`
+	Column17 *intNode    `json:"column17"`
+	Column18 *stringNode `json:"column18"`
+	Column22 *intNode    `json:"column22"`
+	Column25 *stringNode `json:"column25"`
+	Column26 *stringNode `json:"column26"`
 }
 
-type FioStringNode struct {
+type stringNode struct {
 	Value string `json:"value"`
 	Name  string `json:"name"`
-	Id    int    `json:"id"`
+	ID    int    `json:"id"`
 }
 
-type FioDateNode struct {
+type dateNode struct {
 	Value string `json:"value"`
 	Name  string `json:"name"`
-	Id    int    `json:"id"`
+	ID    int    `json:"id"`
 }
 
-type FioIntNode struct {
+type intNode struct {
 	Value int64  `json:"value"`
 	Name  string `json:"name"`
-	Id    int    `json:"id"`
+	ID    int    `json:"id"`
 }
 
-type FioFloatNode struct {
+type floatNode struct {
 	Value float64 `json:"value"`
 	Name  string  `json:"name"`
-	Id    int     `json:"id"`
+	ID    int     `json:"id"`
 }
 
+// GetTransactions return list of fio transactions
 func (envelope *FioImportEnvelope) GetTransactions() []Transaction {
 	if envelope == nil {
 		return nil
@@ -121,9 +123,9 @@ func (envelope *FioImportEnvelope) GetTransactions() []Transaction {
 				debit = envelope.Statement.Info.BIC
 			} else {
 				if transfer.Column3 != nil {
-					debit = NormalizeAccountNumber(transfer.Column2.Value, transfer.Column3.Value, envelope.Statement.Info.BankId)
+					debit = NormalizeAccountNumber(transfer.Column2.Value, transfer.Column3.Value, envelope.Statement.Info.BankID)
 				} else {
-					debit = NormalizeAccountNumber(transfer.Column2.Value, "", envelope.Statement.Info.BankId)
+					debit = NormalizeAccountNumber(transfer.Column2.Value, "", envelope.Statement.Info.BankID)
 				}
 			}
 		} else {
@@ -131,9 +133,9 @@ func (envelope *FioImportEnvelope) GetTransactions() []Transaction {
 				credit = envelope.Statement.Info.BIC
 			} else {
 				if transfer.Column3 != nil {
-					credit = NormalizeAccountNumber(transfer.Column2.Value, transfer.Column3.Value, envelope.Statement.Info.BankId)
+					credit = NormalizeAccountNumber(transfer.Column2.Value, transfer.Column3.Value, envelope.Statement.Info.BankID)
 				} else {
-					credit = NormalizeAccountNumber(transfer.Column2.Value, "", envelope.Statement.Info.BankId)
+					credit = NormalizeAccountNumber(transfer.Column2.Value, "", envelope.Statement.Info.BankID)
 				}
 			}
 			debit = envelope.Statement.Info.IBAN
@@ -169,12 +171,13 @@ func (envelope *FioImportEnvelope) GetTransactions() []Transaction {
 
 }
 
+// GetAccounts return list of fio accounts
 func (envelope *FioImportEnvelope) GetAccounts() []Account {
 	if envelope == nil {
 		return nil
 	}
 
-	var set = make(map[string]FioTransaction)
+	var set = make(map[string]fioTransaction)
 
 	for _, transfer := range envelope.Statement.TransactionList.Transactions {
 		if transfer.Column2 == nil {
@@ -190,9 +193,9 @@ func (envelope *FioImportEnvelope) GetAccounts() []Account {
 
 	for account, transfer := range set {
 		if transfer.Column3 != nil {
-			normalizedAccount = NormalizeAccountNumber(account, transfer.Column3.Value, envelope.Statement.Info.BankId)
+			normalizedAccount = NormalizeAccountNumber(account, transfer.Column3.Value, envelope.Statement.Info.BankID)
 		} else {
-			normalizedAccount = NormalizeAccountNumber(account, "", envelope.Statement.Info.BankId)
+			normalizedAccount = NormalizeAccountNumber(account, "", envelope.Statement.Info.BankID)
 		}
 
 		deduplicated[normalizedAccount] = Account{
@@ -215,5 +218,3 @@ func (envelope *FioImportEnvelope) GetAccounts() []Account {
 
 	return result
 }
-
-// http://cavaliercoder.com/blog/optimized-abs-for-int64-in-go.html

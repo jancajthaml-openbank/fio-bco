@@ -19,7 +19,7 @@ func mod97(number string) int {
 		d uint
 		i int
 		x uint
-		l int = len(number)
+		l = len(number)
 	)
 
 scan:
