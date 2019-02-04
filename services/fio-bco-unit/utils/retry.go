@@ -19,6 +19,7 @@ import (
 	"time"
 )
 
+// Retry retries for maximum of N attempts with backoff after each error
 func Retry(attempts int, sleep time.Duration, callback func() error) (err error) {
 	for i := 0; ; i++ {
 		err = callback()

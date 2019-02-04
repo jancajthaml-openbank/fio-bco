@@ -18,11 +18,13 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-unit/iban"
 )
 
+// Transaction entity in wall format
 type Transaction struct {
 	IDTransaction string     `json:"id"`
 	Transfers     []Transfer `json:"transfers"`
 }
 
+// Transfer entity in wall format
 type Transfer struct {
 	IDTransfer int64   `json:"id,string"`
 	Credit     string  `json:"credit"`
@@ -32,12 +34,14 @@ type Transfer struct {
 	Currency   string  `json:"currency"`
 }
 
+// Account entity in vault format
 type Account struct {
 	Name           string `json:"accountNumber"`
 	Currency       string `json:"currency"`
 	IsBalanceCheck bool   `json:"isBalanceCheck"`
 }
 
+// NormalizeAccountNumber return account number in IBAN form
 func NormalizeAccountNumber(number string, bankCode string, nostroBankCode string) string {
 	if len(number) > 2 && (number[0] >= 'A' && number[0] <= 'Z') && (number[1] >= 'A' && number[1] <= 'Z') {
 		return number

@@ -33,6 +33,7 @@ func init() {
 	}
 }
 
+// CalculateCzech calculates IBAN for Czech Republic
 func CalculateCzech(number, bankCode string) (result string) {
 	defer func() {
 		if r := recover(); r != nil {

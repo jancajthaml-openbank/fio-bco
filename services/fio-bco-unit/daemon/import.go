@@ -101,7 +101,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 	if err != nil {
 		return err
 	} else if code != 200 {
-		return fmt.Errorf("FIO Gateway %d %+v", code, string(response))
+		return fmt.Errorf("fio gateway invalid response %d %+v", code, string(response))
 	}
 
 	var envelope model.FioImportEnvelope
@@ -124,7 +124,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 			if code == 200 || code == 409 || code == 400 {
 				return
 			} else if code >= 500 && err == nil {
-				err = fmt.Errorf("Wall Account Error %d %+v", code, string(response))
+				err = fmt.Errorf("vault account error %d %+v", code, string(response))
 			}
 			return
 		})
@@ -132,9 +132,9 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 		if err != nil {
 			return err
 		} else if code == 400 {
-			return fmt.Errorf("Wall Account Malformed request %+v", string(request))
+			return fmt.Errorf("vault account malformed request %+v", string(request))
 		} else if code != 200 && code != 409 {
-			return fmt.Errorf("Wall Account Error %d %+v", code, string(response))
+			return fmt.Errorf("vault account error %d %+v", code, string(response))
 		}
 	}
 
@@ -160,7 +160,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 			if code == 200 || code == 201 || code == 400 {
 				return
 			} else if code >= 500 && err == nil {
-				err = fmt.Errorf("Wall Transaction Error %d %+v", code, string(response))
+				err = fmt.Errorf("wall transaction error %d %+v", code, string(response))
 			}
 			return
 		})
@@ -168,11 +168,11 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 		if err != nil {
 			return err
 		} else if code == 409 {
-			return fmt.Errorf("Wall Transaction Duplicate %+v", string(request))
+			return fmt.Errorf("wall transaction duplicate %+v", string(request))
 		} else if code == 400 {
-			return fmt.Errorf("Wall Transaction Malformed request %+v", string(request))
+			return fmt.Errorf("wall transaction malformed request %+v", string(request))
 		} else if code != 200 && code != 201 {
-			return fmt.Errorf("Wall Transaction Error %d %+v", code, string(response))
+			return fmt.Errorf("wall transaction error %d %+v", code, string(response))
 		}
 
 		if lastID != 0 {
@@ -204,7 +204,7 @@ func (fio FioImport) importRoundtrip() {
 
 	tokens, err := fio.getActiveTokens()
 	if err != nil {
-		log.Errorf("Unable to get active tokens %+v", err)
+		log.Errorf("unable to get active tokens %+v", err)
 		return
 	}
 

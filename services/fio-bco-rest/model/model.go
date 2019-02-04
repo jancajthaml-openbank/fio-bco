@@ -34,6 +34,7 @@ type Token struct {
 	LastSyncedID int64  `json:"-"`
 }
 
+// MarshalJSON serialises Token as json
 func (entity *Token) MarshalJSON() ([]byte, error) {
 	return []byte("{\"value\":\"" + entity.Value + "\"}"), nil
 }
