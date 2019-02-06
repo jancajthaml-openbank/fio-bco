@@ -119,12 +119,13 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 			return err
 		}
 
+		uri := fio.vaultGateway + "/account/" + fio.tenant
 		err = utils.Retry(10, time.Second, func() (err error) {
-			response, code, err = fio.httpClient.Post(fio.vaultGateway+"/account/"+fio.tenant, request)
+			response, code, err = fio.httpClient.Post(uri, request)
 			if code == 200 || code == 409 || code == 400 {
 				return
 			} else if code >= 500 && err == nil {
-				err = fmt.Errorf("vault account error %d %+v", code, string(response))
+				err = fmt.Errorf("vault POST %s error %d %+v", uri, code, string(response))
 			}
 			return
 		})
@@ -155,12 +156,13 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 			return err
 		}
 
+		uri := fio.wallGateway + "/transaction/" + fio.tenant
 		err = utils.Retry(10, time.Second, func() (err error) {
-			response, code, err = fio.httpClient.Post(fio.wallGateway+"/transaction/"+fio.tenant, request)
+			response, code, err = fio.httpClient.Post(uri, request)
 			if code == 200 || code == 201 || code == 400 {
 				return
 			} else if code >= 500 && err == nil {
-				err = fmt.Errorf("wall transaction error %d %+v", code, string(response))
+				err = fmt.Errorf("wall POST %s error %d %+v", uri, code, string(response))
 			}
 			return
 		})

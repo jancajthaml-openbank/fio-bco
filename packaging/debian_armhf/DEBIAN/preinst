@@ -15,7 +15,7 @@ case "$1" in
       echo "FIO_BCO_METRICS_REFRESHRATE=1s" >> /etc/init/fio-bco.conf
       echo "FIO_BCO_FIO_GATEWAY=https://www.fio.cz" >> /etc/init/fio-bco.conf
       echo "FIO_BCO_SYNC_RATE=22s" >> /etc/init/fio-bco.conf
-      echo "FIO_BCO_WALL_GATEWAY=https://localhost" >> /etc/init/fio-bco.conf
+      echo "FIO_BCO_WALL_GATEWAY=https://localhost:9400" >> /etc/init/fio-bco.conf
       echo "FIO_BCO_VAULT_GATEWAY=https://localhost:4400" >> /etc/init/fio-bco.conf
       echo "FIO_BCO_METRICS_OUTPUT=/opt/fio-bco/metrics/metrics.json" >> /etc/init/fio-bco.conf
       echo "FIO_BCO_LAKE_HOSTNAME=localhost" >> /etc/init/fio-bco.conf

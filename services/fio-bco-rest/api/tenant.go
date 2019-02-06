@@ -99,6 +99,7 @@ func EnableUnit(system *daemon.SystemControl, tenant string, w http.ResponseWrit
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(emptyJSONObject)
+	log.Infof("Tenant %s enabled", tenant)
 	return
 }
 
@@ -116,5 +117,6 @@ func DisableUnit(system *daemon.SystemControl, tenant string, w http.ResponseWri
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(emptyJSONObject)
+	log.Infof("Tenant %s disabled", tenant)
 	return
 }
