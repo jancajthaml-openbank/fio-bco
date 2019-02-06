@@ -30,7 +30,7 @@ func loadConfFromEnv() Configuration {
 	rootStorage := getEnvString("FIO_BCO_STORAGE", "/data")
 	tenant := getEnvString("FIO_BCO_TENANT", "")
 	fioGateway := getEnvString("FIO_BCO_FIO_GATEWAY", "https://www.fio.cz/ib_api/rest")
-	wallGateway := getEnvString("FIO_BCO_WALL_GATEWAY", "https://localhost")
+	wallGateway := getEnvString("FIO_BCO_WALL_GATEWAY", "https://localhost:9400")
 	vaultGateway := getEnvString("FIO_BCO_VAULT_GATEWAY", "https://localhost:4400")
 	syncRate := getEnvDuration("FIO_BCO_SYNC_RATE", 22*time.Second)
 	lakeHostname := getEnvString("FIO_BCO_LAKE_HOSTNAME", "")
