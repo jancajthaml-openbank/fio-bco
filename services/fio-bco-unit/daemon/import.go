@@ -143,7 +143,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 		})
 
 		if err != nil {
-			return err
+			return fmt.Errorf("vault account error %d %+v", code, err)
 		} else if code == 400 {
 			return fmt.Errorf("vault account malformed request %+v", string(request))
 		} else if code != 200 && code != 409 {
@@ -180,7 +180,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 		})
 
 		if err != nil {
-			return err
+			return fmt.Errorf("wall transaction error %d %+v", code, err)
 		} else if code == 409 {
 			return fmt.Errorf("wall transaction duplicate %+v", string(request))
 		} else if code == 400 {

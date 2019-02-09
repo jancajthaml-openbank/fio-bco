@@ -86,6 +86,8 @@ class FioSetLastStatemetPivotDateHandler < WEBrick::HTTPServlet::AbstractServlet
   end
 
   def process(request)
+    return 404, "application/json", "{}" unless request.request_uri.to_s.end_with?("/")
+
     params = request.path_info.split("/").map(&:strip).reject(&:empty?)
 
     return 404, "application/json", "{}" if params.length < 2

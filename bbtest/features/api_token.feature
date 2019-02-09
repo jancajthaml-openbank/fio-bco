@@ -5,7 +5,6 @@ Feature: Token API test
     And fio-bco is reconfigured with
     """
       LOG_LEVEL=DEBUG
-      SYNC_RATE=1s
       HTTP_PORT=443
     """
 
@@ -20,7 +19,6 @@ Feature: Token API test
     And fio-bco is reconfigured with
     """
       LOG_LEVEL=DEBUG
-      SYNC_RATE=1s
       HTTP_PORT=443
     """
 
@@ -37,7 +35,6 @@ Feature: Token API test
     And fio-bco is reconfigured with
     """
       LOG_LEVEL=DEBUG
-      SYNC_RATE=1s
       HTTP_PORT=443
     """
 

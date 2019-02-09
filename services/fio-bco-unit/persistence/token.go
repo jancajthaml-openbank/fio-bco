@@ -15,8 +15,6 @@
 package persistence
 
 import (
-	"fmt"
-
 	localfs "github.com/jancajthaml-openbank/local-fs"
 
 	"github.com/jancajthaml-openbank/fio-bco-unit/model"
@@ -35,9 +33,9 @@ func LoadTokens(storage *localfs.Storage) ([]model.Token, error) {
 		return nil, err
 	}
 	result := make([]model.Token, len(tokens))
-	for i, value := range tokens {
+	for i, id := range tokens {
 		token := model.Token{
-			Value: value,
+			ID: id,
 		}
 		if HydrateToken(storage, &token) != nil {
 			result[i] = token
@@ -49,7 +47,6 @@ func LoadTokens(storage *localfs.Storage) ([]model.Token, error) {
 // CreateToken creates and persist new token entity
 func CreateToken(storage *localfs.Storage, id string, value string) bool {
 	token := model.NewToken(id, value)
-	fmt.Printf("Creating new token %+v\n", token)
 	return PersistToken(storage, &token) != nil
 }
 
