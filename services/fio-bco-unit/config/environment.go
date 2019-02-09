@@ -15,6 +15,8 @@
 package config
 
 import (
+	"encoding/hex"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -27,6 +29,7 @@ import (
 func loadConfFromEnv() Configuration {
 	logOutput := getEnvString("FIO_BCO_LOG", "")
 	logLevel := strings.ToUpper(getEnvString("FIO_BCO_LOG_LEVEL", "DEBUG"))
+	encryptionKey := getEnvString("FIO_BCO_ENCRYPTION_KEY", "")
 	rootStorage := getEnvString("FIO_BCO_STORAGE", "/data")
 	tenant := getEnvString("FIO_BCO_TENANT", "")
 	fioGateway := getEnvString("FIO_BCO_FIO_GATEWAY", "https://www.fio.cz/ib_api/rest")
@@ -37,7 +40,7 @@ func loadConfFromEnv() Configuration {
 	metricsOutput := getEnvString("FIO_BCO_METRICS_OUTPUT", "")
 	metricsRefreshRate := getEnvDuration("FIO_BCO_METRICS_REFRESHRATE", time.Second)
 
-	if tenant == "" || lakeHostname == "" || rootStorage == "" {
+	if tenant == "" || lakeHostname == "" || rootStorage == "" || encryptionKey == "" {
 		log.Fatal("missing required parameter to run")
 	}
 
@@ -45,9 +48,20 @@ func loadConfFromEnv() Configuration {
 		log.Fatal("unable to assert metrics output")
 	}
 
+	keyData, err := ioutil.ReadFile(encryptionKey)
+	if err != nil {
+		log.Fatalf("unable to load encryption key from %s", encryptionKey)
+	}
+
+	key, err := hex.DecodeString(string(keyData))
+	if err != nil {
+		log.Fatalf("invalid encryption key %+v at %s", err, encryptionKey)
+	}
+
 	return Configuration{
 		Tenant:             tenant,
 		RootStorage:        rootStorage + "/" + tenant + "/import/fio",
+		EncryptionKey:      []byte(key),
 		FioGateway:         fioGateway,
 		SyncRate:           syncRate,
 		WallGateway:        wallGateway,

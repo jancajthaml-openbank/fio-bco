@@ -16,12 +16,14 @@ package model
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 	"strings"
 )
 
 // Token represents metadata of token entity
 type Token struct {
+	ID           string
 	Value        string
 	LastSyncedID int64
 }
@@ -32,12 +34,13 @@ type ListTokens struct {
 
 // CreateToken is inbound request for creation of new token
 type CreateToken struct {
+	ID    string
 	Value string
 }
 
 // DeleteToken is inbound request for deletion of token
 type DeleteToken struct {
-	Value string
+	ID string
 }
 
 // GetToken is inbound request for token details
@@ -45,27 +48,43 @@ type GetToken struct {
 }
 
 // NewToken returns new Token
-func NewToken(value string) Token {
+func NewToken(id string, value string) Token {
 	return Token{
+		ID:           id,
 		Value:        value,
 		LastSyncedID: 0,
 	}
 }
 
-// Persist serializes Token entity to persistable data
-func (entity *Token) Persist() []byte {
+// Serialise Token entity to persistable data
+func (entity *Token) Serialise() ([]byte, error) {
+	if entity == nil {
+		return nil, fmt.Errorf("called Token.Serialise over nil")
+	}
 	var buffer bytes.Buffer
-
+	buffer.WriteString(entity.Value)
+	buffer.WriteString("\n")
 	buffer.WriteString(strconv.FormatInt(entity.LastSyncedID, 10))
-
-	return buffer.Bytes()
+	return buffer.Bytes(), nil
 }
 
-// Hydrate deserializes Token entity from persistent data
-func (entity *Token) Hydrate(data []byte) {
-	lines := strings.Split(string(data), "\n")
+// Deserialise Token entity from persistent data
+func (entity *Token) Deserialise(data []byte) error {
+	if entity == nil {
+		return fmt.Errorf("called Token.Deserialise over nil")
+	}
 
-	if cast, err := strconv.ParseInt(lines[0], 10, 64); err == nil {
+	// FIXME more optimal split
+	lines := strings.Split(string(data), "\n")
+	if len(lines) < 2 {
+		return fmt.Errorf("malformed data")
+	}
+
+	entity.Value = lines[0]
+
+	if cast, err := strconv.ParseInt(lines[1], 10, 64); err == nil {
 		entity.LastSyncedID = cast
 	}
+
+	return nil
 }

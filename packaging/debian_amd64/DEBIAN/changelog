@@ -1,3 +1,16 @@
+fio-bco (1.1.0) unstable; urgency=low
+
+  * Better logging
+  * Fixed linting issues
+  * Preinstall dependencies for bbtest in image
+  * Using vault api for account rest
+  * In sync with bondster-bco
+  * Nitpicking in server fault response to respect shape or response
+  * Better more stable json deep diff for bbtests
+  * Using localfs@v1.0.0
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Wed, 6 Feb 2019 08:51:33 +0100
+
 fio-bco (1.0.3) unstable; urgency=low
 
   * Error logging in config.go

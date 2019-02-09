@@ -15,6 +15,8 @@
 package persistence
 
 import (
+	"fmt"
+
 	localfs "github.com/jancajthaml-openbank/local-fs"
 
 	"github.com/jancajthaml-openbank/fio-bco-unit/model"
@@ -24,6 +26,10 @@ import (
 // LoadTokens rehydrates token entity state from storage
 func LoadTokens(storage *localfs.Storage) ([]model.Token, error) {
 	path := utils.TokensPath()
+	ok, err := storage.Exists(path)
+	if err != nil || !ok {
+		return make([]model.Token, 0), nil
+	}
 	tokens, err := storage.ListDirectory(path, true)
 	if err != nil {
 		return nil, err
@@ -41,17 +47,15 @@ func LoadTokens(storage *localfs.Storage) ([]model.Token, error) {
 }
 
 // CreateToken creates and persist new token entity
-func CreateToken(storage *localfs.Storage, value string) bool {
-	token := model.NewToken(value)
-	if PersistToken(storage, &token) == nil {
-		return false
-	}
-	return true
+func CreateToken(storage *localfs.Storage, id string, value string) bool {
+	token := model.NewToken(id, value)
+	fmt.Printf("Creating new token %+v\n", token)
+	return PersistToken(storage, &token) != nil
 }
 
 // DeleteToken deletes existing token entity
-func DeleteToken(storage *localfs.Storage, value string) bool {
-	path := utils.TokenPath(value)
+func DeleteToken(storage *localfs.Storage, id string) bool {
+	path := utils.TokenPath(id)
 	return storage.DeleteFile(path) == nil
 }
 
@@ -60,8 +64,16 @@ func PersistToken(storage *localfs.Storage, entity *model.Token) *model.Token {
 	if entity == nil {
 		return nil
 	}
-	path := utils.TokenPath(entity.Value)
-	if storage.TouchFile(path) != nil {
+	path := utils.TokenPath(entity.ID)
+	data, err := entity.Serialise()
+	if err != nil {
+		return nil
+	}
+	out, err := storage.Encrypt(data)
+	if err != nil {
+		return nil
+	}
+	if storage.WriteFile(path, out) != nil {
 		return nil
 	}
 	return entity
@@ -72,12 +84,19 @@ func HydrateToken(storage *localfs.Storage, entity *model.Token) *model.Token {
 	if entity == nil {
 		return nil
 	}
-	path := utils.TokenPath(entity.Value)
+	path := utils.TokenPath(entity.ID)
 	data, err := storage.ReadFileFully(path)
 	if err != nil {
 		return nil
 	}
-	entity.Hydrate(data)
+	in, err := storage.Decrypt(data)
+	if err != nil {
+		return nil
+	}
+	err = entity.Deserialise(in)
+	if err != nil {
+		return nil
+	}
 	return entity
 }
 
@@ -86,7 +105,15 @@ func UpdateToken(storage *localfs.Storage, entity *model.Token) bool {
 	if entity == nil {
 		return false
 	}
-	path := utils.TokenPath(entity.Value)
-	data := entity.Persist()
-	return storage.UpdateFile(path, data) == nil
+	path := utils.TokenPath(entity.ID)
+	// FIXME check nil
+	data, err := entity.Serialise()
+	if err != nil {
+		return false
+	}
+	out, err := storage.Encrypt(data)
+	if err != nil {
+		return false
+	}
+	return storage.UpdateFile(path, out) == nil
 }

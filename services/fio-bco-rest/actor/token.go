@@ -27,7 +27,7 @@ import (
 )
 
 // CreateToken creates new token for target tenant
-func CreateToken(s *daemon.ActorSystem, tenant string, token string) (result interface{}) {
+func CreateToken(s *daemon.ActorSystem, tenant string, token model.Token) (result interface{}) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Errorf("CreateToken recovered in %v", r)
@@ -35,15 +35,13 @@ func CreateToken(s *daemon.ActorSystem, tenant string, token string) (result int
 		}
 	}()
 
-	// FIXME check if token or tenant is empty string and return error if so
-
 	ch := make(chan interface{})
 	defer close(ch)
 
 	envelope := system.NewEnvelope("relay/"+xid.New().String(), nil)
 	defer s.UnregisterActor(envelope.Name)
 
-	err := s.RegisterActor(envelope, func(state interface{}, context system.Context) {
+	s.RegisterActor(envelope, func(state interface{}, context system.Context) {
 		switch msg := context.Data.(type) {
 		case model.TokenCreated:
 			ch <- &msg
@@ -51,15 +49,13 @@ func CreateToken(s *daemon.ActorSystem, tenant string, token string) (result int
 			ch <- nil
 		}
 	})
-	if err != nil {
-		return
-	}
 
 	s.SendRemote("FioUnit/"+tenant, CreateTokenMessage(envelope.Name, token))
 
 	select {
 
 	case result = <-ch:
+		log.Infof("Token %s/%s created", tenant, token.ID)
 		return
 
 	case <-time.After(time.Second):
@@ -77,25 +73,21 @@ func DeleteToken(s *daemon.ActorSystem, tenant string, token string) (result int
 		}
 	}()
 
-	// FIXME check if token or tenant is empty string and return error if so
-
 	ch := make(chan interface{})
 	defer close(ch)
 
 	envelope := system.NewEnvelope("relay/"+xid.New().String(), nil)
 	defer s.UnregisterActor(envelope.Name)
 
-	err := s.RegisterActor(envelope, func(state interface{}, context system.Context) {
+	s.RegisterActor(envelope, func(state interface{}, context system.Context) {
 		switch msg := context.Data.(type) {
 		case model.TokenDeleted:
+			log.Infof("Token %s/%s deleted", tenant, token)
 			ch <- &msg
 		default:
 			ch <- nil
 		}
 	})
-	if err != nil {
-		return
-	}
 
 	s.SendRemote("FioUnit/"+tenant, DeleteTokenMessage(envelope.Name, token))
 

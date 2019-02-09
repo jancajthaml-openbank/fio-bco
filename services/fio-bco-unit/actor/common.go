@@ -86,9 +86,10 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 		switch payload {
 
 		case ReqCreateToken:
-			if len(parts) == 5 {
+			if len(parts) == 6 {
 				message = model.CreateToken{
-					Value: parts[4],
+					ID:    parts[4],
+					Value: parts[5],
 				}
 			} else {
 				message = nil
@@ -97,7 +98,7 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 		case ReqDeleteToken:
 			if len(parts) == 5 {
 				message = model.DeleteToken{
-					Value: parts[4],
+					ID: parts[4],
 				}
 			} else {
 				message = nil

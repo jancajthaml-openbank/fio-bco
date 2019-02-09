@@ -21,6 +21,7 @@ case "$1" in
       echo "FIO_BCO_LAKE_HOSTNAME=localhost" >> /etc/init/fio-bco.conf
       echo "FIO_BCO_HTTP_PORT=4002" >> /etc/init/fio-bco.conf
       echo "FIO_BCO_SECRETS=/opt/fio-bco/secrets" >> /etc/init/fio-bco.conf
+      echo "FIO_BCO_ENCRYPTION_KEY=/opt/fio-bco/secrets/fs_encryption.key" >> /etc/init/fio-bco.conf
     fi
 
     secrets=$(sed -n -e 's/^.*FIO_BCO_SECRETS=//p' /etc/init/fio-bco.conf 2>/dev/null | awk '{gsub(/^ +| +$/,"")} {print $0}')
@@ -42,6 +43,19 @@ case "$1" in
         -days 1 \
         -subj "/C=CZ/ST=Czechia/L=Prague/O=OpenBanking/OU=IT/CN=localhost/emailAddress=jan.cajthaml@gmail.com"
       echo "generated temporary certificates at ${secrets} valid for 24 hours"
+    fi
+
+    encryptionKey=$(sed -n -e 's/^.*FIO_BCO_ENCRYPTION_KEY=//p' /etc/init/fio-bco.conf 2>/dev/null | awk '{gsub(/^ +| +$/,"")} {print $0}')
+
+    if [ -z "${encryptionKey}" ] ; then
+      (>&2 echo "FIO_BCO_ENCRYPTION_KEY is not defined at /etc/init/fio-bco.conf")
+      exit 1
+    fi
+
+    if [ ! -f "${encryptionKey}" ] ; then
+      mkdir -p $(basename "${encryptionKey}")
+      openssl rand -hex 32 | xargs --no-run-if-empty echo -n > "${encryptionKey}"
+      echo "generated 32B encryption key at ${encryptionKey}"
     fi
 
   ;;

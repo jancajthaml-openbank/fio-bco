@@ -14,11 +14,6 @@
 
 package model
 
-import (
-	"strconv"
-	"strings"
-)
-
 // ReplyTimeout message
 type ReplyTimeout struct{}
 
@@ -30,21 +25,11 @@ type TokenDeleted struct{}
 
 // Token represents metadata of token entity
 type Token struct {
-	Value        string `json:"value"`
-	LastSyncedID int64  `json:"-"`
+	ID    string `json:"-"`
+	Value string `json:"value"`
 }
 
 // MarshalJSON serialises Token as json
 func (entity *Token) MarshalJSON() ([]byte, error) {
-	return []byte("{\"value\":\"" + entity.Value + "\"}"), nil
-}
-
-// Hydrate deserializes Token entity from persistent data
-func (entity *Token) Hydrate(data []byte) {
-	// FIXME more efficient read-split-inplace
-	lines := strings.Split(string(data), "\n")
-
-	if cast, err := strconv.ParseInt(lines[0], 10, 64); err == nil {
-		entity.LastSyncedID = cast
-	}
+	return []byte("{\"value\":\"" + entity.ID + "\"}"), nil
 }

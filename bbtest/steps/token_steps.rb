@@ -6,14 +6,19 @@ step "token :slash_pair is created" do |slash_pair|
 
   (tenant, token) = slash_pair.split('/')
 
-  send "I request curl :http_method :url", "POST", "https://localhost/token/#{tenant}/#{token}"
+  send "I request curl :http_method :url", "POST", "https://localhost/token/#{tenant}", {
+    "value": token
+  }.to_json
 
   @resp = Hash.new
   resp = %x(#{@http_req})
 
   @resp[:code] = resp[resp.length-3...resp.length].to_i
   @resp[:body] = resp[0...resp.length-3] unless resp.nil?
-  @tokens[tenant+"/"+token] = true if @resp[:code] == 200
+
+  resp = JSON.parse(@resp[:body])
+
+  @tokens[tenant+"/"+token] = resp["value"] if @resp[:code] == 200
 end
 
 step "token :slash_pair should exist" do |slash_pair|
@@ -22,6 +27,7 @@ step "token :slash_pair should exist" do |slash_pair|
   expect(@tokens).to have_key(slash_pair), "expected to find \"#{slash_pair}\" in #{@tokens.keys}"
 
   (tenant, token) = slash_pair.split('/')
+  token_value = @tokens[slash_pair]
 
   send "I request curl :http_method :url", "GET", "https://localhost/token/#{tenant}"
 
@@ -34,7 +40,7 @@ step "token :slash_pair should exist" do |slash_pair|
 
   actual_tokens = JSON.parse(@resp[:body]).map { |item| tenant + "/" + item }
 
-  expect(actual_tokens).to include(slash_pair), "expected to find \"#{slash_pair}\" in #{actual_tokens}"
+  expect(actual_tokens).to include(tenant+"/"+token_value), "expected to find \"#{slash_pair}\" in #{actual_tokens}"
 end
 
 step "request should succeed" do ||

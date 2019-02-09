@@ -68,7 +68,9 @@ func Initialize() Application {
 	}
 
 	metrics := daemon.NewMetrics(ctx, cfg)
+
 	storage := localfs.NewStorage(cfg.RootStorage)
+	storage.SetEncryptionKey(cfg.EncryptionKey)
 
 	actorSystem := daemon.NewActorSystem(ctx, cfg, &metrics, &storage)
 	actorSystem.Support.RegisterOnRemoteMessage(actor.ProcessRemoteMessage(&actorSystem))
