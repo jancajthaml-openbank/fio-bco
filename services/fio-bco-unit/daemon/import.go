@@ -62,7 +62,19 @@ func NewFioImport(ctx context.Context, cfg config.Configuration, metrics *Metric
 }
 
 func (fio FioImport) getActiveTokens() ([]model.Token, error) {
-	return persistence.LoadTokens(fio.storage)
+	tokens, err := persistence.LoadTokens(fio.storage)
+	if err != nil {
+		return nil, err
+	}
+	uniq := make([]model.Token, 0, len(tokens))
+	visited := make(map[string]bool)
+	for _, token := range tokens {
+		if _, ok := visited[token.Value]; !ok {
+			visited[token.Value] = true
+			uniq = append(uniq, token)
+		}
+	}
+	return uniq, nil
 }
 
 func (fio FioImport) setLastSyncedID(token string, lastID int64) error {
@@ -191,24 +203,32 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 
 func (fio FioImport) importStatements(token model.Token) {
 	if err := fio.setLastSyncedID(token.Value, token.LastSyncedID); err != nil {
-		log.Warnf("set Last Synced ID Failed : %+v for %+v", err, token.Value)
+		log.Warnf("set Last Synced ID Failed : %+v for %+v", err, token.ID)
+		return
+	}
+
+	if fio.ctx.Err() != nil {
 		return
 	}
 
 	if err := fio.importNewTransactions(token); err != nil {
-		log.Warnf("import statements Failed : %+v for %+v", err, token.Value)
+		log.Warnf("import statements Failed : %+v for %+v", err, token.ID)
 		return
 	}
 }
 
 func (fio FioImport) importRoundtrip() {
-	var wg sync.WaitGroup
-
 	tokens, err := fio.getActiveTokens()
 	if err != nil {
 		log.Errorf("unable to get active tokens %+v", err)
 		return
 	}
+
+	if fio.ctx.Err() != nil {
+		return
+	}
+
+	var wg sync.WaitGroup
 
 	for _, item := range tokens {
 		wg.Add(1)

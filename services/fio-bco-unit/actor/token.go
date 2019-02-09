@@ -32,13 +32,13 @@ func TokenManagement(s *daemon.ActorSystem) func(interface{}, system.Context) {
 		case model.CreateToken:
 			log.Debug("token ~ (CreateToken)")
 
-			if !persistence.CreateToken(s.Storage, msg.Value) {
+			if !persistence.CreateToken(s.Storage, msg.ID, msg.Value) {
 				s.SendRemote(context.Sender.Region, FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
 				log.Debug("token ~ (CreateToken) Error")
 				return
 			}
 
-			log.Infof("Token %s Created", msg.Value)
+			log.Infof("Token %s Created", msg.ID)
 
 			s.Metrics.TokenCreated()
 
@@ -46,13 +46,13 @@ func TokenManagement(s *daemon.ActorSystem) func(interface{}, system.Context) {
 
 		case model.DeleteToken:
 
-			if !persistence.DeleteToken(s.Storage, msg.Value) {
+			if !persistence.DeleteToken(s.Storage, msg.ID) {
 				s.SendRemote(context.Sender.Region, FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
 				log.Debug("token ~ (DeleteToken) Error")
 				return
 			}
 
-			log.Infof("Token %s Deleted", msg.Value)
+			log.Infof("Token %s Deleted", msg.ID)
 
 			s.Metrics.TokenDeleted()
 

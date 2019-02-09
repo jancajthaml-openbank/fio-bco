@@ -79,8 +79,8 @@ func Initialize() Application {
 	rest.HandleFunc("/health", api.HealtCheck, "GET", "HEAD")
 	rest.HandleFunc("/tenant/{tenant}", api.TenantPartial(&systemControl), "POST", "DELETE")
 	rest.HandleFunc("/tenant", api.TenantsPartial(&systemControl), "GET")
-	rest.HandleFunc("/token/{tenant}/{token}", api.TokenPartial(&actorSystem), "POST", "DELETE")
-	rest.HandleFunc("/token/{tenant}", api.TokensPartial(&storage), "GET")
+	rest.HandleFunc("/token/{tenant}/{token}", api.TokenPartial(&actorSystem), "DELETE")
+	rest.HandleFunc("/token/{tenant}", api.TokensPartial(&actorSystem, &storage), "POST", "GET")
 
 	return Application{
 		cfg:           cfg,

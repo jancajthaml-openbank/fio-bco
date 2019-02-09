@@ -15,6 +15,9 @@
 package api
 
 import (
+	"crypto/rand"
+	"encoding/hex"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/jancajthaml-openbank/fio-bco-rest/actor"
@@ -25,6 +28,7 @@ import (
 
 	"github.com/gorilla/mux"
 	localfs "github.com/jancajthaml-openbank/local-fs"
+	"github.com/rs/xid"
 )
 
 // TokenPartial returns http handler for single token
@@ -44,10 +48,6 @@ func TokenPartial(system *daemon.ActorSystem) func(w http.ResponseWriter, r *htt
 
 		switch r.Method {
 
-		case "POST":
-			CreateToken(system, tenant, token, w, r)
-			return
-
 		case "DELETE":
 			DeleteToken(system, tenant, token, w, r)
 			return
@@ -63,7 +63,7 @@ func TokenPartial(system *daemon.ActorSystem) func(w http.ResponseWriter, r *htt
 }
 
 // TokensPartial returns http handler for tokens
-func TokensPartial(storage *localfs.Storage) func(w http.ResponseWriter, r *http.Request) {
+func TokensPartial(system *daemon.ActorSystem, storage *localfs.Storage) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
@@ -82,6 +82,10 @@ func TokensPartial(storage *localfs.Storage) func(w http.ResponseWriter, r *http
 			GetTokens(storage, tenant, w, r)
 			return
 
+		case "POST":
+			CreateToken(system, tenant, w, r)
+			return
+
 		default:
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusMethodNotAllowed)
@@ -94,13 +98,44 @@ func TokensPartial(storage *localfs.Storage) func(w http.ResponseWriter, r *http
 }
 
 // CreateToken creates new token
-func CreateToken(system *daemon.ActorSystem, tenant string, token string, w http.ResponseWriter, r *http.Request) {
-	switch actor.CreateToken(system, tenant, token).(type) {
+func CreateToken(system *daemon.ActorSystem, tenant string, w http.ResponseWriter, r *http.Request) {
+	b, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(emptyJSONObject)
+		return
+	}
+
+	var req = new(model.Token)
+	err = utils.JSON.Unmarshal(b, req)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(emptyJSONObject)
+		return
+	}
+
+	noise := make([]byte, 10)
+	rand.Read(noise)
+	req.ID = hex.EncodeToString(noise) + xid.New().String()
+
+	switch actor.CreateToken(system, tenant, *req).(type) {
 
 	case *model.TokenCreated:
+
+		resp, err := utils.JSON.Marshal(req)
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(emptyJSONArray)
+			return
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write(emptyJSONObject)
+		w.Write(resp)
 		return
 
 	case *model.ReplyTimeout:

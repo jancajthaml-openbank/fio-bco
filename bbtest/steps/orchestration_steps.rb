@@ -43,7 +43,8 @@ step "tenant :tenant is onbdoarded" do |tenant|
     "FIO_BCO_LAKE_HOSTNAME=localhost",
     "FIO_BCO_METRICS_REFRESHRATE=1h",
     "FIO_BCO_HTTP_PORT=443",
-    "FIO_BCO_SECRETS=/opt/fio-bco/secrets"
+    "FIO_BCO_SECRETS=/opt/fio-bco/secrets",
+    "FIO_BCO_ENCRYPTION_KEY=/opt/fio-bco/secrets/fs_encryption.key"
   ].join("\n").inspect.delete('\"')
 
   %x(mkdir -p /etc/init)
@@ -71,7 +72,8 @@ step "fio-bco is reconfigured with" do |configuration|
     "LAKE_HOSTNAME" => "localhost",
     "METRICS_REFRESHRATE" => "1h",
     "HTTP_PORT" => "443",
-    "SECRETS" => "/opt/fio-bco/secrets"
+    "SECRETS" => "/opt/fio-bco/secrets",
+    "ENCRYPTION_KEY" => "/opt/fio-bco/secrets/fs_encryption.key"
   }
 
   config = Array[defaults.merge(params).map {|k,v| "FIO_BCO_#{k}=#{v}"}]

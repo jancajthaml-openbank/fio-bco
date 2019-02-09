@@ -30,13 +30,14 @@ type TokenDeleted struct{}
 
 // Token represents metadata of token entity
 type Token struct {
+	ID           string
 	Value        string `json:"value"`
 	LastSyncedID int64  `json:"-"`
 }
 
 // MarshalJSON serialises Token as json
 func (entity *Token) MarshalJSON() ([]byte, error) {
-	return []byte("{\"value\":\"" + entity.Value + "\"}"), nil
+	return []byte("{\"value\":\"" + entity.ID + "\"}"), nil
 }
 
 // Hydrate deserializes Token entity from persistent data
