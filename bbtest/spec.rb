@@ -18,6 +18,7 @@ RSpec.configure do |config|
 
     LakeMock.start()
     FioHelper.start()
+    VaultHelper.start()
     WallHelper.start()
 
     ["/data", "/reports"].each { |folder|
@@ -81,6 +82,7 @@ RSpec.configure do |config|
       %x(journalctl -o short-precise -u #{e}.service --no-pager > /reports/#{e}.log 2>&1)
     } unless ids.empty?
 
+    VaultHelper.stop()
     WallHelper.stop()
     FioHelper.stop()
     LakeMock.stop()

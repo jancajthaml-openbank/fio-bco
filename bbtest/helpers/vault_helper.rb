@@ -14,7 +14,7 @@ class VaultAccountHandler < WEBrick::HTTPServlet::AbstractServlet
   end
 
   def create_account(request)
-    #puts "creating wall account #{request.body}"
+    #puts "creating vault account #{request.body}"
 
     begin
       body = JSON.parse(request.body)
@@ -32,36 +32,6 @@ class VaultAccountHandler < WEBrick::HTTPServlet::AbstractServlet
       return 400, "application/json", "{}"
     rescue Exception => err
       puts err
-      return 500, "application/json", "{}"
-    end
-
-  end
-end
-
-class WallTransactionHandler < WEBrick::HTTPServlet::AbstractServlet
-
-  def do_POST(request, response)
-    status, content_type, body = create_transaction(request)
-
-    response.status = status
-    response['Content-Type'] = content_type
-    response.body = body
-  end
-
-  def create_transaction(request)
-    begin
-      body = JSON.parse(request.body)
-
-      raise JSON::ParserError if body["transfers"].nil? || body["transfers"].empty?
-
-      if VaultMock.create_transaction(body["id"], body["transfers"])
-        return 200, "application/json", "{}"
-      else
-        return 409, "application/json", "{}"
-      end
-    rescue JSON::ParserError
-      return 400, "application/json", "{}"
-    rescue Exception => _
       return 500, "application/json", "{}"
     end
 

@@ -1,3 +1,9 @@
+fio-bco (v1.1.0+master) unstable; urgency=low
+
+  * Includes non-released commits
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sat, 9 Feb 2019 19:37:46 +0100
+
 fio-bco (1.1.0) unstable; urgency=low
 
   * Better logging
