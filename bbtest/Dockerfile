@@ -29,6 +29,6 @@ RUN \
 RUN apt-get update && \
     apt-get install -y \
       init-system-helpers>=1.18~ \
-      libzmq5=4.2.1-4
+      libzmq5>=4.2.1~
 
 # ---------------------------------------------------------------------------- #
