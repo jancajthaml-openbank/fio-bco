@@ -132,6 +132,33 @@ func (sys SystemControl) EnableUnit(name string) error {
 	return nil
 }
 
+// WaitReady wait for system to be ready
+func (sys SystemControl) WaitReady(deadline time.Duration) (err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			switch x := e.(type) {
+			case string:
+				err = fmt.Errorf(x)
+			case error:
+				err = x
+			default:
+				err = fmt.Errorf("unknown panic")
+			}
+		}
+	}()
+
+	ticker := time.NewTicker(deadline)
+	select {
+	case <-sys.IsReady:
+		ticker.Stop()
+		err = nil
+		return
+	case <-ticker.C:
+		err = fmt.Errorf("daemon was not ready within %v seconds", deadline)
+		return
+	}
+}
+
 // Start handles everything needed to start http-server daemon
 func (sys SystemControl) Start() {
 	defer sys.MarkDone()

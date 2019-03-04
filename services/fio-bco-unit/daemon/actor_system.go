@@ -16,6 +16,8 @@ package daemon
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/jancajthaml-openbank/fio-bco-unit/config"
 	"github.com/jancajthaml-openbank/fio-bco-unit/http"
@@ -41,5 +43,32 @@ func NewActorSystem(ctx context.Context, cfg config.Configuration, metrics *Metr
 		Metrics:    metrics,
 		Storage:    storage,
 		ClientHTTP: http.NewClient(),
+	}
+}
+
+// WaitReady wait for system to be ready
+func (system ActorSystem) WaitReady(deadline time.Duration) (err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			switch x := e.(type) {
+			case string:
+				err = fmt.Errorf(x)
+			case error:
+				err = x
+			default:
+				err = fmt.Errorf("unknown panic")
+			}
+		}
+	}()
+
+	ticker := time.NewTicker(deadline)
+	select {
+	case <-system.IsReady:
+		ticker.Stop()
+		err = nil
+		return
+	case <-ticker.C:
+		err = fmt.Errorf("daemon was not ready within %v seconds", deadline)
+		return
 	}
 }
