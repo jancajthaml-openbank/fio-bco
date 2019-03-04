@@ -106,6 +106,33 @@ func (server Server) HandleFunc(path string, handle func(w http.ResponseWriter, 
 	return server.router.HandleFunc(path, handle).Methods(methods...)
 }
 
+// WaitReady wait for metrics to be ready
+func (server Server) WaitReady(deadline time.Duration) (err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			switch x := e.(type) {
+			case string:
+				err = fmt.Errorf(x)
+			case error:
+				err = x
+			default:
+				err = fmt.Errorf("unknown panic")
+			}
+		}
+	}()
+
+	ticker := time.NewTicker(deadline)
+	select {
+	case <-server.IsReady:
+		ticker.Stop()
+		err = nil
+		return
+	case <-ticker.C:
+		err = fmt.Errorf("daemon was not ready within %v seconds", deadline)
+		return
+	}
+}
+
 // Start handles everything needed to start http-server daemon
 func (server Server) Start() {
 	defer server.MarkDone()

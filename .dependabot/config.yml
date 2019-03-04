@@ -1,0 +1,10 @@
+version: 1
+
+update_configs:
+  - package_manager: "go:modules"
+    directory: "/services/fio-bco-rest"
+    update_schedule: "daily"
+
+  - package_manager: "go:modules"
+    directory: "/services/fio-bco-unit"
+    update_schedule: "daily"
