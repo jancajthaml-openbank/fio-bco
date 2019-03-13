@@ -4,7 +4,7 @@ require (
 	github.com/jancajthaml-openbank/actor-system v0.0.0-20181202162032-58dc2b194b81
 	github.com/jancajthaml-openbank/lake-client v0.0.0-20181130160936-e2d4da331f21 // indirect
 	github.com/jancajthaml-openbank/local-fs v1.0.2
-	github.com/json-iterator/go v1.1.5
+	github.com/json-iterator/go v1.1.6
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742 // indirect
 	github.com/pebbe/zmq4 v0.0.0-20181205160324-956ee4ed393e // indirect
