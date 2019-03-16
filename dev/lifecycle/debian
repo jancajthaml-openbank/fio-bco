@@ -110,8 +110,8 @@ CONTROL=${DEB_SOURCES}/DEBIAN/control
 DIST=unstable
 FIRST=1
 
-if [ ! -f "${BIN_SOURCES}/fio-bco-unit-linux-${TARGET_ARCHITECTURE}" ] ; then
-  (>&2 echo "did not found binary to package at ${BIN_SOURCES}/fio-bco-unit-linux-${TARGET_ARCHITECTURE}")
+if [ ! -f "${BIN_SOURCES}/fio-bco-import-linux-${TARGET_ARCHITECTURE}" ] ; then
+  (>&2 echo "did not found binary to package at ${BIN_SOURCES}/fio-bco-import-linux-${TARGET_ARCHITECTURE}")
   exit 1
 fi
 
@@ -122,26 +122,26 @@ fi
 
 mkdir -p ${DEB_SOURCES}/openbank/services/fio-bco
 
-if [ -f "${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-unit" ] ; then
-  rm -f ${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-unit
+if [ -f "${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-import" ] ; then
+  rm -f ${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-import
 fi
 
 if [ -f "${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-rest" ] ; then
   rm -f ${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-rest
 fi
 
-du -hs "${BIN_SOURCES}/fio-bco-unit-linux-${TARGET_ARCHITECTURE}"
+du -hs "${BIN_SOURCES}/fio-bco-import-linux-${TARGET_ARCHITECTURE}"
 du -hs "${BIN_SOURCES}/fio-bco-rest-linux-${TARGET_ARCHITECTURE}"
 
 cp \
-  "${BIN_SOURCES}/fio-bco-unit-linux-${TARGET_ARCHITECTURE}" \
-  "${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-unit"
+  "${BIN_SOURCES}/fio-bco-import-linux-${TARGET_ARCHITECTURE}" \
+  "${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-import"
 
 cp \
   "${BIN_SOURCES}/fio-bco-rest-linux-${TARGET_ARCHITECTURE}" \
   "${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-rest"
 
-file "${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-unit"
+file "${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-import"
 file "${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-rest"
 
 generate_changelog

@@ -48,7 +48,7 @@ RSpec.configure do |config|
 
     if $?
       ids = ids.split("\n").map(&:strip).reject { |x|
-        x.empty? || !x.start_with?("fio-bco@")
+        x.empty? || !x.start_with?("fio-bco-import@")
       }.map { |x| x.chomp(".service") }
     else
       ids = []

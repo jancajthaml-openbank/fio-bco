@@ -1,13 +1,14 @@
 [Unit]
 Description=openbank FIO Bank Connection tenant %i
-After=inetd.service
+PartOf=fio-bco.service
+After=fio-bco.service
 
 [Service]
 Type=notify
 Environment=FIO_BCO_TENANT=%i
 EnvironmentFile=/etc/init/fio-bco.conf
 StartLimitBurst=0
-ExecStart=/openbank/services/fio-bco/fio-bco-unit %i
+ExecStart=/openbank/services/fio-bco/fio-bco-import %i
 StandardInput=null
 LimitNOFILE=1048576
 LimitNPROC=infinity
@@ -19,4 +20,4 @@ TimeoutSec=infinity
 KillMode=process
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=fio-bco.service

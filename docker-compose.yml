@@ -13,7 +13,7 @@ services:
     image: openbankdev/fio_bco_base
     volumes:
       - .:/project
-      - ./services/fio-bco-unit:/go/src/github.com/jancajthaml-openbank/fio-bco-unit
+      - ./services/fio-bco-import:/go/src/github.com/jancajthaml-openbank/fio-bco-import
       - ./services/fio-bco-rest:/go/src/github.com/jancajthaml-openbank/fio-bco-rest
     working_dir: /project
     environment:

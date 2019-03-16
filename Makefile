@@ -18,7 +18,7 @@ package:
 .PHONY: bundle-binaries
 bundle-binaries:
 	@echo "[info] packaging binaries for linux/amd64"
-	@docker-compose run --rm package --arch linux/amd64 --pkg fio-bco-unit
+	@docker-compose run --rm package --arch linux/amd64 --pkg fio-bco-import
 	@docker-compose run --rm package --arch linux/amd64 --pkg fio-bco-rest
 
 .PHONY: bundle-debian
@@ -32,31 +32,27 @@ bootstrap:
 
 .PHONY: lint
 lint:
-	@docker-compose run --rm lint --pkg fio-bco-unit || :
+	@docker-compose run --rm lint --pkg fio-bco-import || :
 	@docker-compose run --rm lint --pkg fio-bco-rest || :
 
 .PHONY: sec
 sec:
-	@docker-compose run --rm sec --pkg fio-bco-unit || :
+	@docker-compose run --rm sec --pkg fio-bco-import || :
 	@docker-compose run --rm sec --pkg fio-bco-rest || :
 
 .PHONY: sync
 sync:
-	@echo "[info] sync fio-bco-unit"
-	@docker-compose run --rm sync --pkg fio-bco-unit
-	@echo "[info] sync fio-bco-rest"
+	@docker-compose run --rm sync --pkg fio-bco-import
 	@docker-compose run --rm sync --pkg fio-bco-rest
 
 .PHONY: update
 update:
-	@docker-compose run --rm update --pkg fio-bco-unit
+	@docker-compose run --rm update --pkg fio-bco-import
 	@docker-compose run --rm update --pkg fio-bco-rest
 
 .PHONY: test
 test:
-	@echo "[info] test fio-bco-unit"
-	@docker-compose run --rm test --pkg fio-bco-unit
-	@echo "[info] test fio-bco-rest"
+	@docker-compose run --rm test --pkg fio-bco-import
 	@docker-compose run --rm test --pkg fio-bco-rest
 
 .PHONY: release

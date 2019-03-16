@@ -21,9 +21,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/jancajthaml-openbank/fio-bco-unit/actor"
-	"github.com/jancajthaml-openbank/fio-bco-unit/daemon"
-	"github.com/jancajthaml-openbank/fio-bco-unit/utils"
+	"github.com/jancajthaml-openbank/fio-bco-import/actor"
+	"github.com/jancajthaml-openbank/fio-bco-import/daemon"
+	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 
 	log "github.com/sirupsen/logrus"
 )

@@ -21,11 +21,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jancajthaml-openbank/fio-bco-unit/config"
-	"github.com/jancajthaml-openbank/fio-bco-unit/http"
-	"github.com/jancajthaml-openbank/fio-bco-unit/model"
-	"github.com/jancajthaml-openbank/fio-bco-unit/persistence"
-	"github.com/jancajthaml-openbank/fio-bco-unit/utils"
+	"github.com/jancajthaml-openbank/fio-bco-import/config"
+	"github.com/jancajthaml-openbank/fio-bco-import/http"
+	"github.com/jancajthaml-openbank/fio-bco-import/model"
+	"github.com/jancajthaml-openbank/fio-bco-import/persistence"
+	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
 	log "github.com/sirupsen/logrus"

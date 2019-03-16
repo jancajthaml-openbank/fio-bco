@@ -17,8 +17,8 @@ package persistence
 import (
 	localfs "github.com/jancajthaml-openbank/local-fs"
 
-	"github.com/jancajthaml-openbank/fio-bco-unit/model"
-	"github.com/jancajthaml-openbank/fio-bco-unit/utils"
+	"github.com/jancajthaml-openbank/fio-bco-import/model"
+	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 )
 
 // LoadTokens rehydrates token entity state from storage

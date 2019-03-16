@@ -15,7 +15,7 @@
 package main
 
 import (
-	"github.com/jancajthaml-openbank/fio-bco-unit/boot"
+	"github.com/jancajthaml-openbank/fio-bco-import/boot"
 )
 
 func main() {

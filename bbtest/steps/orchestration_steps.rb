@@ -5,7 +5,7 @@ step "fio-bco is restarted" do ||
   expect($?).to be_success, ids
 
   ids = ids.split("\n").map(&:strip).reject { |x|
-    x.empty? || !x.start_with?("fio-bco@")
+    x.empty? || !x.start_with?("fio-bco-import@")
   }.map { |x| x.chomp(".service") }
 
   expect(ids).not_to be_empty
@@ -24,10 +24,10 @@ end
 
 step "tenant :tenant is offboarded" do |tenant|
   eventually() {
-    %x(journalctl -o short-precise -u fio-bco@#{tenant}.service --no-pager > /reports/fio-bco@#{tenant}.log 2>&1)
-    %x(systemctl stop fio-bco@#{tenant} 2>&1)
-    %x(systemctl disable fio-bco@#{tenant} 2>&1)
-    %x(journalctl -o short-precise -u fio-bco@#{tenant}.service --no-pager > /reports/fio-bco@#{tenant}.log 2>&1)
+    %x(journalctl -o short-precise -u fio-bco-import@#{tenant}.service --no-pager > /reports/fio-bco@#{tenant}.log 2>&1)
+    %x(systemctl stop fio-bco-import@#{tenant} 2>&1)
+    %x(systemctl disable fio-bco-import@#{tenant} 2>&1)
+    %x(journalctl -o short-precise -u fio-bco-import@#{tenant}.service --no-pager > /reports/fio-bco@#{tenant}.log 2>&1)
   }
 end
 
@@ -50,11 +50,11 @@ step "tenant :tenant is onbdoarded" do |tenant|
   %x(mkdir -p /etc/init)
   %x(echo '#{params}' > /etc/init/fio-bco.conf)
 
-  %x(systemctl enable fio-bco@#{tenant} 2>&1)
-  %x(systemctl start fio-bco@#{tenant} 2>&1)
+  %x(systemctl enable fio-bco-import@#{tenant} 2>&1)
+  %x(systemctl start fio-bco-import@#{tenant} 2>&1)
 
   eventually() {
-    out = %x(systemctl show -p SubState fio-bco@#{tenant} 2>&1 | sed 's/SubState=//g')
+    out = %x(systemctl show -p SubState fio-bco-import@#{tenant} 2>&1 | sed 's/SubState=//g')
     expect(out.strip).to eq("running")
   }
 end
@@ -86,7 +86,7 @@ step "fio-bco is reconfigured with" do |configuration|
   expect($?).to be_success, ids
 
   ids = ids.split("\n").map(&:strip).reject { |x|
-    x.empty? || !x.start_with?("fio-bco")
+    x.empty? || !x.start_with?("fio-bco-")
   }.map { |x| x.chomp(".service") }
 
   expect(ids).not_to be_empty
