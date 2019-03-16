@@ -3,7 +3,6 @@ module github.com/jancajthaml-openbank/bondster-bco/services/bondster-bco-rest
 require (
 	github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142
 	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect
-	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.7.0
 	github.com/jancajthaml-openbank/actor-system v0.0.0-20181202162032-58dc2b194b81
 	github.com/jancajthaml-openbank/lake-client v0.0.0-20181130160936-e2d4da331f21 // indirect

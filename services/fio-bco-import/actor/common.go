@@ -17,8 +17,8 @@ package actor
 import (
 	"fmt"
 
-	"github.com/jancajthaml-openbank/fio-bco-unit/daemon"
-	"github.com/jancajthaml-openbank/fio-bco-unit/model"
+	"github.com/jancajthaml-openbank/fio-bco-import/daemon"
+	"github.com/jancajthaml-openbank/fio-bco-import/model"
 
 	system "github.com/jancajthaml-openbank/actor-system"
 	log "github.com/sirupsen/logrus"

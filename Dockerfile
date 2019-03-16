@@ -20,9 +20,9 @@ RUN \
     if \
       \
       [ ! -f /opt/artifacts/fio-bco-rest-linux-amd64 ] || \
-      [ ! -f /opt/artifacts/fio-bco-unit-linux-amd64 ] || \
+      [ ! -f /opt/artifacts/fio-bco-import-linux-amd64 ] || \
       [ ! -f /opt/artifacts/fio-bco-rest-linux-armhf ] || \
-      [ ! -f /opt/artifacts/fio-bco-unit-linux-armhf ] || \
+      [ ! -f /opt/artifacts/fio-bco-import-linux-armhf ] || \
       \
       [ -z "$(find . /opt/artifacts -type f -name 'fio-bco_*_amd64.deb' -print)" ] || \
       [ -z "$(find /opt/artifacts -type f -name 'fio-bco_*_armhf.deb' -print)" ] \

@@ -15,9 +15,9 @@
 package actor
 
 import (
-	"github.com/jancajthaml-openbank/fio-bco-unit/daemon"
-	"github.com/jancajthaml-openbank/fio-bco-unit/model"
-	"github.com/jancajthaml-openbank/fio-bco-unit/persistence"
+	"github.com/jancajthaml-openbank/fio-bco-import/daemon"
+	"github.com/jancajthaml-openbank/fio-bco-import/model"
+	"github.com/jancajthaml-openbank/fio-bco-import/persistence"
 
 	system "github.com/jancajthaml-openbank/actor-system"
 	log "github.com/sirupsen/logrus"

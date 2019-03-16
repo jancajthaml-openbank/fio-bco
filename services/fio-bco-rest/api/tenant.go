@@ -61,7 +61,7 @@ func TenantPartial(system *daemon.SystemControl) func(w http.ResponseWriter, r *
 func TenantsPartial(system *daemon.SystemControl) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		units, err := system.ListUnits("fio-bco@")
+		units, err := system.ListUnits("fio-bco-import@")
 		if err != nil {
 			log.Errorf("Error when listing units, %+v", err)
 			w.Header().Set("Content-Type", "application/json")
@@ -87,7 +87,7 @@ func TenantsPartial(system *daemon.SystemControl) func(w http.ResponseWriter, r 
 
 // EnableUnit enables tenant unit
 func EnableUnit(system *daemon.SystemControl, tenant string, w http.ResponseWriter, r *http.Request) {
-	err := system.EnableUnit("fio-bco@" + tenant + ".service")
+	err := system.EnableUnit("fio-bco-import@" + tenant + ".service")
 	if err != nil {
 		log.Errorf("Error when enabling unit, %+v", err)
 		w.Header().Set("Content-Type", "application/json")
@@ -105,7 +105,7 @@ func EnableUnit(system *daemon.SystemControl, tenant string, w http.ResponseWrit
 
 // DisableUnit disables tenant unit
 func DisableUnit(system *daemon.SystemControl, tenant string, w http.ResponseWriter, r *http.Request) {
-	err := system.DisableUnit("fio-bco@" + tenant + ".service")
+	err := system.DisableUnit("fio-bco-import@" + tenant + ".service")
 	if err != nil {
 		log.Errorf("Error when disabling unit, %+v", err)
 		w.Header().Set("Content-Type", "application/json")

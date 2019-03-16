@@ -1,0 +1,8 @@
+[Unit]
+Description=openbank FIO Bank Connection tenant %i
+
+[Path]
+PathChanged=/etc/init/fio-bco.conf
+
+[Install]
+WantedBy=fio-bco-import@.service

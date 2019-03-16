@@ -5,14 +5,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jancajthaml-openbank/fio-bco-unit/config"
+	"github.com/jancajthaml-openbank/fio-bco-import/config"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGetFilename(t *testing.T) {
-	assert.Equal(t, "/a/b/c.d.e", getFilename("/a/b/c.e", "d"))
+	assert.Equal(t, "/a/b/c.import.d.e", getFilename("/a/b/c.e", "d"))
 	assert.Equal(t, "/a/b/c.d", getFilename("/a/b/c.d", ""))
 }
 

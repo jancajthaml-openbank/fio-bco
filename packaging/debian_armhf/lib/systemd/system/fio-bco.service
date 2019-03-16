@@ -1,21 +1,11 @@
 [Unit]
-Description=openbank FIO Bank Connection REST service
+Description=openbank FIO Bank Connection services namespace
 After=inetd.service
 
 [Service]
-Type=notify
-EnvironmentFile=/etc/init/fio-bco.conf
-StartLimitBurst=0
-ExecStart=/openbank/services/fio-bco/fio-bco-rest
-StandardInput=null
-LimitNOFILE=1048576
-LimitNPROC=infinity
-LimitCORE=infinity
-Restart=always
-RestartSec=0
-TimeoutStartSec=0
-TimeoutSec=infinity
-KillMode=process
+Type=oneshot
+ExecStart=/bin/true
+RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target

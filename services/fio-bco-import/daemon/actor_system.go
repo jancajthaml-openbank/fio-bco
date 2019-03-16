@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jancajthaml-openbank/fio-bco-unit/config"
-	"github.com/jancajthaml-openbank/fio-bco-unit/http"
+	"github.com/jancajthaml-openbank/fio-bco-import/config"
+	"github.com/jancajthaml-openbank/fio-bco-import/http"
 
 	system "github.com/jancajthaml-openbank/actor-system"
 	localfs "github.com/jancajthaml-openbank/local-fs"

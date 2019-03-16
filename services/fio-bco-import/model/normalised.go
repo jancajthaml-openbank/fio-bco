@@ -15,7 +15,7 @@
 package model
 
 import (
-	"github.com/jancajthaml-openbank/fio-bco-unit/iban"
+	"github.com/jancajthaml-openbank/fio-bco-import/iban"
 )
 
 // Transaction entity in wall format

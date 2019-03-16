@@ -1,6 +1,56 @@
-fio-bco (v0.0.0+convert-to-golang) unstable; urgency=low
+fio-bco (1.1.1) unstable; urgency=low
 
-  * includes non-released commits
+  * Fixing bbtest
+  * Updated and cleaned up
+  * Blackboxing token value
 
- -- Jan Cajthaml <jan.cajthaml@gmail.com>  Fri, 28 Dec 2018 13:06:40 +0100
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sat, 9 Feb 2019 21:54:30 +0100
+
+fio-bco (1.1.0) unstable; urgency=low
+
+  * Better logging
+  * Fixed linting issues
+  * Preinstall dependencies for bbtest in image
+  * Using vault api for account rest
+  * In sync with bondster-bco
+  * Nitpicking in server fault response to respect shape or response
+  * Better more stable json deep diff for bbtests
+  * Using localfs@v1.0.0
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Wed, 6 Feb 2019 08:51:33 +0100
+
+fio-bco (1.0.3) unstable; urgency=low
+
+  * Error logging in config.go
+  * Using provided and local-fs for persistence, dropping support for legacy vendoring
+  * Go11+ modules support, security patches
+  * Better release notes
+  * More RESTful http api
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sun, 20 Jan 2019 14:17:58 +0100
+
+fio-bco (1.0.2) unstable; urgency=low
+
+  * 10 times faster mod97
+  * Do not calculate what is already in IBAN form
+  * Faster iban calculation
+  * Added recover to Czech calculation of IBAN number, added more Czech bankcodes to iban generation
+  * Update czech.go
+  * Update normalised.go
+  * Valid transaction id without a slash in name
+  * Log malformed requests
+  * Normalising credit and debit accounts
+  * Mitigation of duplicate transactions
+  * Better error logging
+  * Ensure token folder and log more if fio gateway returns error
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Mon, 14 Jan 2019 10:08:49 +0100
+
+fio-bco (1.0.1) unstable; urgency=low
+
+  * Bugfix trailing slash mandatory for setting of pivot by id or date
+  * Update release
+  * More stable release script added
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sun, 30 Dec 2018 22:09:25 +0100
 

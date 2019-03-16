@@ -21,8 +21,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/jancajthaml-openbank/fio-bco-unit/config"
-	"github.com/jancajthaml-openbank/fio-bco-unit/utils"
+	"github.com/jancajthaml-openbank/fio-bco-import/config"
+	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 
 	metrics "github.com/rcrowley/go-metrics"
 	log "github.com/sirupsen/logrus"
@@ -184,7 +184,7 @@ func getFilename(path, tenant string) string {
 	filename := filepath.Base(path)
 	filename = filename[:len(filename)-len(ext)]
 
-	return dirname + "/" + filename + "." + tenant + ext
+	return dirname + "/" + filename + ".import." + tenant + ext
 }
 
 // WaitReady wait for metrics to be ready
