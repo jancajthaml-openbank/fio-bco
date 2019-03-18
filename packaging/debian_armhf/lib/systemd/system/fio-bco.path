@@ -1,0 +1,9 @@
+[Unit]
+Description=openbank FIO Bank Connection services namespace
+PartOf=fio-bco.service
+
+[Path]
+PathChanged=/etc/init/fio-bco.conf
+
+[Install]
+WantedBy=fio-bco.service

@@ -1,8 +1,0 @@
-[Unit]
-Description=openbank FIO Bank Connection REST service
-
-[Path]
-PathChanged=/etc/init/fio-bco.conf
-
-[Install]
-WantedBy=fio-bco-rest.service

@@ -1,5 +1,5 @@
 Package: fio-bco
-Version: 1.1.1+better-packaging-and-control
+Version: 1.1.1+test-install-uninstall
 Architecture: amd64
 Maintainer: Jan Cajthaml <jan.cajthaml@gmail.com>
 Depends: init-system-helpers (>= 1.18~), libzmq5 (>= 4.2.1~), openssl (>= 1.1~)

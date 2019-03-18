@@ -6,13 +6,18 @@ case "$1" in
 
   configure)
     if [ -f "/etc/init/fio-bco.conf" ] ; then
-      systemctl unmask fio-bco.service >/dev/null
-      systemctl enable fio-bco.service >/dev/null
+      systemctl unmask \
+        fio-bco.path \
+        fio-bco-import.service \
+        fio-bco-rest.service \
+        fio-bco.service \
+      >/dev/null
 
-      systemctl unmask fio-bco-rest.service >/dev/null
-      systemctl enable fio-bco-rest.service >/dev/null
-
-      systemctl unmask fio-bco-import.service >/dev/null
+      systemctl enable \
+        fio-bco.path \
+        fio-bco-rest.service \
+        fio-bco.service \
+      >/dev/null
 
       (systemctl start fio-bco.service >/dev/null || :)
     else
