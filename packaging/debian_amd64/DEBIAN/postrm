@@ -2,24 +2,54 @@
 
 set -e
 
+delete_service_files() {
+  if [ -f "/lib/systemd/system/fio-bco-rest.service" ] ; then
+    rm /lib/systemd/system/fio-bco-rest.service
+  fi
+
+  if [ -f "/lib/systemd/system/fio-bco-import@.service" ] ; then
+    rm /lib/systemd/system/fio-bco-import@.service
+  fi
+
+  if [ -f "/lib/systemd/system/fio-bco.service" ] ; then
+    rm /lib/systemd/system/fio-bco.service
+  fi
+
+  if [ -f "/lib/systemd/system/fio-bco.path" ] ; then
+    rm /lib/systemd/system/fio-bco.path
+  fi
+}
+
+delete_displace_files() {
+  if [ -f "/etc/init/fio-bco.conf" ] ; then
+    rm /etc/init/fio-bco.conf
+  fi
+}
+
 case "$1" in
 
   purge)
-    systemctl stop fio-bco.service
-    systemctl disable fio-bco.service
-    (rm /lib/systemd/system/fio-bco.service || :)
-    (rm /lib/systemd/system/fio-bco.service || :)
-    (rm /etc/init/fio-bco.conf || :)
-    (rm /opt/fio-bco/metrics/metrics.json || :)
-    systemctl daemon-reload
-    systemctl reset-failed
+    # userdel openbank || :
+
+    delete_service_files
+    delete_displace_files
+
+    (systemctl daemon-reload || :)
+    (systemctl reset-failed || :)
   ;;
 
   remove)
-    systemctl mask fio-bco.service
+    (systemctl -a -t service --no-legend  | awk '$1 ~ /fio-bco/ { print $1 }' | xargs -I {} systemctl stop {} 2> /dev/null || :)
+    (systemctl daemon-reload || :)
+
+    delete_displace_files
   ;;
 
-  upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+  upgrade|deconfigure)
+    systemctl stop fio-bco 2> /dev/null || :
+  ;;
+
+  remove|failed-upgrade|abort-install|abort-upgrade|disappear)
   ;;
 
   *)

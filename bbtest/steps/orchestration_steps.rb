@@ -53,14 +53,29 @@ step "tenant :tenant is onbdoarded" do |tenant|
   %x(systemctl enable fio-bco-import@#{tenant} 2>&1)
   %x(systemctl start fio-bco-import@#{tenant} 2>&1)
 
+  ids = %x(systemctl list-units | awk '{ print $1 }')
+  expect($?).to be_success, ids
+
+  ids = ids.split("\n").map(&:strip).reject { |x|
+    x.empty? || !x.start_with?("fio-bco-")
+  }.map { |x| x.chomp(".service") }
+
+  expect(ids).not_to be_empty
+
+  ids.each { |e|
+    %x(systemctl restart #{e} 2>&1)
+  }
+
   eventually() {
-    out = %x(systemctl show -p SubState fio-bco-import@#{tenant} 2>&1 | sed 's/SubState=//g')
-    expect(out.strip).to eq("running")
+    ids.each { |e|
+      out = %x(systemctl show -p SubState #{e} 2>&1 | sed 's/SubState=//g')
+      expect(out.strip).to eq("running")
+    }
   }
 end
 
 step "fio-bco is reconfigured with" do |configuration|
-  params = Hash[configuration.split("\n").map(&:strip).reject(&:empty?).map {|el| el.split '='}]
+  params = Hash[configuration.split("\n").map(&:strip).reject(&:empty?).map { |el| el.split '=' }]
   defaults = {
     "STORAGE" => "/data",
     "LOG_LEVEL" => "DEBUG",
