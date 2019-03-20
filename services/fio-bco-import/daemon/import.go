@@ -272,8 +272,16 @@ func (fio FioImport) WaitReady(deadline time.Duration) (err error) {
 func (fio FioImport) Start() {
 	defer fio.MarkDone()
 
-	log.Infof("Start fio-import daemon, sync %v now and then each %v", fio.fioGateway, fio.refreshRate)
 	fio.MarkReady()
+
+	select {
+	case <-fio.canStart:
+		break
+	case <-fio.Done():
+		return
+	}
+
+	log.Infof("Start fio-import daemon, sync %v now and then each %v", fio.fioGateway, fio.refreshRate)
 
 	fio.importRoundtrip()
 
