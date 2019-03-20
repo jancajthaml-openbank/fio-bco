@@ -1,3 +1,21 @@
+fio-bco (1.1.2) unstable; urgency=low
+
+  * Blackbox-testing install and uninstall
+  * Namespaced unit with configuration change watch
+  * Bump github.com/json-iterator/go in /services/fio-bco-rest
+  * Bump github.com/json-iterator/go in /services/fio-bco-unit
+  * Bump github.com/sirupsen/logrus in /services/fio-bco-rest
+  * Bump github.com/sirupsen/logrus in /services/fio-bco-unit
+  * Bump github.com/jancajthaml-openbank/local-fs in /services/fio-bco-unit
+  * Bump github.com/jancajthaml-openbank/local-fs in /services/fio-bco-rest
+  * Bump github.com/sirupsen/logrus in /services/fio-bco-unit
+  * Bump github.com/gorilla/mux in /services/fio-bco-rest
+  * Added dependabot and sonar shield
+  * Preinstall same version required by debian dependency in bbtest
+  * Include security patches in zmq version constrain
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Mon, 18 Mar 2019 09:23:55 +0100
+
 fio-bco (1.1.1) unstable; urgency=low
 
   * Fixing bbtest

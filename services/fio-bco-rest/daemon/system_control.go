@@ -163,8 +163,16 @@ func (sys SystemControl) WaitReady(deadline time.Duration) (err error) {
 func (sys SystemControl) Start() {
 	defer sys.MarkDone()
 
-	log.Info("Start system-control daemon")
 	sys.MarkReady()
+
+	select {
+	case <-sys.canStart:
+		break
+	case <-sys.Done():
+		return
+	}
+
+	log.Info("Start system-control daemon")
 
 	<-sys.exitSignal
 }

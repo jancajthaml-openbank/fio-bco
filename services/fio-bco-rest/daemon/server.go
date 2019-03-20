@@ -164,8 +164,16 @@ func (server Server) Start() {
 		log.Info("Stop http-server daemon")
 	}()
 
-	log.Infof("Start http-server daemon, listening on :%d", ln.Addr().(*net.TCPAddr).Port)
 	server.MarkReady()
+
+	select {
+	case <-server.canStart:
+		break
+	case <-server.Done():
+		return
+	}
+
+	log.Infof("Start http-server daemon, listening on :%d", ln.Addr().(*net.TCPAddr).Port)
 
 	<-server.exitSignal
 }
