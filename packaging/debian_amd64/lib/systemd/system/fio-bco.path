@@ -1,6 +1,7 @@
 [Unit]
 Description=openbank FIO Bank Connection services namespace
 PartOf=fio-bco.service
+ConditionPathExists=/etc/init/fio-bco.conf
 
 [Path]
 PathChanged=/etc/init/fio-bco.conf
