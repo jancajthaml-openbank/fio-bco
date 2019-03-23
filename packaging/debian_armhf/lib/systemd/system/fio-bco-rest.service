@@ -2,6 +2,7 @@
 Description=openbank FIO Bank Connection REST service
 PartOf=fio-bco.service
 After=fio-bco.service
+ConditionPathExists=/etc/init/fio-bco.conf
 
 [Service]
 Type=notify
