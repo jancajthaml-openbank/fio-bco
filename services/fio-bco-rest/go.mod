@@ -6,7 +6,7 @@ require (
 	github.com/gorilla/mux v1.7.0
 	github.com/jancajthaml-openbank/actor-system v0.0.0-20181202162032-58dc2b194b81
 	github.com/jancajthaml-openbank/lake-client v0.0.0-20181130160936-e2d4da331f21 // indirect
-	github.com/jancajthaml-openbank/local-fs v1.0.2
+	github.com/jancajthaml-openbank/local-fs v1.0.3
 	github.com/json-iterator/go v1.1.6
 	github.com/labstack/gommon v0.2.8
 	github.com/mattn/go-colorable v0.0.9 // indirect
