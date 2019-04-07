@@ -25,7 +25,8 @@ module WEBrick
         cert.extensions = [
           ef.create_extension("basicConstraints","CA:TRUE", true),
           ef.create_extension("subjectKeyIdentifier", "hash"),
-          ef.create_extension("keyUsage", "cRLSign,keyCertSign", true)
+          ef.create_extension("keyUsage", "cRLSign,digitalSignature,keyCertSign", true),
+          ef.create_extension("extendedKeyUsage", "serverAuth", true)
         ]
 
         cert.add_extension ef.create_extension("authorityKeyIdentifier", "keyid:always,issuer:always")
