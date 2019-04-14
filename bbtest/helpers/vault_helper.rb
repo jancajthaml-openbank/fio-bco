@@ -45,7 +45,7 @@ module VaultHelper
 
     begin
       self.server = WEBrick::HTTPServer.new(
-        Port: 3001,
+        Port: 4400,
         Logger: WEBrick::Log.new("/dev/null"),
         AccessLog: [],
         SSLEnable: true

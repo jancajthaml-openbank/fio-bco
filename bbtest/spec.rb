@@ -27,7 +27,7 @@ RSpec.configure do |config|
     LakeMock.start()
     FioHelper.start()
     VaultHelper.start()
-    WallHelper.start()
+    LedgerHelper.start()
 
     ["/data", "/reports"].each { |folder|
       FileUtils.mkdir_p folder
@@ -69,7 +69,7 @@ RSpec.configure do |config|
     }
 
     VaultHelper.stop()
-    WallHelper.stop()
+    LedgerHelper.stop()
     FioHelper.stop()
     LakeMock.stop()
 
