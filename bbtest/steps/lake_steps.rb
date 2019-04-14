@@ -1,6 +1,6 @@
 
 step "tenant :tenant receives :data" do |tenant, data|
-  LakeMock.send("FioUnit/#{tenant} Wall/bbtest #{data}")
+  LakeMock.send("FioUnit/#{tenant} BlackBox/test #{data}")
 end
 
 step "tenant :tenant responds with :data" do |_, data|

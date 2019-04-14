@@ -46,7 +46,7 @@ func asEnvelopes(s *daemon.ActorSystem, parts []string) (system.Coordinates, sys
 	return from, to, payload, nil
 }
 
-// ProcessRemoteMessage processing of remote message to this wall
+// ProcessRemoteMessage processing of remote message
 func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 	return func(parts []string) {
 		from, to, payload, err := asEnvelopes(s, parts)

@@ -3,7 +3,7 @@ require 'thread'
 require_relative '../shims/harden_webrick'
 require_relative './vault_mock'
 
-class WallTransactionHandler < WEBrick::HTTPServlet::AbstractServlet
+class LedgerTransactionHandler < WEBrick::HTTPServlet::AbstractServlet
 
   def do_POST(request, response)
     status, content_type, body = create_transaction(request)
@@ -14,8 +14,6 @@ class WallTransactionHandler < WEBrick::HTTPServlet::AbstractServlet
   end
 
   def create_transaction(request)
-    #puts "creating wall transaction #{request.body}"
-
     begin
       body = JSON.parse(request.body)
 
@@ -35,14 +33,14 @@ class WallTransactionHandler < WEBrick::HTTPServlet::AbstractServlet
   end
 end
 
-module WallHelper
+module LedgerHelper
 
   def self.start
     self.server = nil
 
     begin
       self.server = WEBrick::HTTPServer.new(
-        Port: 3000,
+        Port: 4401,
         Logger: WEBrick::Log.new("/dev/null"),
         AccessLog: [],
         SSLEnable: true
@@ -51,7 +49,7 @@ module WallHelper
       raise "Failed to allocate server binding! #{err}"
     end
 
-    self.server.mount "/transaction", WallTransactionHandler
+    self.server.mount "/transaction", LedgerTransactionHandler
 
     self.server_daemon = Thread.new do
       self.server.start()
