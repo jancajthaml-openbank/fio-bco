@@ -36,7 +36,7 @@ type Transfer struct {
 
 // Account entity in vault format
 type Account struct {
-	Name           string `json:"accountNumber"`
+	Name           string `json:"name"`
 	Currency       string `json:"currency"`
 	IsBalanceCheck bool   `json:"isBalanceCheck"`
 }

@@ -1,3 +1,19 @@
+fio-bco (1.2.0) unstable; urgency=low
+
+  * Integrate ledger instead of wall
+  * Added proper purpose for self-signed cert
+  * Updated copyright year to 2019
+  * Bump github.com/gorilla/mux in /services/fio-bco-rest
+  * Bump github.com/sirupsen/logrus in /services/fio-bco-import
+  * Bump github.com/sirupsen/logrus in /services/fio-bco-rest
+  * Bump github.com/jancajthaml-openbank/local-fs in /services/fio-bco-rest
+  * Require config file presence for units
+  * Bump github.com/jancajthaml-openbank/local-fs
+  * Update config.yml
+  * Start daemon after app starts
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sun, 14 Apr 2019 15:36:40 +0200
+
 fio-bco (1.1.2) unstable; urgency=low
 
   * Blackbox-testing install and uninstall
