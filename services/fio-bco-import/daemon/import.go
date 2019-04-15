@@ -151,7 +151,7 @@ func (fio FioImport) importNewTransactions(token model.Token) error {
 		}
 	}
 
-	transactions := envelope.GetTransactions()
+	transactions := envelope.GetTransactions(fio.tenant)
 
 	var lastID int64
 
