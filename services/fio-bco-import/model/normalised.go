@@ -26,12 +26,18 @@ type Transaction struct {
 
 // Transfer entity in ledger-rest format
 type Transfer struct {
-	IDTransfer int64   `json:"id,string"`
-	Credit     string  `json:"credit"`
-	Debit      string  `json:"debit"`
-	ValueDate  string  `json:"valueDate"`
-	Amount     float64 `json:"amount,string"`
-	Currency   string  `json:"currency"`
+	IDTransfer int64       `json:"id,string"`
+	Credit     AccountPair `json:"credit"`
+	Debit      AccountPair `json:"debit"`
+	ValueDate  string      `json:"valueDate"`
+	Amount     float64     `json:"amount,string"`
+	Currency   string      `json:"currency"`
+}
+
+// AccountPair entity in ledger format
+type AccountPair struct {
+	Tenant string `json:"tenant"`
+	Name   string `json:"name"`
 }
 
 // Account entity in vault format

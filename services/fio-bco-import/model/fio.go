@@ -95,7 +95,7 @@ type floatNode struct {
 }
 
 // GetTransactions return list of fio transactions
-func (envelope *FioImportEnvelope) GetTransactions() []Transaction {
+func (envelope *FioImportEnvelope) GetTransactions(tenant string) []Transaction {
 	if envelope == nil {
 		return nil
 	}
@@ -151,11 +151,17 @@ func (envelope *FioImportEnvelope) GetTransactions() []Transaction {
 
 		set[transfer.Column17.Value] = append(set[transfer.Column17.Value], Transfer{
 			IDTransfer: transfer.Column22.Value,
-			Credit:     credit,
-			Debit:      debit,
-			ValueDate:  valueDate.Format("2006-01-02T15:04:05Z0700"),
-			Amount:     math.Abs(transfer.Column1.Value),
-			Currency:   envelope.Statement.Info.Currency, // FIXME not true in all cases
+			Credit: AccountPair{
+				Tenant: tenant,
+				Name:   credit,
+			},
+			Debit: AccountPair{
+				Tenant: tenant,
+				Name:   debit,
+			},
+			ValueDate: valueDate.Format("2006-01-02T15:04:05Z0700"),
+			Amount:    math.Abs(transfer.Column1.Value),
+			Currency:  envelope.Statement.Info.Currency, // FIXME not true in all cases
 		})
 	}
 

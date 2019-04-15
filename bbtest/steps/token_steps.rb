@@ -7,14 +7,22 @@ step "token :slash_pair is created" do |slash_pair|
   (tenant, token) = slash_pair.split('/')
 
   send "I request curl :http_method :url", "POST", "https://localhost/token/#{tenant}", {
-    "value": token
+    "username": "X",
+    "password": "Y"
   }.to_json
 
-  @resp = Hash.new
-  resp = %x(#{@http_req})
+  @resp = { :code => 0 }
 
-  @resp[:code] = resp[resp.length-3...resp.length].to_i
-  @resp[:body] = resp[0...resp.length-3] unless resp.nil?
+  eventually(timeout: 60, backoff: 2) {
+    resp = %x(#{@http_req})
+    @resp[:code] = resp[resp.length-3...resp.length].to_i
+
+    if @resp[:code] === 0
+      raise "endpoint #{@http_req} is unreachable"
+    end
+
+    @resp[:body] = resp[0...resp.length-3] unless resp.nil?
+  }
 
   resp = JSON.parse(@resp[:body])
 
@@ -31,11 +39,19 @@ step "token :slash_pair should exist" do |slash_pair|
 
   send "I request curl :http_method :url", "GET", "https://localhost/token/#{tenant}"
 
-  @resp = Hash.new
-  resp = %x(#{@http_req})
+  @resp = { :code => 0 }
 
-  @resp[:code] = resp[resp.length-3...resp.length].to_i
-  @resp[:body] = resp[0...resp.length-3] unless resp.nil?
+  eventually(timeout: 60, backoff: 2) {
+    resp = %x(#{@http_req})
+    @resp[:code] = resp[resp.length-3...resp.length].to_i
+
+    if @resp[:code] === 0
+      raise "endpoint #{@http_req} is unreachable"
+    end
+
+    @resp[:body] = resp[0...resp.length-3] unless resp.nil?
+  }
+
   send "request should succeed"
 
   actual_tokens = JSON.parse(@resp[:body]).map { |item| tenant + "/" + item }
