@@ -1,9 +1,10 @@
 fio-bco (1.2.1) unstable; urgency=low
 
+  * Proper ledger transaction api
   * Bugfix of vault create account format
   * Rolling contract
 
- -- Jan Cajthaml <jan.cajthaml@gmail.com>  Mon, 15 Apr 2019 10:32:02 +0200
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Mon, 15 Apr 2019 17:37:14 +0200
 
 fio-bco (1.2.0) unstable; urgency=low
 

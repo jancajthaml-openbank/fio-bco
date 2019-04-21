@@ -3,31 +3,18 @@ require 'deepsort'
 require 'json'
 
 step "I request curl :http_method :url" do |http_method, url, body = nil|
-  cmd = ["curl --insecure"]
-  cmd << ["-X #{http_method.upcase}"] unless http_method.upcase == "GET"
-  cmd << ["#{url} -sw \"%{http_code}\""]
-  cmd << ["-d \'#{JSON.parse(body).to_json}\'"] unless body.nil? or http_method.upcase == "GET"
-
-  @http_req = cmd.join(" ")
+  HTTPHelper.prepare_request({
+    :method => http_method,
+    :url => url,
+    :body => body
+  })
 end
 
 step "curl responds with :http_status" do |http_status, body = nil|
-  raise if @http_req.nil?
-
-  @resp = { :code => 0 }
-
-  eventually(timeout: 60, backoff: 2) {
-    resp = %x(#{@http_req})
-    @resp[:code] = resp[resp.length-3...resp.length].to_i
-
-    if @resp[:code] === 0
-      raise "endpoint #{@http_req} is unreachable"
-    end
-
+  eventually(timeout: 30, backoff: 2) {
+    HTTPHelper.perform_request()
     http_status = [http_status] unless http_status.kind_of?(Array)
-    expect(http_status).to include(@resp[:code])
-
-    @resp[:body] = resp[0...resp.length-3] unless resp.nil?
+    expect(http_status).to include(HTTPHelper.response[:code])
   }
 
   return if body.nil?
@@ -36,18 +23,24 @@ step "curl responds with :http_status" do |http_status, body = nil|
   expectation.deep_sort!
 
   begin
-    resp_body = JSON.parse(@resp[:body])
+    resp_body = JSON.parse(HTTPHelper.response[:body])
     resp_body.deep_sort!
 
     diff = JsonDiff.diff(resp_body, expectation).select { |item| item["op"] == "add" }.map { |item| item["value"] or item }
     return if diff == []
 
-    raise "expectation failure:\ngot:\n#{JSON.pretty_generate(resp_body)}\nexpected:\n#{JSON.pretty_generate(expectation)}"
+    raise "expectation failure:\ngot:\n#{JSON.pretty_generate(resp_body)}\nexpected:\n#{JSON.pretty_generate(expectation)}\ndiff:#{JSON.pretty_generate(diff)}"
 
   rescue JSON::ParserError
-    raise "invalid response got \"#{@resp[:body].strip}\", expected \"#{expectation.to_json}\""
+    raise "invalid response got \"#{HTTPHelper.response[:body].strip}\", expected \"#{expectation.to_json}\""
   end
-
 end
 
+step "curl does not responds with :http_status" do |http_status|
+  eventually(timeout: 30, backoff: 2) {
+    HTTPHelper.perform_request()
+  }
 
+  http_status = [http_status] unless http_status.kind_of?(Array)
+  expect(http_status).not_to include(HTTPHelper.response[:code])
+end
