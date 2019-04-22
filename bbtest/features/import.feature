@@ -1,7 +1,8 @@
 Feature: FIO Gateway import
 
   Scenario: import from gateway token
-    Given fio gateway contains following statements
+    Given fio-bco is running
+    And   fio gateway contains following statements
     """
       {
         "accountStatement": {
@@ -248,11 +249,6 @@ Feature: FIO Gateway import
         }
       }
     """
-    Given tenant IMPORT is onbdoarded
-    And fio-bco is reconfigured with
-    """
-      SYNC_RATE=1s
-      HTTP_PORT=443
-    """
+    And tenant IMPORT is onbdoarded
     And token IMPORT/importToken is created
     And I sleep for 5 seconds
