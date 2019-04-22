@@ -1,32 +1,28 @@
 Feature: REST
 
   Scenario: Tenant API
-    Given tenant API is onbdoarded
-    And fio-bco is reconfigured with
-    """
-      LOG_LEVEL=DEBUG
-      HTTP_PORT=443
-    """
+    Given fio-bco is running
+    And   tenant API is onbdoarded
 
-    When I request curl GET https://localhost/tenant
+    When I request curl GET https://127.0.0.1:4002/tenant
     Then curl responds with 200
     """
       []
     """
 
-    When I request curl POST https://localhost/tenant/APITESTA
+    When I request curl POST https://127.0.0.1:4002/tenant/APITESTA
     Then curl responds with 200
     """
       {}
     """
 
-    When I request curl POST https://localhost/tenant/APITESTB
+    When I request curl POST https://127.0.0.1:4002/tenant/APITESTB
     Then curl responds with 200
     """
       {}
     """
 
-    When I request curl GET https://localhost/tenant
+    When I request curl GET https://127.0.0.1:4002/tenant
     Then curl responds with 200
     """
       [
@@ -34,33 +30,29 @@ Feature: REST
       ]
     """
 
-    When I request curl POST https://localhost/tenant/APITESTC
+    When I request curl POST https://127.0.0.1:4002/tenant/APITESTC
     Then curl responds with 200
     """
       {}
     """
 
-    When I request curl DELETE https://localhost/tenant/APITESTC
+    When I request curl DELETE https://127.0.0.1:4002/tenant/APITESTC
     Then curl responds with 200
     """
       {}
     """
 
   Scenario: Token API
-    Given tenant API is onbdoarded
-    And fio-bco is reconfigured with
-    """
-      LOG_LEVEL=DEBUG
-      HTTP_PORT=443
-    """
+    Given fio-bco is running
+    And   tenant API is onbdoarded
 
-    When I request curl GET https://localhost/token/API
+    When I request curl GET https://127.0.0.1:4002/token/API
     Then curl responds with 200
     """
       []
     """
 
-    When I request curl POST https://localhost/token/API
+    When I request curl POST https://127.0.0.1:4002/token/API
     """
       {
         "value": "A"
@@ -68,7 +60,7 @@ Feature: REST
     """
     Then curl responds with 200
 
-    When I request curl POST https://localhost/token/API
+    When I request curl POST https://127.0.0.1:4002/token/API
     """
       {
         "value": "B"
@@ -76,5 +68,5 @@ Feature: REST
     """
     Then curl responds with 200
 
-    When I request curl GET https://localhost/token/API
+    When I request curl GET https://127.0.0.1:4002/token/API
     Then curl responds with 200

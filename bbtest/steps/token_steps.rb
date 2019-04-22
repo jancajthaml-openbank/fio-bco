@@ -6,7 +6,7 @@ step "token :slash_pair is created" do |slash_pair|
 
   (tenant, token) = slash_pair.split('/')
 
-  uri = "https://127.0.0.1/token/#{tenant}"
+  uri = "https://127.0.0.1:4002/token/#{tenant}"
 
   payload = {
     value: "X",
@@ -27,7 +27,7 @@ step "token :slash_pair should exist" do |slash_pair|
   (tenant, token) = slash_pair.split('/')
   token_value = @tokens[slash_pair]
 
-  uri = "https://127.0.0.1/token/#{tenant}"
+  uri = "https://127.0.0.1:4002/token/#{tenant}"
 
   send "I request curl :http_method :url", "GET", uri
   send "curl responds with :http_status", 200

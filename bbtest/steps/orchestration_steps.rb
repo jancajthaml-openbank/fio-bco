@@ -22,6 +22,24 @@ step "fio-bco is restarted" do ||
   }
 end
 
+step "fio-bco is running" do ||
+  ids = %x(systemctl -t service --no-legend | awk '{ print $1 }')
+  expect($?).to be_success, ids
+
+  ids = ids.split("\n").map(&:strip).reject { |x|
+    x.empty? || !x.start_with?("fio-bco-import@")
+  }.map { |x| x.chomp(".service") }
+
+  ids << "fio-bco-rest"
+
+  eventually() {
+    ids.each { |e|
+      out = %x(systemctl show -p SubState #{e} 2>&1 | sed 's/SubState=//g')
+      expect(out.strip).to eq("running")
+    }
+  }
+end
+
 step "tenant :tenant is offboarded" do |tenant|
   eventually() {
     %x(journalctl -o short-precise -u fio-bco-import@#{tenant}.service --no-pager > /reports/fio-bco@#{tenant}.log 2>&1)
@@ -42,7 +60,7 @@ step "tenant :tenant is onbdoarded" do |tenant|
     "FIO_BCO_METRICS_OUTPUT=/reports/metrics.json",
     "FIO_BCO_LAKE_HOSTNAME=127.0.0.1",
     "FIO_BCO_METRICS_REFRESHRATE=1h",
-    "FIO_BCO_HTTP_PORT=443",
+    "FIO_BCO_HTTP_PORT=4002",
     "FIO_BCO_SECRETS=/opt/fio-bco/secrets",
     "FIO_BCO_ENCRYPTION_KEY=/opt/fio-bco/secrets/fs_encryption.key"
   ].join("\n").inspect.delete('\"')
@@ -86,7 +104,7 @@ step "fio-bco is reconfigured with" do |configuration|
     "METRICS_OUTPUT" => "/reports/metrics.json",
     "LAKE_HOSTNAME" => "127.0.0.1",
     "METRICS_REFRESHRATE" => "1h",
-    "HTTP_PORT" => "443",
+    "HTTP_PORT" => "4002",
     "SECRETS" => "/opt/fio-bco/secrets",
     "ENCRYPTION_KEY" => "/opt/fio-bco/secrets/fs_encryption.key"
   }
