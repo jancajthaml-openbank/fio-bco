@@ -21,7 +21,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/jancajthaml-openbank/fio-bco-import/actor"
 	"github.com/jancajthaml-openbank/fio-bco-import/daemon"
 	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 
@@ -84,9 +83,7 @@ func (app Application) Run() {
 	go app.actorSystem.Start()
 	go app.fio.Start()
 
-	if _, err := actor.SpawnTokenActor(&(app.actorSystem)); err != nil {
-		log.Errorf("Failed to spawn token actor: %+v", err)
-	} else if err := app.WaitReady(5 * time.Second); err != nil {
+	if err := app.WaitReady(5 * time.Second); err != nil {
 		log.Errorf("Error when starting daemons: %+v", err)
 	} else {
 		log.Info(">>> Started <<<")
