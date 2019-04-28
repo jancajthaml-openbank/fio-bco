@@ -76,7 +76,7 @@ func Initialize() Application {
 	actorSystem.Support.RegisterOnRemoteMessage(actor.ProcessRemoteMessage(&actorSystem))
 	actorSystem.Support.RegisterOnLocalMessage(actor.ProcessLocalMessage(&actorSystem))
 
-	fio := daemon.NewFioImport(ctx, cfg, &metrics, &actorSystem, &storage)
+	fio := daemon.NewFioImport(ctx, cfg, &storage, actor.ProcessLocalMessage(&actorSystem))
 
 	return Application{
 		cfg:         cfg,

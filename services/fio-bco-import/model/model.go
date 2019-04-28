@@ -19,12 +19,14 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Token represents metadata of token entity
 type Token struct {
 	ID           string
 	Value        string
+	CreatedAt    time.Time
 	LastSyncedID int64
 }
 
@@ -43,15 +45,15 @@ type DeleteToken struct {
 	ID string
 }
 
-// GetToken is inbound request for token details
-type GetToken struct {
+// SynchronizeToken is inbound request to perform synchronization
+type SynchronizeToken struct {
 }
 
 // NewToken returns new Token
-func NewToken(id string, value string) Token {
+func NewToken(id string) Token {
 	return Token{
 		ID:           id,
-		Value:        value,
+		CreatedAt:    time.Now().UTC(),
 		LastSyncedID: 0,
 	}
 }
@@ -63,6 +65,8 @@ func (entity *Token) Serialise() ([]byte, error) {
 	}
 	var buffer bytes.Buffer
 	buffer.WriteString(entity.Value)
+	buffer.WriteString("\n")
+	buffer.WriteString(entity.CreatedAt.Format(time.RFC3339))
 	buffer.WriteString("\n")
 	buffer.WriteString(strconv.FormatInt(entity.LastSyncedID, 10))
 	return buffer.Bytes(), nil
@@ -76,13 +80,15 @@ func (entity *Token) Deserialise(data []byte) error {
 
 	// FIXME more optimal split
 	lines := strings.Split(string(data), "\n")
-	if len(lines) < 2 {
+	if len(lines) < 3 {
 		return fmt.Errorf("malformed data")
 	}
 
-	entity.Value = lines[0]
+	if cast, err := time.Parse(time.RFC3339, lines[1]); err == nil {
+		entity.CreatedAt = cast
+	}
 
-	if cast, err := strconv.ParseInt(lines[1], 10, 64); err == nil {
+	if cast, err := strconv.ParseInt(lines[2], 10, 64); err == nil {
 		entity.LastSyncedID = cast
 	}
 

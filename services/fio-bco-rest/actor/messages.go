@@ -37,10 +37,10 @@ const (
 
 // CreateTokenMessage is message for creation of new token
 func CreateTokenMessage(self string, token model.Token) string {
-	return "token " + self + " " + ReqCreateToken + " " + token.ID + " " + token.Value
+	return token.ID + " " + self + " " + ReqCreateToken + " " + token.Value
 }
 
 // DeleteTokenMessage is message for deletion of new token
-func DeleteTokenMessage(sender, token string) string {
-	return "token " + sender + " " + ReqDeleteToken + " " + token
+func DeleteTokenMessage(self string, token string) string {
+	return token + " " + self + " " + ReqDeleteToken
 }

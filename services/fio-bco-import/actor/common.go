@@ -46,21 +46,20 @@ func asEnvelopes(s *daemon.ActorSystem, parts []string) (system.Coordinates, sys
 	return from, to, payload, nil
 }
 
-// SpawnTokenActor spawns actor for token CRUD operations
-func SpawnTokenActor(s *daemon.ActorSystem) (*system.Envelope, error) {
-	envelope := NewTokenSignletonActor()
+func spawnTokenActor(s *daemon.ActorSystem, id string) (*system.Envelope, error) {
+	envelope := system.NewEnvelope(id, model.NewToken(id))
 
-	err := s.RegisterActor(envelope, TokenManagement(s))
+	err := s.RegisterActor(envelope, NilToken(s))
 	if err != nil {
-		log.Warn("token ~ Spawning Actor Error unable to register")
+		log.Warnf("%s ~ Spawning Token Error unable to register", id)
 		return nil, err
 	}
 
-	log.Debug("token ~ Actor Spawned")
+	log.Debugf("%s ~ Token Spawned", id)
 	return envelope, nil
 }
 
-// ProcessRemoteMessage processing of remote message to this fio-bco
+// ProcessRemoteMessage processing of remote message to this bondster-bco
 func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 	return func(parts []string) {
 		from, to, payload, err := asEnvelopes(s, parts)
@@ -72,12 +71,18 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 		defer func() {
 			if r := recover(); r != nil {
 				log.Errorf("procesRemoteMessage recovered in [remote %v -> local %v] : %+v", from, to, r)
+				s.SendRemote(from.Region, FatalErrorMessage(to.Name, from.Name))
 			}
 		}()
 
 		ref, err := s.ActorOf(to.Name)
 		if err != nil {
+			ref, err = spawnTokenActor(s, to.Name)
+		}
+
+		if err != nil {
 			log.Warnf("Actor not found [remote %v -> local %v]", from, to)
+			s.SendRemote(from.Region, FatalErrorMessage(to.Name, from.Name))
 			return
 		}
 
@@ -86,22 +91,18 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 		switch payload {
 
 		case ReqCreateToken:
-			if len(parts) == 6 {
+			if len(parts) == 5 {
 				message = model.CreateToken{
-					ID:    parts[4],
-					Value: parts[5],
+					ID:    parts[2],
+					Value: parts[4],
 				}
 			} else {
 				message = nil
 			}
 
 		case ReqDeleteToken:
-			if len(parts) == 5 {
-				message = model.DeleteToken{
-					ID: parts[4],
-				}
-			} else {
-				message = nil
+			message = model.DeleteToken{
+				ID: parts[2],
 			}
 
 		default:
@@ -118,7 +119,7 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 	}
 }
 
-// ProcessLocalMessage processing of local message to this fio-bco
+// ProcessLocalMessage processing of local message to this bondster-bco
 func ProcessLocalMessage(s *daemon.ActorSystem) system.ProcessLocalMessage {
 	return func(message interface{}, to system.Coordinates, from system.Coordinates) {
 		if to.Region != "" && to.Region != s.Name {

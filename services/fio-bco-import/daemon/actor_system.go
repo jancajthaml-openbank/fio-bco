@@ -29,20 +29,26 @@ import (
 // ActorSystem represents actor system subroutine
 type ActorSystem struct {
 	system.Support
-	Tenant     string
-	Metrics    *Metrics
-	Storage    *localfs.Storage
-	ClientHTTP http.Client
+	Tenant        string
+	Metrics       *Metrics
+	Storage       *localfs.Storage
+	FioGateway    string
+	LedgerGateway string
+	VaultGateway  string
+	HttpClient    http.Client
 }
 
 // NewActorSystem returns actor system fascade
 func NewActorSystem(ctx context.Context, cfg config.Configuration, metrics *Metrics, storage *localfs.Storage) ActorSystem {
 	return ActorSystem{
-		Support:    system.NewSupport(ctx, "FioUnit/"+cfg.Tenant, cfg.LakeHostname),
-		Tenant:     cfg.Tenant,
-		Metrics:    metrics,
-		Storage:    storage,
-		ClientHTTP: http.NewClient(),
+		Support:       system.NewSupport(ctx, "FioUnit/"+cfg.Tenant, cfg.LakeHostname),
+		Tenant:        cfg.Tenant,
+		Metrics:       metrics,
+		Storage:       storage,
+		FioGateway:    cfg.FioGateway,
+		LedgerGateway: cfg.LedgerGateway,
+		VaultGateway:  cfg.VaultGateway,
+		HttpClient:    http.NewClient(),
 	}
 }
 
