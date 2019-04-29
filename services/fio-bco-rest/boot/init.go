@@ -71,6 +71,7 @@ func Initialize() Application {
 	systemControl := daemon.NewSystemControl(ctx, cfg)
 
 	storage := localfs.NewStorage(cfg.RootStorage)
+	storage.SetEncryptionKey(cfg.EncryptionKey)
 
 	actorSystem := daemon.NewActorSystem(ctx, cfg)
 	actorSystem.Support.RegisterOnRemoteMessage(actor.ProcessRemoteMessage(&actorSystem))

@@ -64,9 +64,9 @@ func (entity *Token) Serialise() ([]byte, error) {
 		return nil, fmt.Errorf("called Token.Serialise over nil")
 	}
 	var buffer bytes.Buffer
-	buffer.WriteString(entity.Value)
-	buffer.WriteString("\n")
 	buffer.WriteString(entity.CreatedAt.Format(time.RFC3339))
+	buffer.WriteString("\n")
+	buffer.WriteString(entity.Value)
 	buffer.WriteString("\n")
 	buffer.WriteString(strconv.FormatInt(entity.LastSyncedID, 10))
 	return buffer.Bytes(), nil
@@ -84,9 +84,11 @@ func (entity *Token) Deserialise(data []byte) error {
 		return fmt.Errorf("malformed data")
 	}
 
-	if cast, err := time.Parse(time.RFC3339, lines[1]); err == nil {
+	if cast, err := time.Parse(time.RFC3339, lines[0]); err == nil {
 		entity.CreatedAt = cast
 	}
+
+	entity.Value = lines[1]
 
 	if cast, err := strconv.ParseInt(lines[2], 10, 64); err == nil {
 		entity.LastSyncedID = cast

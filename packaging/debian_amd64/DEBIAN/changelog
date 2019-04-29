@@ -1,3 +1,10 @@
+fio-bco (1.2.3) unstable; urgency=low
+
+  * Import logic moved to token actor, backoff 6 seconds before synchonizing newly created token
+  * Strictly compare values in http steps of bbtest
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sun, 28 Apr 2019 17:10:27 +0200
+
 fio-bco (1.2.2) unstable; urgency=low
 
   * Less port reconfiguration and unit restart in bbtest
