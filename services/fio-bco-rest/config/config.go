@@ -18,6 +18,8 @@ package config
 type Configuration struct {
 	// RootStorage gives where to store journals
 	RootStorage string
+	// EncryptionKey represents current encryption key
+	EncryptionKey []byte
 	// ServerPort is port which server is bound to
 	ServerPort int
 	// Secrets represents cerificate .key

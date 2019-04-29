@@ -14,6 +14,12 @@
 
 package model
 
+import (
+	"fmt"
+	"strings"
+	"time"
+)
+
 // ReplyTimeout message
 type ReplyTimeout struct{}
 
@@ -25,11 +31,31 @@ type TokenDeleted struct{}
 
 // Token represents metadata of token entity
 type Token struct {
-	ID    string `json:"-"`
-	Value string `json:"value"`
+	ID        string    `json:"-"`
+	CreatedAt time.Time `json:"-"`
+	Value     string    `json:"value"`
 }
 
 // MarshalJSON serialises Token as json
 func (entity Token) MarshalJSON() ([]byte, error) {
-	return []byte("{\"value\":\"" + entity.ID + "\"}"), nil
+	return []byte("{\"value\":\"" + entity.ID + "\",\"createdAt\":\"" + entity.CreatedAt.Format(time.RFC3339) + "\"}"), nil
+}
+
+// Deserialise Token entity from persistent data
+func (entity *Token) Deserialise(data []byte) error {
+	if entity == nil {
+		return fmt.Errorf("called Token.Deserialise over nil")
+	}
+
+	// FIXME more optimal split
+	lines := strings.Split(string(data), "\n")
+	if len(lines) < 1 {
+		return fmt.Errorf("malformed data")
+	}
+
+	if cast, err := time.Parse(time.RFC3339, lines[0]); err == nil {
+		entity.CreatedAt = cast
+	}
+
+	return nil
 }
