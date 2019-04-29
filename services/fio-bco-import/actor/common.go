@@ -119,14 +119,22 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 	}
 }
 
-// ProcessLocalMessage processing of local message to this bondster-bco
+// ProcessLocalMessage processing of local message to this bco
 func ProcessLocalMessage(s *daemon.ActorSystem) system.ProcessLocalMessage {
 	return func(message interface{}, to system.Coordinates, from system.Coordinates) {
 		if to.Region != "" && to.Region != s.Name {
 			log.Warnf("Invalid region received [local %s -> local %s]", from, to)
 			return
 		}
+		ref, err := s.ActorOf(to.Name)
+		if err != nil {
+			ref, err = spawnTokenActor(s, to.Name)
+		}
 
-		log.Debugf("Inherited Actor System received local message %+v", message)
+		if err != nil {
+			log.Warnf("Actor not found [local %s]", to)
+			return
+		}
+		ref.Tell(message, from)
 	}
 }
