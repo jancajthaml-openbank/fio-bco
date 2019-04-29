@@ -124,7 +124,7 @@ func ExistToken(s *daemon.ActorSystem) func(interface{}, system.Context) {
 	}
 }
 
-func setLastSyncedID(s *daemon.ActorSystem, token string, lastID int64) error {
+func setLastSyncedID(s *daemon.ActorSystem, token model.Token) error {
 	var (
 		err      error
 		response []byte
@@ -132,17 +132,19 @@ func setLastSyncedID(s *daemon.ActorSystem, token string, lastID int64) error {
 		uri      string
 	)
 
-	if lastID != 0 {
-		uri = s.FioGateway + "/ib_api/rest/set-last-id/" + token + "/" + strconv.FormatInt(lastID, 10) + "/"
+	if token.LastSyncedID != 0 {
+		uri = s.FioGateway + "/ib_api/rest/set-last-id/" + token.Value + "/" + strconv.FormatInt(token.LastSyncedID, 10) + "/"
 	} else {
-		uri = s.FioGateway + "/ib_api/rest/set-last-date/" + token + "/2012-07-27/"
+		uri = s.FioGateway + "/ib_api/rest/set-last-date/" + token.Value + "/2012-07-27/"
 	}
 
 	response, code, err = s.HttpClient.Get(uri)
 	if err != nil {
 		return err
-	} else if code != 200 {
-		return fmt.Errorf("FIO Gateway Error %d %+v", code, string(response))
+	}
+
+	if code != 200 {
+		return fmt.Errorf("fio gateway %s invalid response %d %+v", uri, code, string(response))
 	}
 
 	return nil
@@ -156,16 +158,18 @@ func importNewTransactions(s *daemon.ActorSystem, token model.Token) error {
 		code     int
 	)
 
-	response, code, err = s.HttpClient.Get(s.FioGateway + "/ib_api/rest/last/" + token.Value + "/transactions.json")
+	uri := s.FioGateway + "/ib_api/rest/last/" + token.Value + "/transactions.json"
+	response, code, err = s.HttpClient.Get(uri)
 	if err != nil {
 		return err
-	} else if code != 200 {
-		return fmt.Errorf("fio gateway invalid response %d %+v", code, string(response))
+	}
+
+	if code != 200 {
+		return fmt.Errorf("fio gateway %s invalid response %d %+v", uri, code, string(response))
 	}
 
 	var envelope model.FioImportEnvelope
 	err = utils.JSON.Unmarshal(response, &envelope)
-
 	if err != nil {
 		return err
 	}
@@ -184,17 +188,17 @@ func importNewTransactions(s *daemon.ActorSystem, token model.Token) error {
 			if code == 200 || code == 409 || code == 400 {
 				return
 			} else if code >= 500 && err == nil {
-				err = fmt.Errorf("vault POST %s error %d %+v", uri, code, string(response))
+				err = fmt.Errorf("vault-rest POST %s error %d %+v", uri, code, string(response))
 			}
 			return
 		})
 
 		if err != nil {
-			return fmt.Errorf("vault account error %d %+v", code, err)
+			return fmt.Errorf("vault-rest account error %d %+v", code, err)
 		} else if code == 400 {
-			return fmt.Errorf("vault account malformed request %+v", string(request))
+			return fmt.Errorf("vault-rest account malformed request %+v", string(request))
 		} else if code != 200 && code != 409 {
-			return fmt.Errorf("vault account error %d %+v", code, string(response))
+			return fmt.Errorf("vault-rest account error %d %+v", code, string(response))
 		}
 	}
 
@@ -228,11 +232,14 @@ func importNewTransactions(s *daemon.ActorSystem, token model.Token) error {
 
 		if err != nil {
 			return fmt.Errorf("ledger-rest transaction error %d %+v", code, err)
-		} else if code == 409 {
+		}
+		if code == 409 {
 			return fmt.Errorf("ledger-rest transaction duplicate %+v", string(request))
-		} else if code == 400 {
+		}
+		if code == 400 {
 			return fmt.Errorf("ledger-rest transaction malformed request %+v", string(request))
-		} else if code != 200 && code != 201 {
+		}
+		if code != 200 && code != 201 {
 			return fmt.Errorf("ledger-rest transaction error %d %+v", code, string(response))
 		}
 
@@ -249,13 +256,13 @@ func importNewTransactions(s *daemon.ActorSystem, token model.Token) error {
 }
 
 func importStatements(s *daemon.ActorSystem, token model.Token) {
-	if err := setLastSyncedID(s, token.Value, token.LastSyncedID); err != nil {
+	if err := setLastSyncedID(s, token); err != nil {
 		log.Warnf("set Last Synced ID Failed : %+v for %+v", err, token.ID)
 		return
 	}
 
 	if err := importNewTransactions(s, token); err != nil {
-		log.Warnf("import statements Failed : %+v for %+v", err, token.ID)
+		log.Warnf("importNewTransactions failed %+v for %+v", err, token.ID)
 		return
 	}
 }
