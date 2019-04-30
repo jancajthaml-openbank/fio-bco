@@ -54,7 +54,7 @@ func (fio FioImport) getActiveTokens() ([]string, error) {
 		return nil, err
 	}
 	notBefore := time.Now().Add(time.Second * time.Duration(-6))
-	uniq := make([]string, 0, len(tokens))
+	uniq := make([]string, 0)
 	visited := make(map[string]bool)
 	for _, token := range tokens {
 		if !token.CreatedAt.Before(notBefore) {
