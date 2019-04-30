@@ -21,7 +21,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var checkSumToString = make([]string, 98)
+var checkSumToString = make([]string, 99)
 
 func init() {
 	for i := 0; i < 10; i++ {
@@ -31,6 +31,8 @@ func init() {
 	for i := 10; i < 98; i++ {
 		checkSumToString[i] = strconv.Itoa(i)
 	}
+
+	checkSumToString[98] = "98"
 }
 
 // CalculateCzech calculates IBAN for Czech Republic
@@ -43,7 +45,7 @@ func CalculateCzech(number, bankCode string) (result string) {
 	}()
 
 	// canonise input
-	canonisedNumber := strings.Replace(number, "-", "", -1)
+	canonisedNumber := strings.Replace(strings.Replace(number, "-", "", -1), " ", "", -1)
 	// accountNumber of length 16
 	paddedNumber := "0000000000000000"[0:16-len(canonisedNumber)] + canonisedNumber
 	// bankCode of length 4
