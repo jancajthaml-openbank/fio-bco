@@ -29,7 +29,6 @@ class UnitHelper
     %x(docker rm temp-container-fio-bco)
 
     Dir.glob('/opt/artifacts/fio-bco_*_amd64.deb').each { |f|
-      puts "#{f}"
       FileUtils.mv(f, '/etc/bbtest/packages/fio-bco.deb')
     }
 
