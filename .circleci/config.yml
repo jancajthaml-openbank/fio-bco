@@ -9,30 +9,34 @@ workflows:
   commit:
     jobs:
       - checkout
-      - dependencies:
+      - versions
+      - deps:
           requires:
             - checkout
       - test:
           requires:
-            - dependencies
+            - deps
       - bin-amd64:
           requires:
-            - dependencies
+            - deps
       - bin-armhf:
           requires:
-            - dependencies
+            - deps
       - bin-arm64:
           requires:
-            - dependencies
+            - deps
       - debian-amd64:
           requires:
             - bin-amd64
+            - versions
       - debian-armhf:
           requires:
             - bin-armhf
+            - versions
       - debian-arm64:
           requires:
             - bin-arm64
+            - versions
       - publish:
           requires:
             - test
@@ -61,9 +65,11 @@ workflows:
                 - master
     jobs:
       - checkout
+      - versions
       - bbtest:
           requires:
             - checkout
+            - versions
 
 # ---------------------------------------------------------------------------- #
 
@@ -72,6 +78,21 @@ jobs:
   # -------------------------------------------------------------------------- #
 
   checkout:
+    docker:
+      - image: docker:18.06.0-ce-git
+        environment:
+          - LANG: C.UTF-8
+    working_directory: /home/circleci/project
+    steps:
+      - checkout
+      - save_cache:
+          key: code-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - /home/circleci/project
+
+  # -------------------------------------------------------------------------- #
+
+  versions:
     docker:
       - image: docker:18.06.0-ce-git
         environment:
@@ -100,10 +121,6 @@ jobs:
             cat /home/circleci/project/DEBIAN_VERSION
             cat /home/circleci/project/DOCKER_VERSION
       - save_cache:
-          key: code-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Environment.CIRCLE_SHA1 }}
-          paths:
-            - /home/circleci/project
-      - save_cache:
           key: versions-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - /home/circleci/project/DEBIAN_VERSION
@@ -111,7 +128,7 @@ jobs:
 
   # -------------------------------------------------------------------------- #
 
-  dependencies:
+  deps:
     docker:
       - image: circleci/golang:1.11
         environment:
