@@ -1,0 +1,124 @@
+fio-bco (1.2.4) unstable; urgency=low
+
+  * Nit
+  * Iban calculator bugfix
+  * Better logging
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Tue, 30 Apr 2019 07:59:15 +0200
+
+fio-bco (1.2.3) unstable; urgency=low
+
+  * Bugfix local message delivery in actor system
+  * Added createdAt to token listing
+  * Import logic moved to token actor, backoff 6 seconds before synchonizing newly created token
+  * Strictly compare values in http steps of bbtest
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Mon, 29 Apr 2019 18:10:09 +0200
+
+fio-bco (1.2.2) unstable; urgency=low
+
+  * Less port reconfiguration and unit restart in bbtest
+  * Simplified config resolver
+  * Nitpicking bbtest http_helper
+  * Better http helper in bbtests
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Mon, 22 Apr 2019 14:46:40 +0200
+
+fio-bco (1.2.1) unstable; urgency=low
+
+  * Proper ledger transaction api
+  * Bugfix of vault create account format
+  * Rolling contract
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Mon, 15 Apr 2019 17:37:14 +0200
+
+fio-bco (1.2.0) unstable; urgency=low
+
+  * Integrate ledger instead of wall
+  * Added proper purpose for self-signed cert
+  * Updated copyright year to 2019
+  * Bump github.com/gorilla/mux in /services/fio-bco-rest
+  * Bump github.com/sirupsen/logrus in /services/fio-bco-import
+  * Bump github.com/sirupsen/logrus in /services/fio-bco-rest
+  * Bump github.com/jancajthaml-openbank/local-fs in /services/fio-bco-rest
+  * Require config file presence for units
+  * Bump github.com/jancajthaml-openbank/local-fs
+  * Update config.yml
+  * Start daemon after app starts
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sun, 14 Apr 2019 15:36:40 +0200
+
+fio-bco (1.1.2) unstable; urgency=low
+
+  * Blackbox-testing install and uninstall
+  * Namespaced unit with configuration change watch
+  * Bump github.com/json-iterator/go in /services/fio-bco-rest
+  * Bump github.com/json-iterator/go in /services/fio-bco-unit
+  * Bump github.com/sirupsen/logrus in /services/fio-bco-rest
+  * Bump github.com/sirupsen/logrus in /services/fio-bco-unit
+  * Bump github.com/jancajthaml-openbank/local-fs in /services/fio-bco-unit
+  * Bump github.com/jancajthaml-openbank/local-fs in /services/fio-bco-rest
+  * Bump github.com/sirupsen/logrus in /services/fio-bco-unit
+  * Bump github.com/gorilla/mux in /services/fio-bco-rest
+  * Added dependabot and sonar shield
+  * Preinstall same version required by debian dependency in bbtest
+  * Include security patches in zmq version constrain
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Mon, 18 Mar 2019 09:23:55 +0100
+
+fio-bco (1.1.1) unstable; urgency=low
+
+  * Fixing bbtest
+  * Updated and cleaned up
+  * Blackboxing token value
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sat, 9 Feb 2019 21:54:30 +0100
+
+fio-bco (1.1.0) unstable; urgency=low
+
+  * Better logging
+  * Fixed linting issues
+  * Preinstall dependencies for bbtest in image
+  * Using vault api for account rest
+  * In sync with bondster-bco
+  * Nitpicking in server fault response to respect shape or response
+  * Better more stable json deep diff for bbtests
+  * Using localfs@v1.0.0
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Wed, 6 Feb 2019 08:51:33 +0100
+
+fio-bco (1.0.3) unstable; urgency=low
+
+  * Error logging in config.go
+  * Using provided and local-fs for persistence, dropping support for legacy vendoring
+  * Go11+ modules support, security patches
+  * Better release notes
+  * More RESTful http api
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sun, 20 Jan 2019 14:17:58 +0100
+
+fio-bco (1.0.2) unstable; urgency=low
+
+  * 10 times faster mod97
+  * Do not calculate what is already in IBAN form
+  * Faster iban calculation
+  * Added recover to Czech calculation of IBAN number, added more Czech bankcodes to iban generation
+  * Update czech.go
+  * Update normalised.go
+  * Valid transaction id without a slash in name
+  * Log malformed requests
+  * Normalising credit and debit accounts
+  * Mitigation of duplicate transactions
+  * Better error logging
+  * Ensure token folder and log more if fio gateway returns error
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Mon, 14 Jan 2019 10:08:49 +0100
+
+fio-bco (1.0.1) unstable; urgency=low
+
+  * Bugfix trailing slash mandatory for setting of pivot by id or date
+  * Update release
+  * More stable release script added
+
+ -- Jan Cajthaml <jan.cajthaml@gmail.com>  Sun, 30 Dec 2018 22:09:25 +0100
+

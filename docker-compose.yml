@@ -7,14 +7,11 @@ services:
   # -------------------------------------------------------------------------- #
 
   go:
-    build:
-      dockerfile: dev/Dockerfile
-      context: .
-    image: openbankdev/fio_bco_base
+    image: jancajthaml/go
     volumes:
       - .:/project
-      - ./services/fio-bco-import:/go/src/github.com/jancajthaml-openbank/fio-bco-import
       - ./services/fio-bco-rest:/go/src/github.com/jancajthaml-openbank/fio-bco-rest
+      - ./services/fio-bco-import:/go/src/github.com/jancajthaml-openbank/fio-bco-import
     working_dir: /project
     environment:
       - GOOS
@@ -74,18 +71,10 @@ services:
 
   # -------------------------------------------------------------------------- #
 
-  bbtest:
-    build:
-      context: .
-      dockerfile: bbtest/Dockerfile
-    image: openbankdev/fio_bco_bbtest
-
-  # -------------------------------------------------------------------------- #
-
   artifacts:
     build:
       dockerfile: Dockerfile
       context: .
-    image: openbank/fio-bco
+    image: openbank/lake
 
 # ---------------------------------------------------------------------------- #
