@@ -37,6 +37,7 @@ RSpec.configure do |config|
     }
 
     print "[ downloading unit ]\n"
+
     $unit.download()
 
     print "[ suite started    ]\n"
@@ -45,35 +46,13 @@ RSpec.configure do |config|
   config.after(:type => :feature) do
     LakeMock.reset()
 
-    ids = %x(systemctl -a -t service --no-legend | awk '{ print $1 }')
-
-    if $?
-      ids = ids.split("\n").map(&:strip).reject { |x|
-        x.empty? || !x.start_with?("fio-bco-import@")
-      }.map { |x| x.chomp(".service") }
-    else
-      ids = []
-    end
-
-    ids.each { |e|
-      %x(journalctl -o short-precise -u #{e}.service --no-pager > /reports/#{e}.log 2>&1)
-      %x(systemctl stop #{e} 2>&1)
-      %x(systemctl disable #{e} 2>&1)
-      %x(journalctl -o short-precise -u #{e}.service --no-pager > /reports/#{e}.log 2>&1)
-    } unless ids.empty?
+    $unit.cleanup()
   end
 
   config.after(:suite) do
     print "\n[ suite ending   ]\n"
 
-    [
-      "fio-bco-rest",
-      "fio-bco",
-    ].each { |e|
-      %x(journalctl -o short-precise -u #{e}.service --no-pager > /reports/#{e}.log 2>&1)
-      %x(systemctl stop #{e} 2>&1)
-      %x(journalctl -o short-precise -u #{e}.service --no-pager > /reports/#{e}.log 2>&1)
-    }
+    $unit.teardown()
 
     VaultHelper.stop()
     LedgerHelper.stop()
