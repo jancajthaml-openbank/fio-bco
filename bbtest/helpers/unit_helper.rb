@@ -3,6 +3,7 @@ require_relative 'eventually_helper'
 require 'fileutils'
 require 'timeout'
 require 'thread'
+require 'tempfile'
 
 Thread.abort_on_exception = true
 
@@ -15,8 +16,17 @@ class UnitHelper
 
   def download()
     raise "no version specified" unless ENV.has_key?('UNIT_VERSION')
+    raise "no arch specified" unless ENV.has_key?('UNIT_ARCH')
 
     version = ENV['UNIT_VERSION']
+    parts = version.split(/(?:v)([^-]+)\-(.+)/)
+
+    raise "invalid version #{version}" if parts.length != 3
+
+    version = parts[1]
+    branch = parts[2]
+
+    arch = ENV['UNIT_ARCH']
 
     FileUtils.mkdir_p "/opt/artifacts"
     %x(rm -rf /opt/artifacts/*)
@@ -24,14 +34,32 @@ class UnitHelper
     FileUtils.mkdir_p "/etc/bbtest/packages"
     %x(rm -rf /etc/bbtest/packages/*)
 
-    %x(docker run --name temp-container-fio-bco openbank/fio-bco:#{version} /bin/true)
-    %x(docker cp temp-container-fio-bco:/opt/artifacts/. /opt/artifacts)
-    %x(docker rm temp-container-fio-bco)
+    file = Tempfile.new('search_artifacts')
 
-    Dir.glob('/opt/artifacts/fio-bco_*_amd64.deb').each { |f|
-      puts "#{f}"
-      FileUtils.mv(f, '/etc/bbtest/packages/fio-bco.deb')
-    }
+    begin
+      file.write([
+        "FROM alpine",
+        "COPY --from=openbank/fio-bco:v#{version}-#{branch} /opt/artifacts/fio-bco_#{version}+#{branch}_#{arch}.deb /opt/artifacts/fio-bco.deb",
+        "RUN ls -la /opt/artifacts"
+      ].join("\n"))
+      file.close
+
+      IO.popen("docker build -t fio_bco_artifacts - < #{file.path}") do |stream|
+        stream.each do |line|
+          puts line
+        end
+      end
+      raise "failed to build fio_bco_artifacts" unless $? == 0
+
+      %x(docker run --name fio_bco_artifacts-scratch fio_bco_artifacts /bin/true)
+      %x(docker cp fio_bco_artifacts-scratch:/opt/artifacts/ /opt)
+    ensure
+      %x(docker rmi -f fio_bco_artifacts)
+      %x(docker rm fio_bco_artifacts-scratch)
+      file.delete
+    end
+
+    FileUtils.mv('/opt/artifacts/fio-bco.deb', '/etc/bbtest/packages/fio-bco.deb')
 
     raise "no package to install" unless File.file?('/etc/bbtest/packages/fio-bco.deb')
   end

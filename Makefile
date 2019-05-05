@@ -64,6 +64,7 @@ bbtest:
 		docker run -d -ti \
 			--name=fio_bco_bbtest \
 			-e UNIT_VERSION="$(VERSION)-$(META)" \
+			-e UNIT_ARCH=amd64 \
 			-v /sys/fs/cgroup:/sys/fs/cgroup:ro \
 			-v /var/run/docker.sock:/var/run/docker.sock \
       -v /var/lib/docker/containers:/var/lib/docker/containers \
@@ -71,7 +72,7 @@ bbtest:
 			-v $$(pwd)/reports:/reports \
 			--privileged=true \
 			--security-opt seccomp:unconfined \
-		jancajthaml/bbtest \
+		jancajthaml/bbtest:amd64 \
 	) rspec --require /opt/bbtest/spec.rb \
 		--format documentation \
 		--format RspecJunitFormatter \
