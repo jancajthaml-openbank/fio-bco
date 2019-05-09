@@ -6,20 +6,22 @@ case "$1" in
 
   configure)
     if [ -f "/etc/init/fio-bco.conf" ] ; then
-      systemctl unmask \
-        fio-bco.path \
-        fio-bco-import.service \
-        fio-bco-rest.service \
-        fio-bco.service \
-      >/dev/null
+      if [ -d /run/systemd/system ] ; then
+        systemctl unmask \
+          fio-bco.path \
+          fio-bco-import.service \
+          fio-bco-rest.service \
+          fio-bco.service \
+        >/dev/null
 
-      systemctl enable \
-        fio-bco.path \
-        fio-bco-rest.service \
-        fio-bco.service \
-      >/dev/null
+        systemctl enable \
+          fio-bco.path \
+          fio-bco-rest.service \
+          fio-bco.service \
+        >/dev/null
 
-      (systemctl start fio-bco.service >/dev/null || :)
+        (systemctl start fio-bco.service >/dev/null || :)
+      fi
     else
       (>&2 echo "/etc/init/fio-bco.conf file not found")
       exit 1

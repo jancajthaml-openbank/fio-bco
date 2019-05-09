@@ -40,24 +40,84 @@ if [ ! "${TARGET_ARCHITECTURE}" ] ; then
   exit 1
 fi
 
+generate_manpage() {
+  mkdir -p ${DEB_SOURCES}/usr/share/man/man8
+
+  target_unit="${DEB_SOURCES}/usr/share/man/man8/fio-bco-import.8"
+  target_rest="${DEB_SOURCES}/usr/share/man/man8/fio-bco-rest.8"
+
+  if [ -f ${target_unit} ] ; then
+    rm -f ${target_unit}
+  fi
+
+  if [ -f ${target_unit}.gz ] ; then
+    rm -f ${target_unit}.gz
+  fi
+
+  if [ -f ${target_rest} ] ; then
+    rm -f ${target_rest}
+  fi
+
+  if [ -f ${target_rest}.gz ] ; then
+    rm -f ${target_rest}.gz
+  fi
+
+cat > ${target_unit} <<EOL
+.TH FIO-BCO-IMPORT 8 2019 "Fio BCO Unit" "OpenBank FioBank Connector Tenant Unit"
+.SH NAME
+fio-bco-import \- starts openbank fio bank connector import unit
+.SH DESCRIPTION
+The
+.B pldd
+fio bco import manages tenant fio tokens and imports transactions from fio bank
+.EE
+EOL
+
+cat > ${target_rest} <<EOL
+.TH FIO-BCO-REST 8 2019 "Fio BCO REST" "OpenBank FioBank Connector REST Server"
+.SH NAME
+fio-bco-rest \- starts openbank fio bank connector REST server
+.SH DESCRIPTION
+The
+.B pldd
+fio bco rest provides REST server for accessing and manipulating fio bco units
+.EE
+EOL
+
+  cat ${target_unit} | gzip -n -9 > ${target_unit}.gz
+  rm ${target_unit}
+
+  cat ${target_rest} | gzip -n -9 > ${target_rest}.gz
+  rm ${target_rest}
+}
+
 generate_changelog() {
+  mkdir -p ${DEB_SOURCES}/usr/share/doc/fio-bco
+
+  target="${DEB_SOURCES}/usr/share/doc/fio-bco/changelog"
+
+  if [ -f ${target} ] ; then
+    rm -f ${target}
+  fi
+
+  if [ -f ${target}.Debian.gz ] ; then
+    rm -f ${target}.Debian.gz
+  fi
+
+  touch ${target}
+
   VER="${VERSION}"
   tag=HEAD
   ADDS=$(echo ${VER} | sed -e 's/~.*//' | cut -s -d- -f2 | sed '/^[[:space:]]*$/d')
-  if [ -f ${CHANGELOG} ] ; then
-    rm -f ${CHANGELOG}
-  fi
-
-  touch ${CHANGELOG}
 
   if [[ -z "${ADDS// }" ]] ; then
-    DATE=$(git log -1 --format=%cD ${tag})
-    echo "fio-bco (${VER}) ${DIST}; urgency=low" >> ${CHANGELOG}
-    echo "" >> ${CHANGELOG}
-    echo "  * Includes non-released commits" >> ${CHANGELOG}
-    echo "" >> ${CHANGELOG}
-    echo " -- Jan Cajthaml <jan.cajthaml@gmail.com>  ${DATE}" >> ${CHANGELOG}
-    echo "" >> ${CHANGELOG}
+    DATE=$(date '+%a, %-d %b %Y %H:%M:%S %z')
+    echo "fio-bco (${VER}) unstable; urgency=low" >> ${target}
+    echo "" >> ${target}
+    echo "  * includes non-released commits" >> ${target}
+    echo "" >> ${target}
+    echo " -- Jan Cajthaml <jan.cajthaml@gmail.com>  ${DATE}" >> ${target}
+    echo "" >> ${target}
   fi
 
   PAIRS=()
@@ -78,20 +138,23 @@ generate_changelog() {
 
     if [[ -n "${commits// }" ]] ; then
 
-      echo "fio-bco (${tag_to#v}) ${DIST}; urgency=low" >> ${CHANGELOG}
-      echo "" >> ${CHANGELOG}
+      echo "fio-bco (${tag_to#v}) stable; urgency=low" >> ${target}
+      echo "" >> ${target}
 
       echo "${commits}" | \
       while read note ; do
-        echo "  * $(tr '[:lower:]' '[:upper:]' <<< ${note:0:1})${note:1}" >> ${CHANGELOG}
+        echo "  * $(tr '[:lower:]' '[:upper:]' <<< ${note:0:1})${note:1}" >> ${target}
       done
 
-      echo "" >> ${CHANGELOG}
+      echo "" >> ${target}
 
-      echo " -- Jan Cajthaml <jan.cajthaml@gmail.com>  ${DATE}" >> ${CHANGELOG}
-      echo "" >> ${CHANGELOG}
+      echo " -- Jan Cajthaml <jan.cajthaml@gmail.com>  ${DATE}" >> ${target}
+      echo "" >> ${target}
     fi
   done
+
+  cat ${target} | gzip -n -9 > ${target}.Debian.gz
+  rm ${target}
 }
 
 ################################################################################
@@ -105,50 +168,86 @@ if [ ! -d "${DEB_SOURCES}" ] ; then
   exit 1
 fi
 
-CHANGELOG=${DEB_SOURCES}/DEBIAN/changelog
-CONTROL=${DEB_SOURCES}/DEBIAN/control
-DIST=unstable
-FIRST=1
+if [ ! -f "${BIN_SOURCES}/fio-bco-rest-linux-${TARGET_ARCHITECTURE}" ] ; then
+  (>&2 echo "did not found binary to package at ${BIN_SOURCES}/fio-bco-rest-linux-${TARGET_ARCHITECTURE}")
+  exit 1
+fi
 
 if [ ! -f "${BIN_SOURCES}/fio-bco-import-linux-${TARGET_ARCHITECTURE}" ] ; then
   (>&2 echo "did not found binary to package at ${BIN_SOURCES}/fio-bco-import-linux-${TARGET_ARCHITECTURE}")
   exit 1
 fi
 
-if [ ! -f "${BIN_SOURCES}/fio-bco-rest-linux-${TARGET_ARCHITECTURE}" ] ; then
-  (>&2 echo "did not found binary to package at ${BIN_SOURCES}/fio-bco-rest-linux-${TARGET_ARCHITECTURE}")
-  exit 1
+mkdir -p ${DEB_SOURCES}/usr/bin
+if [ -f "${DEB_SOURCES}/usr/bin/fio-bco-rest" ] ; then
+  rm -f ${DEB_SOURCES}/usr/bin/fio-bco-rest
+fi
+if [ -f "${DEB_SOURCES}/usr/bin/fio-bco-import" ] ; then
+  rm -f ${DEB_SOURCES}/usr/bin/fio-bco-import
 fi
 
-mkdir -p ${DEB_SOURCES}/openbank/services/fio-bco
+case ${TARGET_ARCHITECTURE} in
 
-if [ -f "${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-import" ] ; then
-  rm -f ${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-import
-fi
+  armhf)
+    arm-linux-gnueabihf-objcopy \
+      --strip-debug \
+      --strip-unneeded \
+      "${BIN_SOURCES}/fio-bco-rest-linux-${TARGET_ARCHITECTURE}" \
+      "${DEB_SOURCES}/usr/bin/fio-bco-rest"
+    arm-linux-gnueabihf-objcopy \
+      --strip-debug \
+      --strip-unneeded \
+      "${BIN_SOURCES}/fio-bco-import-linux-${TARGET_ARCHITECTURE}" \
+      "${DEB_SOURCES}/usr/bin/fio-bco-import"
+  ;;
 
-if [ -f "${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-rest" ] ; then
-  rm -f ${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-rest
-fi
+  arm64)
+    aarch64-linux-gnu-objcopy \
+      --strip-debug \
+      --strip-unneeded \
+      "${BIN_SOURCES}/fio-bco-rest-linux-${TARGET_ARCHITECTURE}" \
+      "${DEB_SOURCES}/usr/bin/fio-bco-rest"
+    aarch64-linux-gnu-objcopy \
+      --strip-debug \
+      --strip-unneeded \
+      "${BIN_SOURCES}/fio-bco-import-linux-${TARGET_ARCHITECTURE}" \
+      "${DEB_SOURCES}/usr/bin/fio-bco-import"
+  ;;
 
-du -hs "${BIN_SOURCES}/fio-bco-import-linux-${TARGET_ARCHITECTURE}"
-du -hs "${BIN_SOURCES}/fio-bco-rest-linux-${TARGET_ARCHITECTURE}"
+  amd64)
+    objcopy \
+      --strip-debug \
+      --strip-unneeded \
+      "${BIN_SOURCES}/fio-bco-rest-linux-${TARGET_ARCHITECTURE}" \
+      "${DEB_SOURCES}/usr/bin/fio-bco-rest"
+    objcopy \
+      --strip-debug \
+      --strip-unneeded \
+      "${BIN_SOURCES}/fio-bco-import-linux-${TARGET_ARCHITECTURE}" \
+      "${DEB_SOURCES}/usr/bin/fio-bco-import"
+  ;;
 
-cp \
-  "${BIN_SOURCES}/fio-bco-import-linux-${TARGET_ARCHITECTURE}" \
-  "${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-import"
+  *)
+    cp \
+      "${BIN_SOURCES}/fio-bco-rest-linux-${TARGET_ARCHITECTURE}" \
+      "${DEB_SOURCES}/usr/bin/fio-bco-rest"
+    cp \
+      "${BIN_SOURCES}/fio-bco-import-linux-${TARGET_ARCHITECTURE}" \
+      "${DEB_SOURCES}/usr/bin/fio-bco-import"
+  ;;
 
-cp \
-  "${BIN_SOURCES}/fio-bco-rest-linux-${TARGET_ARCHITECTURE}" \
-  "${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-rest"
-
-file "${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-import"
-file "${DEB_SOURCES}/openbank/services/fio-bco/fio-bco-rest"
+esac
 
 generate_changelog
-sed -i 's/Version.*/Version: '${VERSION#v}'/' ${CONTROL}
+generate_manpage
 
-find "${BIN_SOURCES}" -type f -name "fio-bco_*_${TARGET_ARCHITECTURE}.deb" -exec rm {} \;
+sed -i 's/Version.*/Version: '${VERSION#v}'/' "${DEB_SOURCES}/DEBIAN/control"
+
+find "${BIN_SOURCES}" -name "fio-bco_*_${TARGET_ARCHITECTURE}.deb" -exec rm -f {} \;
 
 dpkg-deb --build "${DEB_SOURCES}" "${BIN_SOURCES}"
 
+find "${BIN_SOURCES}" -name "fio-bco_*_${TARGET_ARCHITECTURE}.deb" -exec fakeroot lintian --pedantic {} \;
 find "${BIN_SOURCES}" -name "fio-bco_*_${TARGET_ARCHITECTURE}.deb" -exec du -hs {} \;
+
+exit 0
