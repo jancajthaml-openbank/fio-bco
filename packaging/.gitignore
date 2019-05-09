@@ -1,2 +1,5 @@
 bin
-debian_*/openbank/services/fio-bco/fio-bco*
+debian_*/usr/bin
+debian_*/usr/share/doc/*/changelog.Debian.gz
+debian_*/usr/share/man/man8/*.8.gz
+

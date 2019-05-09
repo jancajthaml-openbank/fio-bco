@@ -18,13 +18,20 @@ class UnitHelper
     raise "no version specified" unless ENV.has_key?('UNIT_VERSION')
     raise "no arch specified" unless ENV.has_key?('UNIT_ARCH')
 
-    version = ENV['UNIT_VERSION']
-    parts = version.split(/(?:v)([^-]+)\-(.+)/)
+    version = ENV['UNIT_VERSION'].gsub('v', '')
+    parts = version.split('-')
 
-    raise "invalid version #{version}" if parts.length != 3
+    docker_version = ""
+    debian_version = ""
 
-    version = parts[1]
-    branch = parts[2]
+    if parts.length > 1
+      branch = version[parts[0].length+1..-1]
+      docker_version = "#{parts[0]}-#{branch}"
+      debian_version = "#{parts[0]}+#{branch}"
+    elsif parts.length == 1
+      docker_version = parts[0]
+      debian_version = parts[0]
+    end
 
     arch = ENV['UNIT_ARCH']
 
@@ -39,7 +46,7 @@ class UnitHelper
     begin
       file.write([
         "FROM alpine",
-        "COPY --from=openbank/fio-bco:v#{version}-#{branch} /opt/artifacts/fio-bco_#{version}+#{branch}_#{arch}.deb /opt/artifacts/fio-bco.deb",
+        "COPY --from=openbank/fio-bco:v#{docker_version} /opt/artifacts/fio-bco_#{debian_version}_#{arch}.deb /opt/artifacts/fio-bco.deb",
         "RUN ls -la /opt/artifacts"
       ].join("\n"))
       file.close
