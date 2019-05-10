@@ -25,7 +25,6 @@ import (
 )
 
 func loadConfFromEnv() Configuration {
-	logOutput := getEnvString("FIO_BCO_LOG", "")
 	logLevel := strings.ToUpper(getEnvString("FIO_BCO_LOG_LEVEL", "DEBUG"))
 	encryptionKey := getEnvString("FIO_BCO_ENCRYPTION_KEY", "")
 	secrets := getEnvString("FIO_BCO_SECRETS", "")
@@ -64,7 +63,6 @@ func loadConfFromEnv() Configuration {
 		SecretKey:     serverKey,
 		SecretCert:    serverCert,
 		LakeHostname:  lakeHostname,
-		LogOutput:     logOutput,
 		LogLevel:      logLevel,
 	}
 }

@@ -27,7 +27,6 @@ import (
 )
 
 func loadConfFromEnv() Configuration {
-	logOutput := getEnvString("FIO_BCO_LOG", "")
 	logLevel := strings.ToUpper(getEnvString("FIO_BCO_LOG_LEVEL", "DEBUG"))
 	encryptionKey := getEnvString("FIO_BCO_ENCRYPTION_KEY", "")
 	rootStorage := getEnvString("FIO_BCO_STORAGE", "/data")
@@ -67,7 +66,6 @@ func loadConfFromEnv() Configuration {
 		LedgerGateway:      ledgerGateway,
 		VaultGateway:       vaultGateway,
 		LakeHostname:       lakeHostname,
-		LogOutput:          logOutput,
 		LogLevel:           logLevel,
 		MetricsRefreshRate: metricsRefreshRate,
 		MetricsOutput:      metricsOutput,
