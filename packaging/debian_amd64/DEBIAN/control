@@ -1,5 +1,5 @@
 Package: fio-bco
-Version: 1.2.4+more-robust-debian-packaging
+Version: 1.2.4+changelog
 Section: misc
 Priority: extra
 Architecture: amd64

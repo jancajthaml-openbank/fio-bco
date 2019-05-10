@@ -67,9 +67,7 @@ cat > ${target_unit} <<EOL
 .SH NAME
 fio-bco-import \- starts openbank fio bank connector import unit
 .SH DESCRIPTION
-The
-.B pldd
-fio bco import manages tenant fio tokens and imports transactions from fio bank
+The fio bco import manages tenant fio tokens and imports transactions from fio bank
 .EE
 EOL
 
@@ -78,9 +76,7 @@ cat > ${target_rest} <<EOL
 .SH NAME
 fio-bco-rest \- starts openbank fio bank connector REST server
 .SH DESCRIPTION
-The
-.B pldd
-fio bco rest provides REST server for accessing and manipulating fio bco units
+The fio bco rest provides REST server for accessing and manipulating fio bco units
 .EE
 EOL
 
@@ -153,8 +149,15 @@ generate_changelog() {
     fi
   done
 
-  cat ${target} | gzip -n -9 > ${target}.Debian.gz
+  cat ${target} | gzip -n -9 > ${target}.gz
   rm ${target}
+}
+
+check_files() {
+  chmod 0755 "${DEB_SOURCES}/DEBIAN/control"
+  chmod 0755 "${DEB_SOURCES}/DEBIAN/postinst"
+  chmod 0755 "${DEB_SOURCES}/DEBIAN/postrm"
+  chmod 0755 "${DEB_SOURCES}/DEBIAN/preinst"
 }
 
 ################################################################################
@@ -244,6 +247,8 @@ generate_manpage
 sed -i 's/Version.*/Version: '${VERSION#v}'/' "${DEB_SOURCES}/DEBIAN/control"
 
 find "${BIN_SOURCES}" -name "fio-bco_*_${TARGET_ARCHITECTURE}.deb" -exec rm -f {} \;
+
+check_files
 
 dpkg-deb --build "${DEB_SOURCES}" "${BIN_SOURCES}"
 
