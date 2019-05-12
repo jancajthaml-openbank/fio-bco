@@ -36,14 +36,14 @@ func NilToken(s *daemon.ActorSystem) func(interface{}, system.Context) {
 		tokenHydration := persistence.LoadToken(s.Storage, state.ID)
 
 		if tokenHydration == nil {
-			context.Receiver.Become(state, NonExistToken(s))
+			context.Self.Become(state, NonExistToken(s))
 			log.Debugf("%s ~ Nil -> NonExist", state.ID)
 		} else {
-			context.Receiver.Become(*tokenHydration, ExistToken(s))
+			context.Self.Become(*tokenHydration, ExistToken(s))
 			log.Debugf("%s ~ Nil -> Exist", state.ID)
 		}
 
-		context.Receiver.Receive(context)
+		context.Self.Receive(context)
 	}
 }
 
@@ -58,28 +58,28 @@ func NonExistToken(s *daemon.ActorSystem) func(interface{}, system.Context) {
 			tokenResult := persistence.CreateToken(s.Storage, state.ID, msg.Value)
 
 			if tokenResult == nil {
-				s.SendRemote(context.Sender.Region, FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
+				s.SendRemote(FatalErrorMessage(context))
 				log.Debugf("%s ~ (NonExist CreateToken) Error", state.ID)
 				return
 			}
 
-			s.SendRemote(context.Sender.Region, TokenCreatedMessage(context.Receiver.Name, context.Sender.Name))
+			s.SendRemote(TokenCreatedMessage(context))
 			log.Infof("New Token %s Created", state.ID)
 			log.Debugf("%s ~ (NonExist CreateToken) OK", state.ID)
 			s.Metrics.TokenCreated()
 
-			context.Receiver.Become(*tokenResult, ExistToken(s))
-			context.Receiver.Tell(model.SynchronizeToken{}, context.Sender)
+			context.Self.Become(*tokenResult, ExistToken(s))
+			context.Self.Tell(model.SynchronizeToken{}, context.Receiver, context.Sender)
 
 		case model.DeleteToken:
-			s.SendRemote(context.Sender.Region, FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
+			s.SendRemote(FatalErrorMessage(context))
 			log.Debugf("%s ~ (NonExist DeleteToken) Error", state.ID)
 
 		case model.SynchronizeToken:
 			break
 
 		default:
-			s.SendRemote(context.Sender.Region, FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
+			s.SendRemote(FatalErrorMessage(context))
 			log.Debugf("%s ~ (NonExist Unknown Message) Error", state.ID)
 		}
 
@@ -95,7 +95,7 @@ func ExistToken(s *daemon.ActorSystem) func(interface{}, system.Context) {
 		switch context.Data.(type) {
 
 		case model.CreateToken:
-			s.SendRemote(context.Sender.Region, FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
+			s.SendRemote(FatalErrorMessage(context))
 			log.Debugf("%s ~ (Exist CreateToken) Error", state.ID)
 
 		case model.SynchronizeToken:
@@ -104,18 +104,18 @@ func ExistToken(s *daemon.ActorSystem) func(interface{}, system.Context) {
 
 		case model.DeleteToken:
 			if !persistence.DeleteToken(s.Storage, state.ID) {
-				s.SendRemote(context.Sender.Region, FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
+				s.SendRemote(FatalErrorMessage(context))
 				log.Debugf("%s ~ (Exist DeleteToken) Error", state.ID)
 				return
 			}
 			log.Infof("Token %s Deleted", state.ID)
 			log.Debugf("%s ~ (Exist DeleteToken) OK", state.ID)
 			s.Metrics.TokenDeleted()
-			s.SendRemote(context.Sender.Region, TokenDeletedMessage(context.Receiver.Name, context.Sender.Name))
-			context.Receiver.Become(state, NonExistToken(s))
+			s.SendRemote(TokenDeletedMessage(context))
+			context.Self.Become(state, NonExistToken(s))
 
 		default:
-			s.SendRemote(context.Sender.Region, FatalErrorMessage(context.Receiver.Name, context.Sender.Name))
+			s.SendRemote(FatalErrorMessage(context))
 			log.Warnf("%s ~ (Exist Unknown Message) Error", state.ID)
 
 		}
