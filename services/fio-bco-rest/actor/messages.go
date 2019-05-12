@@ -36,11 +36,11 @@ const (
 )
 
 // CreateTokenMessage is message for creation of new token
-func CreateTokenMessage(self string, token model.Token) string {
-	return token.ID + " " + self + " " + ReqCreateToken + " " + token.Value
+func CreateTokenMessage(tenant string, sender string, token model.Token) string {
+	return "FioUnit/" + tenant + " FioRest " + token.ID + " " + sender + " " + ReqCreateToken + " " + token.Value
 }
 
 // DeleteTokenMessage is message for deletion of new token
-func DeleteTokenMessage(self string, token string) string {
-	return token + " " + self + " " + ReqDeleteToken
+func DeleteTokenMessage(tenant string, sender string, token string) string {
+	return "FioUnit/" + tenant + " FioRest " + token + " " + sender + " " + ReqDeleteToken
 }

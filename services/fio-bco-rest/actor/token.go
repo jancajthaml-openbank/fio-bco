@@ -50,7 +50,7 @@ func CreateToken(s *daemon.ActorSystem, tenant string, token model.Token) (resul
 		}
 	})
 
-	s.SendRemote("FioUnit/"+tenant, CreateTokenMessage(envelope.Name, token))
+	s.SendRemote(CreateTokenMessage(tenant, envelope.Name, token))
 
 	select {
 
@@ -89,7 +89,7 @@ func DeleteToken(s *daemon.ActorSystem, tenant string, token string) (result int
 		}
 	})
 
-	s.SendRemote("FioUnit/"+tenant, DeleteTokenMessage(envelope.Name, token))
+	s.SendRemote(DeleteTokenMessage(tenant, envelope.Name, token))
 
 	select {
 

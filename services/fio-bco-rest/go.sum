@@ -7,10 +7,10 @@ github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f h1:zlOR3rOlPAVvtfuxGKo
 github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f/go.mod h1:/YcGZj5zSblfDWMMoOzV4fas9FZnQYTkDnsGvmh2Grw=
 github.com/gorilla/mux v1.7.1 h1:Dw4jY2nghMMRsh1ol8dv1axHkDwMQK2DHerMNJsIpJU=
 github.com/gorilla/mux v1.7.1/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
-github.com/jancajthaml-openbank/actor-system v0.0.0-20181202162032-58dc2b194b81 h1:EOsVlEaKgD55phFQmxO5tsHr/YJCEntDqQjeIfKZWiw=
-github.com/jancajthaml-openbank/actor-system v0.0.0-20181202162032-58dc2b194b81/go.mod h1:DwcRRb6aAqZvK68txb3XeKLBuWN41LyHGg8Pg3L0+H8=
-github.com/jancajthaml-openbank/lake-client v0.0.0-20181130160936-e2d4da331f21 h1:ObG9S7FKmderWJtaHJ9F+bXiFdaNtVkrzsD8NRq+tvE=
-github.com/jancajthaml-openbank/lake-client v0.0.0-20181130160936-e2d4da331f21/go.mod h1:IOJ1L2N70PT46tEW4/UFYcZcyy3K0P3yDTQoDfssnjE=
+github.com/jancajthaml-openbank/actor-system v1.0.0 h1:3Gt5eZ8ezph96tYZaBK6k2daYfZuWvgnMOugk4WoV5A=
+github.com/jancajthaml-openbank/actor-system v1.0.0/go.mod h1:KGSJEIJaKXLhrSjLiSNgnFryYaZJVROlO/OEzSzmTvw=
+github.com/jancajthaml-openbank/lake-client v1.0.0 h1:iLd87jkb+KjUgJZfn35ApPK6G6jjuoRAsY418meuIWg=
+github.com/jancajthaml-openbank/lake-client v1.0.0/go.mod h1:/0U6zI+wTgfQAaoP6F19WbIAYR+eKrLLE85rUPgJ9bM=
 github.com/jancajthaml-openbank/local-fs v1.0.3 h1:67l6aJaOrJL+3S69ntURPFloBJmHkliMY9hQv8nhT74=
 github.com/jancajthaml-openbank/local-fs v1.0.3/go.mod h1:UTL5EojhSK0mMnCoGpdLdqRoH6qQFr/MWRd8vevysos=
 github.com/json-iterator/go v1.1.6 h1:MrUvLMLTMxbqFJ9kzlvat/rYZqZnW3u4wkLzWTaFwKs=
@@ -27,8 +27,8 @@ github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd h1:TRLaZ9cD/w
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
 github.com/modern-go/reflect2 v1.0.1 h1:9f412s+6RmYXLWZSEzVVgPGK7C2PphHj5RJrvfx9AWI=
 github.com/modern-go/reflect2 v1.0.1/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
-github.com/pebbe/zmq4 v0.0.0-20190113090835-7a493a642e7a h1:jNl6dEYkicMHk8sLEMMm/AJ+1akuxZvumcvfQPUWPE0=
-github.com/pebbe/zmq4 v0.0.0-20190113090835-7a493a642e7a/go.mod h1:7N4y5R18zBiu3l0vajMUWQgZyjv464prE8RCyBcmnZM=
+github.com/pebbe/zmq4 v1.0.0 h1:D+MSmPpqkL5PSSmnh8g51ogirUCyemThuZzLW7Nrt78=
+github.com/pebbe/zmq4 v1.0.0/go.mod h1:7N4y5R18zBiu3l0vajMUWQgZyjv464prE8RCyBcmnZM=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/rs/xid v1.2.1 h1:mhH9Nq+C1fY2l1XIpgxIiUOfNpRBYH1kKcr+qfKgjRc=
@@ -45,5 +45,7 @@ github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyC
 github.com/valyala/fasttemplate v0.0.0-20170224212429-dcecefd839c4 h1:gKMu1Bf6QINDnvyZuTaACm9ofY+PRh+5vFz4oxBZeF8=
 github.com/valyala/fasttemplate v0.0.0-20170224212429-dcecefd839c4/go.mod h1:50wTf68f99/Zt14pr046Tgt3Lp2vLyFZKzbFXTOabXw=
 golang.org/x/sys v0.0.0-20180905080454-ebe1bf3edb33/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
+golang.org/x/sys v0.0.0-20181122145206-62eef0e2fa9b/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
+golang.org/x/sys v0.0.0-20181128092732-4ed8d59d0b35/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20190115152922-a457fd036447 h1:YvSRfc0ZOWA3mVMyiDFA+p3qibhSiJeRqjvuO15WQJw=
 golang.org/x/sys v0.0.0-20190115152922-a457fd036447/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
