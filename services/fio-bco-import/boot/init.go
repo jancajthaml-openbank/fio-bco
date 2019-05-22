@@ -20,50 +20,45 @@ import (
 
 	"github.com/jancajthaml-openbank/fio-bco-import/actor"
 	"github.com/jancajthaml-openbank/fio-bco-import/config"
-	"github.com/jancajthaml-openbank/fio-bco-import/daemon"
+	"github.com/jancajthaml-openbank/fio-bco-import/integration"
+	"github.com/jancajthaml-openbank/fio-bco-import/metrics"
 	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
-	log "github.com/sirupsen/logrus"
 )
 
-// Application encapsulate initialized application
-type Application struct {
+// Program encapsulate initialized application
+type Program struct {
 	cfg         config.Configuration
 	interrupt   chan os.Signal
-	metrics     daemon.Metrics
-	fio         daemon.FioImport
-	actorSystem daemon.ActorSystem
+	metrics     metrics.Metrics
+	fio         integration.FioImport
+	actorSystem actor.ActorSystem
 	cancel      context.CancelFunc
 }
 
 // Initialize application
-func Initialize() Application {
+func Initialize() Program {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	cfg := config.GetConfig()
 
 	utils.SetupLogger(cfg.LogLevel)
 
-	log.Infof(">>> Setup <<<")
-
-	metrics := daemon.NewMetrics(ctx, cfg)
-
 	storage := localfs.NewStorage(cfg.RootStorage)
 	storage.SetEncryptionKey(cfg.EncryptionKey)
 
-	actorSystem := daemon.NewActorSystem(ctx, cfg, &metrics, &storage)
-	actorSystem.Support.RegisterOnRemoteMessage(actor.ProcessRemoteMessage(&actorSystem))
-	actorSystem.Support.RegisterOnLocalMessage(actor.ProcessLocalMessage(&actorSystem))
+	metricsDaemon := metrics.NewMetrics(ctx, cfg.Tenant, cfg.MetricsOutput, cfg.MetricsRefreshRate)
 
-	fio := daemon.NewFioImport(ctx, cfg, &storage, actor.ProcessLocalMessage(&actorSystem))
+	actorSystemDaemon := actor.NewActorSystem(ctx, cfg.Tenant, cfg.LakeHostname, cfg.FioGateway, cfg.VaultGateway, cfg.LedgerGateway, &metricsDaemon, &storage)
+	fioDaemon := integration.NewFioImport(ctx, cfg.FioGateway, cfg.SyncRate, &storage, actor.ProcessLocalMessage(&actorSystemDaemon))
 
-	return Application{
+	return Program{
 		cfg:         cfg,
 		interrupt:   make(chan os.Signal, 1),
-		metrics:     metrics,
-		actorSystem: actorSystem,
-		fio:         fio,
+		metrics:     metricsDaemon,
+		actorSystem: actorSystemDaemon,
+		fio:         fioDaemon,
 		cancel:      cancel,
 	}
 }

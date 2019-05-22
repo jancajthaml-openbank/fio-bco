@@ -19,7 +19,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jancajthaml-openbank/fio-bco-import/daemon"
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
 	"github.com/jancajthaml-openbank/fio-bco-import/persistence"
 	"github.com/jancajthaml-openbank/fio-bco-import/utils"
@@ -29,7 +28,7 @@ import (
 )
 
 // NilToken represents token that is neither existing neither non existing
-func NilToken(s *daemon.ActorSystem) func(interface{}, system.Context) {
+func NilToken(s *ActorSystem) func(interface{}, system.Context) {
 	return func(t_state interface{}, context system.Context) {
 		state := t_state.(model.Token)
 
@@ -48,7 +47,7 @@ func NilToken(s *daemon.ActorSystem) func(interface{}, system.Context) {
 }
 
 // NonExistToken represents token that does not exist
-func NonExistToken(s *daemon.ActorSystem) func(interface{}, system.Context) {
+func NonExistToken(s *ActorSystem) func(interface{}, system.Context) {
 	return func(t_state interface{}, context system.Context) {
 		state := t_state.(model.Token)
 
@@ -88,7 +87,7 @@ func NonExistToken(s *daemon.ActorSystem) func(interface{}, system.Context) {
 }
 
 // ExistToken represents account that does exist
-func ExistToken(s *daemon.ActorSystem) func(interface{}, system.Context) {
+func ExistToken(s *ActorSystem) func(interface{}, system.Context) {
 	return func(t_state interface{}, context system.Context) {
 		state := t_state.(model.Token)
 
@@ -124,7 +123,7 @@ func ExistToken(s *daemon.ActorSystem) func(interface{}, system.Context) {
 	}
 }
 
-func setLastSyncedID(s *daemon.ActorSystem, token model.Token) error {
+func setLastSyncedID(s *ActorSystem, token model.Token) error {
 	var (
 		err      error
 		response []byte
@@ -150,7 +149,7 @@ func setLastSyncedID(s *daemon.ActorSystem, token model.Token) error {
 	return nil
 }
 
-func importNewTransactions(s *daemon.ActorSystem, token model.Token) error {
+func importNewTransactions(s *ActorSystem, token model.Token) error {
 	var (
 		err      error
 		request  []byte
@@ -255,7 +254,7 @@ func importNewTransactions(s *daemon.ActorSystem, token model.Token) error {
 	return nil
 }
 
-func importStatements(s *daemon.ActorSystem, token model.Token) {
+func importStatements(s *ActorSystem, token model.Token) {
 	if err := setLastSyncedID(s, token); err != nil {
 		log.Warnf("set Last Synced ID Failed : %+v for %+v", err, token.ID)
 		return

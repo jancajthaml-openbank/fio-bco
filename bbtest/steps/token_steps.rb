@@ -34,6 +34,10 @@ step "token :slash_pair should exist" do |slash_pair|
 
   actual_tokens = JSON.parse(HTTPHelper.response[:body]).map { |item| tenant + "/" + item["value"] }
 
+  puts HTTPHelper.response[:body]
+
+  expect(token_value).not_to be_empty
+
   expect(actual_tokens).to include(tenant+"/"+token_value), "expected to find \"#{slash_pair}\" in #{actual_tokens}"
 end
 

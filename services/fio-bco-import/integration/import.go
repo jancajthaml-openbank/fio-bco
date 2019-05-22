@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package daemon
+package integration
 
 import (
 	"context"
 	"fmt"
 	"time"
 
-	"github.com/jancajthaml-openbank/fio-bco-import/config"
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
 	"github.com/jancajthaml-openbank/fio-bco-import/persistence"
+	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 
 	system "github.com/jancajthaml-openbank/actor-system"
 	localfs "github.com/jancajthaml-openbank/local-fs"
@@ -30,21 +30,21 @@ import (
 
 // FioImport represents fio gateway to ledger-rest import subroutine
 type FioImport struct {
-	Support
-	callback    func(msg interface{}, to system.Coordinates, from system.Coordinates)
-	fioGateway  string
-	storage     *localfs.Storage
-	refreshRate time.Duration
+	utils.DaemonSupport
+	callback   func(msg interface{}, to system.Coordinates, from system.Coordinates)
+	fioGateway string
+	storage    *localfs.Storage
+	syncRate   time.Duration
 }
 
 // NewFioImport returns fio import fascade
-func NewFioImport(ctx context.Context, cfg config.Configuration, storage *localfs.Storage, callback func(msg interface{}, to system.Coordinates, from system.Coordinates)) FioImport {
+func NewFioImport(ctx context.Context, fioEndpoint string, syncRate time.Duration, storage *localfs.Storage, callback func(msg interface{}, to system.Coordinates, from system.Coordinates)) FioImport {
 	return FioImport{
-		Support:     NewDaemonSupport(ctx),
-		callback:    callback,
-		storage:     storage,
-		fioGateway:  cfg.FioGateway,
-		refreshRate: cfg.SyncRate,
+		DaemonSupport: utils.NewDaemonSupport(ctx),
+		callback:      callback,
+		storage:       storage,
+		fioGateway:    fioEndpoint,
+		syncRate:      syncRate,
 	}
 }
 
@@ -75,7 +75,7 @@ func (fio FioImport) importRoundtrip() {
 		return
 	}
 
-	if fio.ctx.Err() != nil {
+	if fio.IsDone() {
 		return
 	}
 
@@ -122,13 +122,13 @@ func (fio FioImport) Start() {
 	fio.MarkReady()
 
 	select {
-	case <-fio.canStart:
+	case <-fio.CanStart:
 		break
 	case <-fio.Done():
 		return
 	}
 
-	log.Infof("Start fio-import daemon, sync %v now and then each %v", fio.fioGateway, fio.refreshRate)
+	log.Infof("Start fio-import daemon, sync %v now and then each %v", fio.fioGateway, fio.syncRate)
 
 	fio.importRoundtrip()
 
@@ -138,7 +138,7 @@ func (fio FioImport) Start() {
 			log.Info("Stopping fio-import daemon")
 			log.Info("Stop fio-import daemon")
 			return
-		case <-time.After(fio.refreshRate):
+		case <-time.After(fio.syncRate):
 			fio.importRoundtrip()
 		}
 	}

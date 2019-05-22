@@ -32,13 +32,13 @@ func LoadTokens(storage *localfs.Storage, tenant string) ([]model.Token, error) 
 	if err != nil {
 		return nil, err
 	}
-	result := make([]model.Token, len(tokens))
-	for i, id := range tokens {
+	var result = make([]model.Token, 0)
+	for _, id := range tokens {
 		token := model.Token{
 			ID: id,
 		}
 		if HydrateToken(storage, tenant, &token) != nil {
-			result[i] = token
+			result = append(result, token)
 		}
 	}
 	return result, nil

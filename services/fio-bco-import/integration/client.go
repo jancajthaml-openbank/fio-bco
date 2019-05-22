@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package http
+package integration
 
 import (
 	"bytes"
@@ -23,6 +23,8 @@ import (
 	"net"
 	"net/http"
 	"time"
+
+	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 )
 
 // Client represents fascade for http client
@@ -50,7 +52,7 @@ func NewClient() Client {
 						tls.CurveP384,
 						tls.CurveP256,
 					},
-					CipherSuites: CipherSuites,
+					CipherSuites: utils.CipherSuites,
 				},
 			},
 		},

@@ -21,54 +21,47 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-rest/actor"
 	"github.com/jancajthaml-openbank/fio-bco-rest/api"
 	"github.com/jancajthaml-openbank/fio-bco-rest/config"
-	"github.com/jancajthaml-openbank/fio-bco-rest/daemon"
+	"github.com/jancajthaml-openbank/fio-bco-rest/metrics"
+	"github.com/jancajthaml-openbank/fio-bco-rest/systemd"
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
-	log "github.com/sirupsen/logrus"
 )
 
-// Application encapsulate initialized application
-type Application struct {
+// Program encapsulate initialized application
+type Program struct {
 	cfg           config.Configuration
 	interrupt     chan os.Signal
-	actorSystem   daemon.ActorSystem
-	rest          daemon.Server
-	systemControl daemon.SystemControl
+	actorSystem   actor.ActorSystem
+	rest          api.Server
+	systemControl systemd.SystemControl
 	cancel        context.CancelFunc
 }
 
 // Initialize application
-func Initialize() Application {
+func Initialize() Program {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	cfg := config.GetConfig()
 
 	utils.SetupLogger(cfg.LogLevel)
 
-	log.Infof(">>> Setup <<<")
-
-	systemControl := daemon.NewSystemControl(ctx, cfg)
+	systemControlDaemon := systemd.NewSystemControl(ctx)
 
 	storage := localfs.NewStorage(cfg.RootStorage)
 	storage.SetEncryptionKey(cfg.EncryptionKey)
 
-	actorSystem := daemon.NewActorSystem(ctx, cfg)
-	actorSystem.Support.RegisterOnRemoteMessage(actor.ProcessRemoteMessage(&actorSystem))
+	metricsDaemon := metrics.NewMetrics(ctx, cfg.MetricsOutput, cfg.MetricsRefreshRate)
 
-	rest := daemon.NewServer(ctx, cfg)
-	rest.HandleFunc("/health", api.HealtCheck, "GET", "HEAD")
-	rest.HandleFunc("/tenant/{tenant}", api.TenantPartial(&systemControl), "POST", "DELETE")
-	rest.HandleFunc("/tenant", api.TenantsPartial(&systemControl), "GET")
-	rest.HandleFunc("/token/{tenant}/{token}", api.TokenPartial(&actorSystem), "DELETE")
-	rest.HandleFunc("/token/{tenant}", api.TokensPartial(&actorSystem, &storage), "POST", "GET")
+	actorSystemDaemon := actor.NewActorSystem(ctx, cfg.LakeHostname, &metricsDaemon)
+	restDaemon := api.NewServer(ctx, cfg.ServerPort, cfg.SecretsPath, &actorSystemDaemon, &systemControlDaemon, &storage)
 
-	return Application{
+	return Program{
 		cfg:           cfg,
 		interrupt:     make(chan os.Signal, 1),
-		actorSystem:   actorSystem,
-		rest:          rest,
-		systemControl: systemControl,
+		actorSystem:   actorSystemDaemon,
+		rest:          restDaemon,
+		systemControl: systemControlDaemon,
 		cancel:        cancel,
 	}
 }

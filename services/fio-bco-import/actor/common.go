@@ -18,20 +18,17 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jancajthaml-openbank/fio-bco-import/daemon"
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
 
 	system "github.com/jancajthaml-openbank/actor-system"
 	log "github.com/sirupsen/logrus"
 )
 
-var nilCoordinates = system.Coordinates{}
-
-func asEnvelopes(s *daemon.ActorSystem, msg string) (system.Coordinates, system.Coordinates, []string, error) {
+func asEnvelopes(s *ActorSystem, msg string) (system.Coordinates, system.Coordinates, []string, error) {
 	parts := strings.Split(msg, " ")
 
 	if len(parts) < 5 {
-		return nilCoordinates, nilCoordinates, nil, fmt.Errorf("invalid message received %+v", parts)
+		return system.Coordinates{}, system.Coordinates{}, nil, fmt.Errorf("invalid message received %+v", parts)
 	}
 
 	recieverRegion, senderRegion, receiverName, senderName := parts[0], parts[1], parts[2], parts[3]
@@ -49,7 +46,7 @@ func asEnvelopes(s *daemon.ActorSystem, msg string) (system.Coordinates, system.
 	return from, to, parts, nil
 }
 
-func spawnTokenActor(s *daemon.ActorSystem, id string) (*system.Envelope, error) {
+func spawnTokenActor(s *ActorSystem, id string) (*system.Envelope, error) {
 	envelope := system.NewEnvelope(id, model.NewToken(id))
 
 	err := s.RegisterActor(envelope, NilToken(s))
@@ -63,7 +60,7 @@ func spawnTokenActor(s *daemon.ActorSystem, id string) (*system.Envelope, error)
 }
 
 // ProcessRemoteMessage processing of remote message to this bondster-bco
-func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
+func ProcessRemoteMessage(s *ActorSystem) system.ProcessRemoteMessage {
 	return func(msg string) {
 		from, to, parts, err := asEnvelopes(s, msg)
 		if err != nil {
@@ -132,7 +129,7 @@ func ProcessRemoteMessage(s *daemon.ActorSystem) system.ProcessRemoteMessage {
 }
 
 // ProcessLocalMessage processing of local message to this bco
-func ProcessLocalMessage(s *daemon.ActorSystem) system.ProcessLocalMessage {
+func ProcessLocalMessage(s *ActorSystem) system.ProcessLocalMessage {
 	return func(message interface{}, to system.Coordinates, from system.Coordinates) {
 		if to.Region != "" && to.Region != s.Name {
 			log.Warnf("Invalid region received [local %s -> local %s]", from, to)
