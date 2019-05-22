@@ -33,8 +33,8 @@ func loadConfFromEnv() Configuration {
 	rootStorage := getEnvString("FIO_BCO_STORAGE", "/data")
 	lakeHostname := getEnvString("FIO_BCO_LAKE_HOSTNAME", "")
 	port := getEnvInteger("FIO_BCO_HTTP_PORT", 4000)
-	metricsOutput := getEnvString("VAULT_METRICS_OUTPUT", "")
-	metricsRefreshRate := getEnvDuration("VAULT_METRICS_REFRESHRATE", time.Second)
+	metricsOutput := getEnvString("FIO_BCO_METRICS_OUTPUT", "")
+	metricsRefreshRate := getEnvDuration("FIO_BCO_METRICS_REFRESHRATE", time.Second)
 
 	if lakeHostname == "" || secrets == "" || rootStorage == "" || encryptionKey == "" {
 		log.Fatal("missing required parameter to run")
