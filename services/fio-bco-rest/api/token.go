@@ -21,18 +21,16 @@ import (
 	"net/http"
 
 	"github.com/jancajthaml-openbank/fio-bco-rest/actor"
-	"github.com/jancajthaml-openbank/fio-bco-rest/daemon"
 	"github.com/jancajthaml-openbank/fio-bco-rest/model"
 	"github.com/jancajthaml-openbank/fio-bco-rest/persistence"
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 
 	"github.com/gorilla/mux"
-	localfs "github.com/jancajthaml-openbank/local-fs"
 	"github.com/rs/xid"
 )
 
 // TokenPartial returns http handler for single token
-func TokenPartial(system *daemon.ActorSystem) func(w http.ResponseWriter, r *http.Request) {
+func TokenPartial(server *Server) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
@@ -49,7 +47,7 @@ func TokenPartial(system *daemon.ActorSystem) func(w http.ResponseWriter, r *htt
 		switch r.Method {
 
 		case "DELETE":
-			DeleteToken(system, tenant, token, w, r)
+			DeleteToken(server, tenant, token, w, r)
 			return
 
 		default:
@@ -63,7 +61,7 @@ func TokenPartial(system *daemon.ActorSystem) func(w http.ResponseWriter, r *htt
 }
 
 // TokensPartial returns http handler for tokens
-func TokensPartial(system *daemon.ActorSystem, storage *localfs.Storage) func(w http.ResponseWriter, r *http.Request) {
+func TokensPartial(server *Server) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
@@ -79,11 +77,11 @@ func TokensPartial(system *daemon.ActorSystem, storage *localfs.Storage) func(w 
 		switch r.Method {
 
 		case "GET":
-			GetTokens(storage, tenant, w, r)
+			GetTokens(server, tenant, w, r)
 			return
 
 		case "POST":
-			CreateToken(system, tenant, w, r)
+			CreateToken(server, tenant, w, r)
 			return
 
 		default:
@@ -98,7 +96,7 @@ func TokensPartial(system *daemon.ActorSystem, storage *localfs.Storage) func(w 
 }
 
 // CreateToken creates new token
-func CreateToken(system *daemon.ActorSystem, tenant string, w http.ResponseWriter, r *http.Request) {
+func CreateToken(server *Server, tenant string, w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
@@ -121,7 +119,7 @@ func CreateToken(system *daemon.ActorSystem, tenant string, w http.ResponseWrite
 	rand.Read(noise)
 	req.ID = hex.EncodeToString(noise) + xid.New().String()
 
-	switch actor.CreateToken(system, tenant, *req).(type) {
+	switch actor.CreateToken(server.ActorSystem, tenant, *req).(type) {
 
 	case *model.TokenCreated:
 
@@ -154,8 +152,8 @@ func CreateToken(system *daemon.ActorSystem, tenant string, w http.ResponseWrite
 }
 
 // DeleteToken deletes existing token
-func DeleteToken(system *daemon.ActorSystem, tenant string, token string, w http.ResponseWriter, r *http.Request) {
-	switch actor.DeleteToken(system, tenant, token).(type) {
+func DeleteToken(server *Server, tenant string, token string, w http.ResponseWriter, r *http.Request) {
+	switch actor.DeleteToken(server.ActorSystem, tenant, token).(type) {
 
 	case *model.TokenDeleted:
 		w.Header().Set("Content-Type", "application/json")
@@ -179,8 +177,8 @@ func DeleteToken(system *daemon.ActorSystem, tenant string, token string, w http
 }
 
 // GetTokens retruns list of existing tokens
-func GetTokens(storage *localfs.Storage, tenant string, w http.ResponseWriter, r *http.Request) {
-	tokens, err := persistence.LoadTokens(storage, tenant)
+func GetTokens(server *Server, tenant string, w http.ResponseWriter, r *http.Request) {
+	tokens, err := persistence.LoadTokens(server.Storage, tenant)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)

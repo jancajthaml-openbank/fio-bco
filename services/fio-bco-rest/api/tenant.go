@@ -18,13 +18,12 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/jancajthaml-openbank/fio-bco-rest/daemon"
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 	"github.com/labstack/gommon/log"
 )
 
 // TenantPartial returns http handler for single tenant
-func TenantPartial(system *daemon.SystemControl) func(w http.ResponseWriter, r *http.Request) {
+func TenantPartial(server *Server) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
@@ -40,11 +39,11 @@ func TenantPartial(system *daemon.SystemControl) func(w http.ResponseWriter, r *
 		switch r.Method {
 
 		case "POST":
-			EnableUnit(system, tenant, w, r)
+			EnableUnit(server, tenant, w, r)
 			return
 
 		case "DELETE":
-			DisableUnit(system, tenant, w, r)
+			DisableUnit(server, tenant, w, r)
 			return
 
 		default:
@@ -58,10 +57,10 @@ func TenantPartial(system *daemon.SystemControl) func(w http.ResponseWriter, r *
 }
 
 // TenantsPartial returns http handler for tenants
-func TenantsPartial(system *daemon.SystemControl) func(w http.ResponseWriter, r *http.Request) {
+func TenantsPartial(server *Server) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		units, err := system.ListUnits("fio-bco-import@")
+		units, err := server.SystemControl.ListUnits("fio-bco-import@")
 		if err != nil {
 			log.Errorf("Error when listing units, %+v", err)
 			w.Header().Set("Content-Type", "application/json")
@@ -86,8 +85,8 @@ func TenantsPartial(system *daemon.SystemControl) func(w http.ResponseWriter, r 
 }
 
 // EnableUnit enables tenant unit
-func EnableUnit(system *daemon.SystemControl, tenant string, w http.ResponseWriter, r *http.Request) {
-	err := system.EnableUnit("fio-bco-import@" + tenant + ".service")
+func EnableUnit(server *Server, tenant string, w http.ResponseWriter, r *http.Request) {
+	err := server.SystemControl.EnableUnit("fio-bco-import@" + tenant + ".service")
 	if err != nil {
 		log.Errorf("Error when enabling unit, %+v", err)
 		w.Header().Set("Content-Type", "application/json")
@@ -104,8 +103,8 @@ func EnableUnit(system *daemon.SystemControl, tenant string, w http.ResponseWrit
 }
 
 // DisableUnit disables tenant unit
-func DisableUnit(system *daemon.SystemControl, tenant string, w http.ResponseWriter, r *http.Request) {
-	err := system.DisableUnit("fio-bco-import@" + tenant + ".service")
+func DisableUnit(server *Server, tenant string, w http.ResponseWriter, r *http.Request) {
+	err := server.SystemControl.DisableUnit("fio-bco-import@" + tenant + ".service")
 	if err != nil {
 		log.Errorf("Error when disabling unit, %+v", err)
 		w.Header().Set("Content-Type", "application/json")

@@ -1,5 +1,5 @@
 Package: fio-bco
-Version: 1.2.4+update-actor-system
+Version: 1.2.4+single-app-struct
 Section: misc
 Priority: extra
 Architecture: amd64

@@ -18,8 +18,10 @@ import (
 	"encoding/hex"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -31,19 +33,15 @@ func loadConfFromEnv() Configuration {
 	rootStorage := getEnvString("FIO_BCO_STORAGE", "/data")
 	lakeHostname := getEnvString("FIO_BCO_LAKE_HOSTNAME", "")
 	port := getEnvInteger("FIO_BCO_HTTP_PORT", 4000)
+	metricsOutput := getEnvString("VAULT_METRICS_OUTPUT", "")
+	metricsRefreshRate := getEnvDuration("VAULT_METRICS_REFRESHRATE", time.Second)
 
 	if lakeHostname == "" || secrets == "" || rootStorage == "" || encryptionKey == "" {
 		log.Fatal("missing required parameter to run")
 	}
 
-	serverCert, err := ioutil.ReadFile(secrets + "/domain.local.crt")
-	if err != nil {
-		log.Fatalf("unable to load certificate %s/domain.local.crt with error %+v", secrets, err)
-	}
-
-	serverKey, err := ioutil.ReadFile(secrets + "/domain.local.key")
-	if err != nil {
-		log.Fatalf("unable to load certificate %s/domain.local.key with error %+v", secrets, err)
+	if metricsOutput != "" && os.MkdirAll(filepath.Dir(metricsOutput), os.ModePerm) != nil {
+		log.Fatal("unable to assert metrics output")
 	}
 
 	keyData, err := ioutil.ReadFile(encryptionKey)
@@ -57,13 +55,14 @@ func loadConfFromEnv() Configuration {
 	}
 
 	return Configuration{
-		RootStorage:   rootStorage,
-		EncryptionKey: []byte(storageKey),
-		ServerPort:    port,
-		SecretKey:     serverKey,
-		SecretCert:    serverCert,
-		LakeHostname:  lakeHostname,
-		LogLevel:      logLevel,
+		RootStorage:        rootStorage,
+		EncryptionKey:      []byte(storageKey),
+		ServerPort:         port,
+		SecretsPath:        secrets,
+		LakeHostname:       lakeHostname,
+		LogLevel:           logLevel,
+		MetricsRefreshRate: metricsRefreshRate,
+		MetricsOutput:      metricsOutput,
 	}
 }
 
@@ -81,6 +80,18 @@ func getEnvInteger(key string, fallback int) int {
 		return fallback
 	}
 	cast, err := strconv.Atoi(value)
+	if err != nil {
+		log.Panicf("invalid value of variable %s", key)
+	}
+	return cast
+}
+
+func getEnvDuration(key string, fallback time.Duration) time.Duration {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return fallback
+	}
+	cast, err := time.ParseDuration(value)
 	if err != nil {
 		log.Panicf("invalid value of variable %s", key)
 	}

@@ -12,28 +12,48 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package daemon
+package actor
 
 import (
 	"context"
 	"fmt"
 	"time"
 
-	"github.com/jancajthaml-openbank/fio-bco-rest/config"
+	"github.com/jancajthaml-openbank/fio-bco-import/integration"
+	"github.com/jancajthaml-openbank/fio-bco-import/metrics"
 
 	system "github.com/jancajthaml-openbank/actor-system"
+	localfs "github.com/jancajthaml-openbank/local-fs"
 )
 
 // ActorSystem represents actor system subroutine
 type ActorSystem struct {
 	system.Support
+	Tenant        string
+	Storage       *localfs.Storage
+	Metrics       *metrics.Metrics
+	FioGateway    string
+	LedgerGateway string
+	VaultGateway  string
+	HttpClient    integration.Client
 }
 
 // NewActorSystem returns actor system fascade
-func NewActorSystem(ctx context.Context, cfg config.Configuration) ActorSystem {
-	return ActorSystem{
-		Support: system.NewSupport(ctx, "FioRest", cfg.LakeHostname),
+func NewActorSystem(ctx context.Context, tenant string, lakeEndpoint string, fioEndpoint string, vaultEndpoint string, ledgerEndpoint string, metrics *metrics.Metrics, storage *localfs.Storage) ActorSystem {
+	result := ActorSystem{
+		Support:       system.NewSupport(ctx, "FioUnit/"+tenant, lakeEndpoint),
+		Storage:       storage,
+		Metrics:       metrics,
+		FioGateway:    fioEndpoint,
+		LedgerGateway: ledgerEndpoint,
+		VaultGateway:  vaultEndpoint,
+		HttpClient:    integration.NewClient(),
 	}
+
+	result.Support.RegisterOnLocalMessage(ProcessLocalMessage(&result))
+	result.Support.RegisterOnRemoteMessage(ProcessRemoteMessage(&result))
+
+	return result
 }
 
 // GreenLight daemon noop
