@@ -36,15 +36,11 @@ func loadConfFromEnv() Configuration {
 	vaultGateway := getEnvString("FIO_BCO_VAULT_GATEWAY", "https://127.0.0.1:4400")
 	syncRate := getEnvDuration("FIO_BCO_SYNC_RATE", 22*time.Second)
 	lakeHostname := getEnvString("FIO_BCO_LAKE_HOSTNAME", "")
-	metricsOutput := getEnvString("FIO_BCO_METRICS_OUTPUT", "")
+	metricsOutput := getEnvFilename("FIO_BCO_METRICS_OUTPUT", "/tmp")
 	metricsRefreshRate := getEnvDuration("FIO_BCO_METRICS_REFRESHRATE", time.Second)
 
 	if tenant == "" || lakeHostname == "" || rootStorage == "" || encryptionKey == "" {
 		log.Fatal("missing required parameter to run")
-	}
-
-	if metricsOutput != "" && os.MkdirAll(filepath.Dir(metricsOutput), os.ModePerm) != nil {
-		log.Fatal("unable to assert metrics output")
 	}
 
 	keyData, err := ioutil.ReadFile(encryptionKey)
@@ -68,8 +64,20 @@ func loadConfFromEnv() Configuration {
 		LakeHostname:       lakeHostname,
 		LogLevel:           logLevel,
 		MetricsRefreshRate: metricsRefreshRate,
-		MetricsOutput:      metricsOutput,
+		MetricsOutput:      metricsOutput + "/metrics." + tenant + ".json",
 	}
+}
+
+func getEnvFilename(key, fallback string) string {
+	var value = strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return fallback
+	}
+	value = filepath.Clean(value)
+	if os.MkdirAll(value, os.ModePerm) != nil {
+		return fallback
+	}
+	return value
 }
 
 func getEnvString(key, fallback string) string {
