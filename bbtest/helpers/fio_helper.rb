@@ -92,12 +92,8 @@ class FioSetLastStatemetPivotDateHandler < WEBrick::HTTPServlet::AbstractServlet
 
     return 404, "application/json", "{}" if params.length < 2
 
-    #FioMock.set_confirmed_transfer_pivot_date()
-
     token = params[0]
     date = params[1]
-
-    #puts "set last date for [ token: #{token} , date: #{date} ]"
 
     if request.accept.include? "application/json"
       return 200, "application/json", "{}"

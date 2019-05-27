@@ -9,16 +9,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetFilename(t *testing.T) {
-	assert.Equal(t, "/a/b/c.import.d.e", getFilename("/a/b/c.e", "d"))
-	assert.Equal(t, "/a/b/c.d", getFilename("/a/b/c.d", ""))
-}
-
 func TestMetricsPersist(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	entity := NewMetrics(ctx, "X", "", time.Hour)
+	entity := NewMetrics(ctx, "", time.Hour)
 	delay := 1e8
 	delta := 1e8
 
