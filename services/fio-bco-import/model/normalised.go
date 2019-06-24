@@ -43,6 +43,7 @@ type AccountPair struct {
 // Account entity in vault format
 type Account struct {
 	Name           string `json:"name"`
+	Format         string `json:"format"`
 	Currency       string `json:"currency"`
 	IsBalanceCheck bool   `json:"isBalanceCheck"`
 }

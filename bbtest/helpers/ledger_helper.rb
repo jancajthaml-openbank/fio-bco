@@ -1,35 +1,34 @@
 require 'json'
+require 'date'
+require 'json-schema'
 require 'thread'
 require_relative '../shims/harden_webrick'
-require_relative './vault_mock'
+require_relative './ledger_mock'
 
-class LedgerTransactionHandler < WEBrick::HTTPServlet::AbstractServlet
+class LedgerTransactionsPartial < WEBrick::HTTPServlet::AbstractServlet
 
-  def do_POST(request, response)
-    status, content_type, body = create_transaction(request)
+  def do_GET(request, response)
+    status, body = process(request)
 
     response.status = status
-    response['Content-Type'] = content_type
     response.body = body
   end
 
-  def create_transaction(request)
-    begin
-      body = JSON.parse(request.body)
+  def process(request)
+    path = request.path.split("/").map(&:strip).reject(&:empty?)
 
-      raise JSON::ParserError if body["transfers"].nil? || body["transfers"].empty?
-
-      if VaultMock.create_transaction(body["id"], body["transfers"])
-        return 200, "application/json", "{}"
-      else
-        return 409, "application/json", "{}"
-      end
-    rescue JSON::ParserError
-      return 400, "application/json", "{}"
-    rescue Exception => _
-      return 500, "application/json", "{}"
+    case path.length
+    when 2
+      meta = LedgerMock.get_transactions(path[1])
+      return 404, "{}" if meta.nil?
+      return 200, meta.to_json
+    when 3
+      meta = LedgerMock.get_transaction(path[1], path[2])
+      return 404, "{}" if meta.empty?
+      return 200, meta.to_json
+    else
+      return 404, "{}"
     end
-
   end
 end
 
@@ -45,11 +44,13 @@ module LedgerHelper
         AccessLog: [],
         SSLEnable: true
       )
+
     rescue Exception => err
+      raise err
       raise "Failed to allocate server binding! #{err}"
     end
 
-    self.server.mount "/transaction", LedgerTransactionHandler
+    self.server.mount "/transaction", LedgerTransactionsPartial
 
     self.server_daemon = Thread.new do
       self.server.start()

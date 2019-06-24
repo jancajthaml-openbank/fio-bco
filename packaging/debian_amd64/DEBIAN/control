@@ -1,5 +1,5 @@
 Package: fio-bco
-Version: 1.2.4+better-metrics
+Version: 1.2.4+account-format
 Section: misc
 Priority: extra
 Architecture: amd64

@@ -195,6 +195,7 @@ func (envelope *FioImportEnvelope) GetAccounts() []Account {
 	}
 
 	var normalizedAccount string
+	var accountFormat string
 	var deduplicated = make(map[string]Account)
 
 	for account, transfer := range set {
@@ -204,8 +205,15 @@ func (envelope *FioImportEnvelope) GetAccounts() []Account {
 			normalizedAccount = NormalizeAccountNumber(account, "", envelope.Statement.Info.BankID)
 		}
 
+		if normalizedAccount != account {
+			accountFormat = "IBAN"
+		} else {
+			accountFormat = "FIO_UNKNOWN"
+		}
+
 		deduplicated[normalizedAccount] = Account{
 			Name:           normalizedAccount,
+			Format:         accountFormat,
 			Currency:       envelope.Statement.Info.Currency, // FIXME not true in all cases
 			IsBalanceCheck: false,
 		}
@@ -213,6 +221,7 @@ func (envelope *FioImportEnvelope) GetAccounts() []Account {
 
 	deduplicated[envelope.Statement.Info.IBAN] = Account{
 		Name:           envelope.Statement.Info.IBAN,
+		Format:         "IBAN",
 		Currency:       envelope.Statement.Info.Currency,
 		IsBalanceCheck: false,
 	}
