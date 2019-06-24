@@ -1,4 +1,6 @@
-module VaultMock
+require 'bigdecimal'
+
+module LedgerMock
 
   class << self
     attr_accessor :tenants
@@ -10,30 +12,25 @@ module VaultMock
     self.tenants = Hash.new()
   end
 
-  def self.get_tenants()
-    self.tenants.keys
-  end
-
-  def self.get_accounts(tenant)
+  def self.get_transactions(tenant)
     return nil unless self.tenants.has_key?(tenant)
     return self.tenants[tenant].keys
   end
 
-  def self.get_acount(tenant, id)
+  def self.get_transaction(tenant, id)
     return {} unless self.tenants.has_key?(tenant)
     return {} unless self.tenants[tenant].has_key?(id)
     return self.tenants[tenant][id]
   end
 
-  def self.create_account(tenant, id, format, currency, is_balance_check)
+  def self.create_transaction(tenant, id, transfers, status)
     return if self.tenants.has_key?(tenant) && self.tenants[tenant].has_key?(id)
     self.tenants[tenant] = Hash.new() unless self.tenants.has_key?(tenant)
     self.tenants[tenant][id] = {
-      :currency => currency,
-      :format => format,
-      :isBalanceCheck => is_balance_check,
+      :id => id,
+      :status => (if status.nil? then "committed" else status end),
+      :transfers => transfers,
     }
     return
   end
-
 end
