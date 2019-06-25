@@ -2,26 +2,34 @@
 
 set -e
 
+if [ "$(ps -o comm -p 1 --no-headers | tr -d ' ')" = "systemd" ] ; then
+  SYSTEMD_AVAIL=true
+else
+  SYSTEMD_AVAIL=false
+fi
+
+enable() {
+  wanted_by=$(cat /lib/systemd/system/${1} | sed -n -e 's/^.*WantedBy=//p')
+  mkdir -p /etc/systemd/system/${wanted_by}.wants
+  ln -s \
+    "/lib/systemd/system/${1}" \
+    "/etc/systemd/system/${wanted_by}.wants/${1}"
+}
+
 case "$1" in
 
   configure)
-    if [ -f "/etc/init/fio-bco.conf" ] ; then
-      if [ -d /run/systemd/system ] ; then
-        systemctl unmask \
-          fio-bco.path \
-          fio-bco-import.service \
-          fio-bco-rest.service \
-          fio-bco.service \
-        >/dev/null
+    if [ -f /etc/init/fio-bco.conf ] ; then
 
-        systemctl enable \
-          fio-bco.path \
-          fio-bco-rest.service \
-          fio-bco.service \
-        >/dev/null
+      enable fio-bco.path
+      enable fio-bco.service
+      enable fio-bco-rest.service
 
+      if [ ${SYSTEMD_AVAIL} ] ; then
+        (systemctl daemon-reload || :)
         (systemctl start fio-bco.service >/dev/null || :)
       fi
+
     else
       (>&2 echo "/etc/init/fio-bco.conf file not found")
       exit 1
