@@ -2,55 +2,62 @@
 
 set -e
 
-delete_service_files() {
-  if [ -f "/lib/systemd/system/fio-bco-rest.service" ] ; then
-    rm /lib/systemd/system/fio-bco-rest.service
-  fi
+if [ "$(ps -o comm -p 1 --no-headers | tr -d ' ')" = "systemd" ] ; then
+  SYSTEMD_AVAIL=true
+else
+  SYSTEMD_AVAIL=false
+fi
 
-  if [ -f "/lib/systemd/system/fio-bco-import@.service" ] ; then
-    rm /lib/systemd/system/fio-bco-import@.service
-  fi
-
-  if [ -f "/lib/systemd/system/fio-bco.service" ] ; then
-    rm /lib/systemd/system/fio-bco.service
-  fi
-
-  if [ -f "/lib/systemd/system/fio-bco.path" ] ; then
-    rm /lib/systemd/system/fio-bco.path
+delete() {
+  if [ -f "${1}" ] ; then
+    rm "${1}"
   fi
 }
 
+delete_service_files() {
+  delete /etc/systemd/fio-bco.service.wants/fio-bco-rest.service
+  delete /lib/systemd/system/fio-bco-rest.service
+
+  delete /etc/systemd/fio-bco.service.wants/fio-bco-import@.service
+  delete /lib/systemd/system/fio-bco-import@.service
+
+  delete /etc/systemd/fio-bco.service.wants/fio-bco.path
+  delete /lib/systemd/system/fio-bco.path
+
+  delete /etc/systemd/multi-user.target.wants/fio-bco.service
+  delete /lib/systemd/system/fio-bco.service
+}
+
 delete_displace_files() {
-  if [ -f "/etc/init/fio-bco.conf" ] ; then
-    rm /etc/init/fio-bco.conf
-  fi
+  delete /etc/init/fio-bco.conf
 }
 
 case "$1" in
 
   purge)
-    # userdel openbank || :
-
     delete_service_files
     delete_displace_files
 
-    if [ -d /run/systemd/system ] ; then
+    if [ ${SYSTEMD_AVAIL} ] ; then
       (systemctl daemon-reload || :)
       (systemctl reset-failed || :)
     fi
   ;;
 
   remove)
-    if [ -d /run/systemd/system ] ; then
+    if [ ${SYSTEMD_AVAIL} ] ; then
       (systemctl -a -t service --no-legend  | awk '$1 ~ /fio-bco/ { print $1 }' | xargs -I {} systemctl stop {} 2> /dev/null || :)
-      (systemctl daemon-reload || :)
     fi
 
     delete_displace_files
+
+    if [ ${SYSTEMD_AVAIL} ] ; then
+      (systemctl daemon-reload || :)
+    fi
   ;;
 
   upgrade|deconfigure)
-    if [ -d /run/systemd/system ] ; then
+    if [ ${SYSTEMD_AVAIL} ] ; then
       systemctl stop fio-bco 2> /dev/null || :
     fi
   ;;
