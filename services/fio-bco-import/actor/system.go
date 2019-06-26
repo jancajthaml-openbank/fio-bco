@@ -44,6 +44,7 @@ func NewActorSystem(ctx context.Context, tenant string, lakeEndpoint string, fio
 		Support:       system.NewSupport(ctx, "FioUnit/"+tenant, lakeEndpoint),
 		Storage:       storage,
 		Metrics:       metrics,
+		Tenant:        tenant,
 		FioGateway:    fioEndpoint,
 		LedgerGateway: ledgerEndpoint,
 		VaultGateway:  vaultEndpoint,
