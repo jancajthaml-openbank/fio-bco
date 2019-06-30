@@ -1,5 +1,5 @@
 Package: fio-bco
-Version: 1.2.6+vault-create-account
+Version: 1.2.6+collect-test-coverage
 Section: misc
 Priority: extra
 Architecture: amd64
