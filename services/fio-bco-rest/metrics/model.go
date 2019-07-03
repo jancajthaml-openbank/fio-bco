@@ -21,7 +21,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jancajthaml-openbank/fio-bco-import/utils"
+	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 	metrics "github.com/rcrowley/go-metrics"
 )
 
