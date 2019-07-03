@@ -5,8 +5,6 @@ github.com/jancajthaml-openbank/actor-system v1.0.0 h1:3Gt5eZ8ezph96tYZaBK6k2daY
 github.com/jancajthaml-openbank/actor-system v1.0.0/go.mod h1:KGSJEIJaKXLhrSjLiSNgnFryYaZJVROlO/OEzSzmTvw=
 github.com/jancajthaml-openbank/lake-client v1.0.0 h1:iLd87jkb+KjUgJZfn35ApPK6G6jjuoRAsY418meuIWg=
 github.com/jancajthaml-openbank/lake-client v1.0.0/go.mod h1:/0U6zI+wTgfQAaoP6F19WbIAYR+eKrLLE85rUPgJ9bM=
-github.com/jancajthaml-openbank/local-fs v1.0.3 h1:67l6aJaOrJL+3S69ntURPFloBJmHkliMY9hQv8nhT74=
-github.com/jancajthaml-openbank/local-fs v1.0.3/go.mod h1:UTL5EojhSK0mMnCoGpdLdqRoH6qQFr/MWRd8vevysos=
 github.com/jancajthaml-openbank/local-fs v1.0.4 h1:88grjo+e/xSLEKCevJ0oI44pdRuUR8z+C81gSuuA71A=
 github.com/jancajthaml-openbank/local-fs v1.0.4/go.mod h1:UTL5EojhSK0mMnCoGpdLdqRoH6qQFr/MWRd8vevysos=
 github.com/json-iterator/go v1.1.6 h1:MrUvLMLTMxbqFJ9kzlvat/rYZqZnW3u4wkLzWTaFwKs=

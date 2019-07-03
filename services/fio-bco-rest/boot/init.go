@@ -32,6 +32,7 @@ import (
 type Program struct {
 	cfg           config.Configuration
 	interrupt     chan os.Signal
+	metrics       metrics.Metrics
 	actorSystem   actor.ActorSystem
 	rest          api.Server
 	systemControl systemd.SystemControl
@@ -59,6 +60,7 @@ func Initialize() Program {
 	return Program{
 		cfg:           cfg,
 		interrupt:     make(chan os.Signal, 1),
+		metrics:       metricsDaemon,
 		actorSystem:   actorSystemDaemon,
 		rest:          restDaemon,
 		systemControl: systemControlDaemon,
