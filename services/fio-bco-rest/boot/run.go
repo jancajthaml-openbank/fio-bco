@@ -49,7 +49,8 @@ func (app Program) WaitReady(deadline time.Duration) error {
 		}()
 	}
 
-	wg.Add(3)
+	wg.Add(4)
+	waitWithDeadline(app.metrics)
 	waitWithDeadline(app.actorSystem)
 	waitWithDeadline(app.rest)
 	waitWithDeadline(app.systemControl)
@@ -64,6 +65,7 @@ func (app Program) WaitReady(deadline time.Duration) error {
 
 // GreenLight daemons
 func (app Program) GreenLight() {
+	app.metrics.GreenLight()
 	app.actorSystem.GreenLight()
 	app.systemControl.GreenLight()
 	app.rest.GreenLight()
@@ -78,6 +80,7 @@ func (app Program) WaitInterrupt() {
 func (app Program) Run() {
 	log.Info(">>> Start <<<")
 
+	go app.metrics.Start()
 	go app.actorSystem.Start()
 	go app.systemControl.Start()
 	go app.rest.Start()
@@ -98,6 +101,7 @@ func (app Program) Run() {
 	app.rest.Stop()
 	app.actorSystem.Stop()
 	app.systemControl.Stop()
+	app.metrics.Stop()
 	app.cancel()
 
 	log.Info(">>> Stop <<<")

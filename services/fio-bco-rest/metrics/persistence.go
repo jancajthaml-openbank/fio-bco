@@ -15,53 +15,14 @@
 package metrics
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"os"
-	"strconv"
-	"time"
 
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 )
 
-// MarshalJSON serialises Metrics as json preserving uint64
-func (entity *Metrics) MarshalJSON() ([]byte, error) {
-	var buffer bytes.Buffer
-
-	buffer.WriteString("{\"getTokenLatency\":")
-	buffer.WriteString(strconv.FormatFloat(entity.getTokenLatency.Percentile(0.95), 'f', -1, 64))
-	buffer.WriteString(",\"createTokenLatency\":")
-	buffer.WriteString(strconv.FormatFloat(entity.createTokenLatency.Percentile(0.95), 'f', -1, 64))
-	buffer.WriteString(",\"deleteTokenLatency\":")
-	buffer.WriteString(strconv.FormatFloat(entity.deleteTokenLatency.Percentile(0.95), 'f', -1, 64))
-	buffer.WriteString("}")
-
-	return buffer.Bytes(), nil
-}
-
-// UnmarshalJSON unmarshal json of Metrics entity
-func (entity *Metrics) UnmarshalJSON(data []byte) error {
-	if entity == nil {
-		return fmt.Errorf("cannot unmarshall to nil pointer")
-	}
-	all := struct {
-		GetTokenLatency    float64 `json:"getTokenLatency"`
-		CreateTokenLatency float64 `json:"createTokenLatency"`
-		DeleteTokenLatency float64 `json:"deleteTokenLatency"`
-	}{}
-	err := utils.JSON.Unmarshal(data, &all)
-	if err != nil {
-		return err
-	}
-
-	entity.getTokenLatency.Update(time.Duration(all.GetTokenLatency))
-	entity.createTokenLatency.Update(time.Duration(all.CreateTokenLatency))
-	entity.deleteTokenLatency.Update(time.Duration(all.DeleteTokenLatency))
-
-	return nil
-}
-
+// Persist saved metrics state to storage
 func (metrics *Metrics) Persist() error {
 	if metrics == nil {
 		return fmt.Errorf("cannot persist nil reference")
@@ -71,7 +32,7 @@ func (metrics *Metrics) Persist() error {
 	if err != nil {
 		return err
 	}
-	f, err := os.OpenFile(tempFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.ModePerm)
+	f, err := os.OpenFile(tempFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		return err
 	}
@@ -85,19 +46,23 @@ func (metrics *Metrics) Persist() error {
 	return nil
 }
 
+// Hydrate loads metrics state from storage
 func (metrics *Metrics) Hydrate() error {
 	if metrics == nil {
 		return fmt.Errorf("cannot hydrate nil reference")
 	}
-	f, err := os.OpenFile(metrics.output, os.O_RDONLY, os.ModePerm)
+	fi, err := os.Stat(metrics.output)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	f, err := os.OpenFile(metrics.output, os.O_RDONLY, 0444)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	fi, err := f.Stat()
-	if err != nil {
-		return err
-	}
 	buf := make([]byte, fi.Size())
 	_, err = f.Read(buf)
 	if err != nil && err != io.EOF {

@@ -15,37 +15,11 @@
 package metrics
 
 import (
-	"context"
 	"fmt"
 	"time"
 
-	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
-
-	metrics "github.com/rcrowley/go-metrics"
 	log "github.com/sirupsen/logrus"
 )
-
-// Metrics represents metrics subroutine
-type Metrics struct {
-	utils.DaemonSupport
-	output             string
-	refreshRate        time.Duration
-	getTokenLatency    metrics.Timer
-	createTokenLatency metrics.Timer
-	deleteTokenLatency metrics.Timer
-}
-
-// NewMetrics returns metrics fascade
-func NewMetrics(ctx context.Context, output string, refreshRate time.Duration) Metrics {
-	return Metrics{
-		DaemonSupport:      utils.NewDaemonSupport(ctx),
-		output:             output,
-		refreshRate:        refreshRate,
-		createTokenLatency: metrics.NewTimer(),
-		deleteTokenLatency: metrics.NewTimer(),
-		getTokenLatency:    metrics.NewTimer(),
-	}
-}
 
 // TimeGetToken measure execution of GetToken
 func (metrics *Metrics) TimeGetToken(f func()) {

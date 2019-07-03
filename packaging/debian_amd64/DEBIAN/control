@@ -1,5 +1,5 @@
 Package: fio-bco
-Version: 1.2.6+collect-test-coverage
+Version: 1.2.6+persistence-unit-test-coverage
 Section: misc
 Priority: extra
 Architecture: amd64

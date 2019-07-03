@@ -71,6 +71,29 @@ class UnitHelper
     raise "no package to install" unless File.file?('/etc/bbtest/packages/fio-bco.deb')
   end
 
+  def prepare_config()
+    defaults = {
+      "STORAGE" => "/data",
+      "LOG_LEVEL" => "DEBUG",
+      "FIO_GATEWAY" => "https://127.0.0.1:4000",
+      "SYNC_RATE" => "1h",
+      "VAULT_GATEWAY" => "https://127.0.0.1:4400",
+      "LEDGER_GATEWAY" => "https://127.0.0.1:4401",
+      "METRICS_OUTPUT" => "/reports",
+      "LAKE_HOSTNAME" => "127.0.0.1",
+      "METRICS_REFRESHRATE" => "1h",
+      "HTTP_PORT" => "4002",
+      "SECRETS" => "/opt/fio-bco/secrets",
+      "ENCRYPTION_KEY" => "/opt/fio-bco/secrets/fs_encryption.key"
+    }
+
+    config = Array[defaults.map {|k,v| "FIO_BCO_#{k}=#{v}"}]
+    config = config.join("\n").inspect.delete('\"')
+
+    %x(mkdir -p /etc/init)
+    %x(echo '#{config}' > /etc/init/fio-bco.conf)
+  end
+
   def cleanup()
     %x(systemctl -t service --no-legend | awk '{ print $1 }' | sort -t @ -k 2 -g)
       .split("\n")

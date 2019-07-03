@@ -15,53 +15,11 @@
 package metrics
 
 import (
-	"context"
 	"fmt"
 	"time"
 
-	"github.com/jancajthaml-openbank/fio-bco-import/utils"
-
-	metrics "github.com/rcrowley/go-metrics"
 	log "github.com/sirupsen/logrus"
 )
-
-// Metrics represents metrics subroutine
-type Metrics struct {
-	utils.DaemonSupport
-	output                   string
-	createdTokens            metrics.Counter
-	deletedTokens            metrics.Counter
-	refreshRate              time.Duration
-	syncLatency              metrics.Timer
-	importAccountLatency     metrics.Timer
-	exportAccountLatency     metrics.Timer
-	importTransactionLatency metrics.Timer
-	exportTransactionLatency metrics.Timer
-	importedAccounts         metrics.Meter
-	exportedAccounts         metrics.Meter
-	importedTransfers        metrics.Meter
-	exportedTransfers        metrics.Meter
-}
-
-// NewMetrics returns metrics fascade
-func NewMetrics(ctx context.Context, output string, refreshRate time.Duration) Metrics {
-	return Metrics{
-		DaemonSupport:            utils.NewDaemonSupport(ctx),
-		output:                   output,
-		refreshRate:              refreshRate,
-		createdTokens:            metrics.NewCounter(),
-		deletedTokens:            metrics.NewCounter(),
-		syncLatency:              metrics.NewTimer(),
-		importAccountLatency:     metrics.NewTimer(),
-		exportAccountLatency:     metrics.NewTimer(),
-		importTransactionLatency: metrics.NewTimer(),
-		exportTransactionLatency: metrics.NewTimer(),
-		importedAccounts:         metrics.NewMeter(),
-		exportedAccounts:         metrics.NewMeter(),
-		importedTransfers:        metrics.NewMeter(),
-		exportedTransfers:        metrics.NewMeter(),
-	}
-}
 
 // TokenCreated increments token created by one
 func (metrics *Metrics) TokenCreated() {
