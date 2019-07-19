@@ -8,7 +8,7 @@ Feature: Metrics test
       METRICS_REFRESHRATE=1s
     """
 
-    Then metrics file /reports/metrics.M2.json should have following keys:
+    Then metrics file /tmp/reports/metrics.M2.json should have following keys:
     """
       createdTokens
       deletedTokens
@@ -22,11 +22,11 @@ Feature: Metrics test
       exportedTransfers
       syncLatency
     """
-    And metrics file /reports/metrics.M2.json has permissions -rw-r--r--
-    And metrics file /reports/metrics.json should have following keys:
+    And metrics file /tmp/reports/metrics.M2.json has permissions -rw-r--r--
+    And metrics file /tmp/reports/metrics.json should have following keys:
     """
       createTokenLatency
       deleteTokenLatency
       getTokenLatency
     """
-    And metrics file /reports/metrics.json has permissions -rw-r--r--
+    And metrics file /tmp/reports/metrics.json has permissions -rw-r--r--

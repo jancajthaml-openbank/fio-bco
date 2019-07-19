@@ -5,7 +5,7 @@ ConditionPathExists=/etc/init/fio-bco.conf
 
 [Service]
 Type=oneshot
-ExecStart=/bin/true
+ExecStart=/bin/echo start fio-bco namespace
 RemainAfterExit=yes
 
 [Install]
