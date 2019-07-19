@@ -290,9 +290,18 @@ pipeline {
                     reportFiles: 'fio-bco-import-coverage.html',
                     reportName: 'FIO BCO Import | Unit Test Coverage'
                 ])
-                junit 'reports/unit-tests/fio-bco-rest-results.xml'
-                junit 'reports/unit-tests/fio-bco-import-results.xml'
-                junit 'reports/blackbox-tests/results.xml'
+                junit(
+                    allowEmptyResults: true,
+                    testResults: 'reports/unit-tests/fio-bco-rest-results.xml'
+                )
+                junit(
+                    allowEmptyResults: true,
+                    testResults: 'reports/unit-tests/fio-bco-import-results.xml'
+                )
+                junit(
+                    allowEmptyResults: true,
+                    testResults: 'reports/blackbox-tests/results.xml'
+                )
             }
             cleanWs()
         }
