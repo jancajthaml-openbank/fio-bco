@@ -38,8 +38,6 @@ var (
 // SetupLogger properly sets up logging
 func SetupLogger(level string) {
 
-	log.SetFormatter(new(LogFormat))
-
 	if logLevel, err := log.ParseLevel(level); err == nil {
 		log.Infof("Log level set to %v", strings.ToUpper(level))
 		log.SetLevel(logLevel)

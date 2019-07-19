@@ -20,14 +20,14 @@ case "$1" in
 
   configure)
     if [ -f /etc/init/fio-bco.conf ] ; then
-
       enable fio-bco.path
       enable fio-bco.service
       enable fio-bco-rest.service
 
       if [ ${SYSTEMD_AVAIL} ] ; then
-        (systemctl daemon-reload || :)
-        (systemctl start fio-bco.service >/dev/null || :)
+        systemctl daemon-reload
+        systemctl start fio-bco.service
+        systemctl start fio-bco.path
       fi
 
     else

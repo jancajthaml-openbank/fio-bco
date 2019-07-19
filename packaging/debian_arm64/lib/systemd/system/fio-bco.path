@@ -5,6 +5,8 @@ ConditionPathExists=/etc/init/fio-bco.conf
 
 [Path]
 PathChanged=/etc/init/fio-bco.conf
+PathModified=/etc/init/vault.conf
+Unit=fio-bco.service
 
 [Install]
 WantedBy=fio-bco.service
