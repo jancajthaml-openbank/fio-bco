@@ -224,14 +224,8 @@ pipeline {
                     BBTEST_IMAGE.withRun(bbtestOptions()) { c ->
                         sh """
                             docker exec -t ${c.id} \
-                            rspec \
-                            --colour \
-                            --tty \
-                            --require ${HOME}/bbtest/spec.rb \
-                            --format documentation \
-                            --format RSpec::JUnit \
-                            --out ${HOME}/reports/blackbox-tests/results.xml \
-                            --pattern ${HOME}/bbtest/features/\\*.feature
+                            python3 \
+                            ${HOME}/bbtest/main.py
                         """
                     }
                 }
@@ -266,14 +260,19 @@ pipeline {
                 sh "docker system prune"
             }
             script {
-                archiveArtifacts(
-                    allowEmptyArchive: true,
-                    artifacts: 'reports/bbtest-*.log'
-                )
-                archiveArtifacts(
-                    allowEmptyArchive: true,
-                    artifacts: 'packaging/bin/*'
-                )
+                dir('reports') {
+                    archiveArtifacts(
+                        allowEmptyArchive: true,
+                        artifacts: 'blackbox-tests/**/*'
+                    )
+                }
+                dir('packaging/bin') {
+                    archiveArtifacts(
+                        allowEmptyArchive: true,
+                        artifacts: '*'
+                    )
+                }
+
                 publishHTML(target: [
                     allowMissing: true,
                     alwaysLinkToLastBuild: false,
@@ -298,9 +297,10 @@ pipeline {
                     allowEmptyResults: true,
                     testResults: 'reports/unit-tests/fio-bco-import-results.xml'
                 )
-                junit(
+                cucumber(
                     allowEmptyResults: true,
-                    testResults: 'reports/blackbox-tests/results.xml'
+                    fileIncludePattern: '*',
+                    jsonReportDirectory: 'reports/blackbox-tests/cucumber'
                 )
             }
             cleanWs()
