@@ -1,5 +1,5 @@
 Package: fio-bco
-Version: 1.2.6+jenkins-pipeline
+Version: 1.2.6+use-python-for-bbtest
 Section: misc
 Priority: extra
 Architecture: amd64

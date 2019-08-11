@@ -1,0 +1,9 @@
+features/install.feature
+features/configuration.feature
+features/management.feature
+features/metrics.feature
+features/messaging.feature
+features/token.feature
+features/api.feature
+features/import.feature
+features/uninstall.feature

@@ -1,72 +1,112 @@
 Feature: REST
 
-  Scenario: Tenant API
-    Given fio-bco is running
-    And   tenant API is onbdoarded
+  Scenario: Tenant API test
+    Given unit "fio-bco-rest.service" is running
 
-    When I request curl GET https://127.0.0.1:4002/tenant
-    Then curl responds with 200
-    """
+    When I request HTTP https://127.0.0.1/tenant
+      | key    | value |
+      | method | GET   |
+    Then HTTP response is
+      | key    | value |
+      | status | 200   |
+      """
       []
-    """
+      """
 
-    When I request curl POST https://127.0.0.1:4002/tenant/APITESTA
-    Then curl responds with 200
-    """
-      {}
-    """
+    When I request HTTP https://127.0.0.1/tenant/APITESTA
+      | key    | value |
+      | method | POST  |
+    Then HTTP response is
+      | key    | value |
+      | status | 200   |
 
-    When I request curl POST https://127.0.0.1:4002/tenant/APITESTB
-    Then curl responds with 200
-    """
-      {}
-    """
+    When I request HTTP https://127.0.0.1/tenant/APITESTB
+      | key    | value |
+      | method |  POST |
+    Then HTTP response is
+      | key    | value |
+      | status | 200   |
 
-    When I request curl GET https://127.0.0.1:4002/tenant
-    Then curl responds with 200
-    """
+    When I request HTTP https://127.0.0.1/tenant
+      | key    | value |
+      | method | GET   |
+    Then HTTP response is
+      | key    | value |
+      | status | 200   |
+      """
       [
         "APITESTB"
       ]
-    """
+      """
 
-    When I request curl POST https://127.0.0.1:4002/tenant/APITESTC
-    Then curl responds with 200
-    """
-      {}
-    """
+    When I request HTTP https://127.0.0.1/tenant/APITESTC
+      | key    | value |
+      | method | POST  |
+    Then HTTP response is
+      | key    | value |
+      | status | 200   |
 
-    When I request curl DELETE https://127.0.0.1:4002/tenant/APITESTC
-    Then curl responds with 200
-    """
-      {}
-    """
+    When I request HTTP https://127.0.0.1/tenant/APITESTC
+      | key    | value  |
+      | method | DELETE |
+    Then HTTP response is
+      | key    | value  |
+      | status | 200    |
+
 
   Scenario: Token API
-    Given fio-bco is running
-    And   tenant API is onbdoarded
+    Given unit "fio-bco-rest.service" is running
+    And tenant API is onboarded
 
-    When I request curl GET https://127.0.0.1:4002/token/API
-    Then curl responds with 200
-    """
+    When I request HTTP https://127.0.0.1/token/API
+      | key    | value |
+      | method | GET   |
+    Then HTTP response is
+      | key    | value |
+      | status | 200   |
+      """
       []
-    """
+      """
 
-    When I request curl POST https://127.0.0.1:4002/token/API
-    """
+    When I request HTTP https://127.0.0.1/token/API
+      | key    | value |
+      | method | POST  |
+      """
       {
-        "value": "A"
+        "value": "X"
       }
-    """
-    Then curl responds with 200
+      """
+    Then HTTP response is
+      | key    | value |
+      | status | 200   |
 
-    When I request curl POST https://127.0.0.1:4002/token/API
-    """
+    When I request HTTP https://127.0.0.1/token/API
+      | key    | value |
+      | method | POST  |
+      """
       {
-        "value": "B"
+        "value": "X"
       }
-    """
-    Then curl responds with 200
+      """
+    Then HTTP response is
+      | key    | value |
+      | status | 200   |
 
-    When I request curl GET https://127.0.0.1:4002/token/API
-    Then curl responds with 200
+    When I request HTTP https://127.0.0.1/token/API
+      | key    | value |
+      | method | POST  |
+      """
+      {
+        "value": ""
+      }
+      """
+    Then HTTP response is
+      | key    | value |
+      | status | 400   |
+
+    When I request HTTP https://127.0.0.1/token/API
+      | key    | value |
+      | method | GET   |
+    Then HTTP response is
+      | key    | value |
+      | status | 200   |

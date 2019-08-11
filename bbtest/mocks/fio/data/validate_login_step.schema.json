@@ -1,0 +1,36 @@
+{
+  "type": "object",
+  "required": [
+    "authProcessStepValues",
+    "scenarioCode"
+  ],
+  "properties": {
+    "authProcessStepValues": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "#/definitions/processStep"
+      }
+    },
+    "scenarioCode": {
+      "type": "string"
+    }
+  },
+  "definitions": {
+    "processStep": {
+      "type": "object",
+      "required": [
+        "authDetailType",
+        "value"
+      ],
+      "properties": {
+        "authDetailType": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
