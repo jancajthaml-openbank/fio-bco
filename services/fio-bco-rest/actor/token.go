@@ -17,8 +17,6 @@ package actor
 import (
 	"time"
 
-	"github.com/jancajthaml-openbank/fio-bco-rest/model"
-
 	"github.com/rs/xid"
 
 	system "github.com/jancajthaml-openbank/actor-system"
@@ -26,7 +24,7 @@ import (
 )
 
 // CreateToken creates new token for target tenant
-func CreateToken(sys *ActorSystem, tenant string, token model.Token) (result interface{}) {
+func CreateToken(sys *ActorSystem, tenant string, token Token) (result interface{}) {
 	sys.Metrics.TimeCreateToken(func() {
 		defer func() {
 			if r := recover(); r != nil {
@@ -43,7 +41,7 @@ func CreateToken(sys *ActorSystem, tenant string, token model.Token) (result int
 
 		sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
 			switch msg := context.Data.(type) {
-			case *model.TokenCreated:
+			case *TokenCreated:
 				ch <- msg
 			default:
 				ch <- nil
@@ -59,7 +57,7 @@ func CreateToken(sys *ActorSystem, tenant string, token model.Token) (result int
 			return
 
 		case <-time.After(time.Second):
-			result = new(model.ReplyTimeout)
+			result = new(ReplyTimeout)
 			return
 		}
 	})
@@ -84,7 +82,7 @@ func DeleteToken(sys *ActorSystem, tenant string, token string) (result interfac
 
 		sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
 			switch msg := context.Data.(type) {
-			case *model.TokenDeleted:
+			case *TokenDeleted:
 				log.Infof("Token %s/%s deleted", tenant, token)
 				ch <- msg
 			default:
@@ -100,7 +98,7 @@ func DeleteToken(sys *ActorSystem, tenant string, token string) (result interfac
 			return
 
 		case <-time.After(time.Second):
-			result = new(model.ReplyTimeout)
+			result = new(ReplyTimeout)
 			return
 		}
 	})

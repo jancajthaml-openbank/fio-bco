@@ -21,7 +21,6 @@ import (
 	"net/http"
 
 	"github.com/jancajthaml-openbank/fio-bco-rest/actor"
-	"github.com/jancajthaml-openbank/fio-bco-rest/model"
 	"github.com/jancajthaml-openbank/fio-bco-rest/persistence"
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 
@@ -106,7 +105,7 @@ func CreateToken(server *Server, tenant string, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	var req = new(model.Token)
+	var req = new(actor.Token)
 	err = utils.JSON.Unmarshal(b, req)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -121,7 +120,7 @@ func CreateToken(server *Server, tenant string, w http.ResponseWriter, r *http.R
 
 	switch actor.CreateToken(server.ActorSystem, tenant, *req).(type) {
 
-	case *model.TokenCreated:
+	case *actor.TokenCreated:
 
 		resp, err := utils.JSON.Marshal(req)
 		if err != nil {
@@ -136,7 +135,7 @@ func CreateToken(server *Server, tenant string, w http.ResponseWriter, r *http.R
 		w.Write(resp)
 		return
 
-	case *model.ReplyTimeout:
+	case *actor.ReplyTimeout:
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusGatewayTimeout)
 		w.Write(emptyJSONObject)
@@ -155,13 +154,13 @@ func CreateToken(server *Server, tenant string, w http.ResponseWriter, r *http.R
 func DeleteToken(server *Server, tenant string, token string, w http.ResponseWriter, r *http.Request) {
 	switch actor.DeleteToken(server.ActorSystem, tenant, token).(type) {
 
-	case *model.TokenDeleted:
+	case *actor.TokenDeleted:
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(emptyJSONObject)
 		return
 
-	case *model.ReplyTimeout:
+	case *actor.ReplyTimeout:
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusGatewayTimeout)
 		w.Write(emptyJSONObject)

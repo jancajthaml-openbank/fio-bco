@@ -10,18 +10,20 @@ case "$1" in
       mkdir -p /etc/init
       touch /etc/init/fio-bco.conf
 
-      echo "FIO_BCO_STORAGE=/data" >> /etc/init/fio-bco.conf
+      echo "FIO_BCO_STORAGE=/data" > /etc/init/fio-bco.conf
       echo "FIO_BCO_LOG_LEVEL=INFO" >> /etc/init/fio-bco.conf
-      echo "FIO_BCO_METRICS_REFRESHRATE=1s" >> /etc/init/fio-bco.conf
       echo "FIO_BCO_FIO_GATEWAY=https://www.fio.cz" >> /etc/init/fio-bco.conf
       echo "FIO_BCO_SYNC_RATE=22s" >> /etc/init/fio-bco.conf
       echo "FIO_BCO_LEDGER_GATEWAY=https://127.0.0.1:4401" >> /etc/init/fio-bco.conf
       echo "FIO_BCO_VAULT_GATEWAY=https://127.0.0.1:4400" >> /etc/init/fio-bco.conf
-      echo "FIO_BCO_METRICS_OUTPUT=/opt/fio-bco/metrics/metrics.json" >> /etc/init/fio-bco.conf
       echo "FIO_BCO_LAKE_HOSTNAME=127.0.0.1" >> /etc/init/fio-bco.conf
       echo "FIO_BCO_HTTP_PORT=4002" >> /etc/init/fio-bco.conf
       echo "FIO_BCO_SECRETS=/opt/fio-bco/secrets" >> /etc/init/fio-bco.conf
       echo "FIO_BCO_ENCRYPTION_KEY=/opt/fio-bco/secrets/fs_encryption.key" >> /etc/init/fio-bco.conf
+      echo "FIO_BCO_MEMORY_THRESHOLD=0" >> /etc/init/fio-bco.conf
+      echo "FIO_BCO_STORAGE_THRESHOLD=0" >> /etc/init/fio-bco.conf
+      echo "FIO_BCO_METRICS_OUTPUT=/opt/fio-bco/metrics/metrics.json" >> /etc/init/fio-bco.conf
+      echo "FIO_BCO_METRICS_REFRESHRATE=1s" >> /etc/init/fio-bco.conf
     fi
 
     secrets=$(sed -n -e 's/^.*FIO_BCO_SECRETS=//p' /etc/init/fio-bco.conf 2>/dev/null | awk '{gsub(/^ +| +$/,"")} {print $0}')

@@ -18,8 +18,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jancajthaml-openbank/fio-bco-rest/model"
-
 	system "github.com/jancajthaml-openbank/actor-system"
 	log "github.com/sirupsen/logrus"
 )
@@ -76,10 +74,10 @@ func ProcessRemoteMessage(s *ActorSystem) system.ProcessRemoteMessage {
 			message = FatalError
 
 		case RespCreateToken:
-			message = new(model.TokenCreated)
+			message = new(TokenCreated)
 
 		case RespDeleteToken:
-			message = new(model.TokenDeleted)
+			message = new(TokenDeleted)
 
 		default:
 			log.Warnf("Deserialization of unsuported message [remote %v -> local %v] : %+v", from, to, msg)

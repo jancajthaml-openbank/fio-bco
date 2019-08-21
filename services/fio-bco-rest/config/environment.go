@@ -33,6 +33,8 @@ func loadConfFromEnv() Configuration {
 	rootStorage := getEnvString("FIO_BCO_STORAGE", "/data")
 	lakeHostname := getEnvString("FIO_BCO_LAKE_HOSTNAME", "")
 	port := getEnvInteger("FIO_BCO_HTTP_PORT", 4000)
+	minFreeDiskSpace := getEnvInteger("VAULT_STORAGE_THRESHOLD", 0)
+	minFreeMemory := getEnvInteger("VAULT_MEMORY_THRESHOLD", 0)
 	metricsOutput := getEnvFilename("FIO_BCO_METRICS_OUTPUT", "/tmp")
 	metricsRefreshRate := getEnvDuration("FIO_BCO_METRICS_REFRESHRATE", time.Second)
 
@@ -59,6 +61,8 @@ func loadConfFromEnv() Configuration {
 		LogLevel:           logLevel,
 		MetricsRefreshRate: metricsRefreshRate,
 		MetricsOutput:      metricsOutput + "/metrics.json",
+		MinFreeDiskSpace:   uint64(minFreeDiskSpace),
+		MinFreeMemory:      uint64(minFreeMemory),
 	}
 }
 

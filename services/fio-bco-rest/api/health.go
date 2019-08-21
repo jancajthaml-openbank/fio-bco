@@ -14,13 +14,49 @@
 
 package api
 
-import "net/http"
+import (
+	"net/http"
 
-// HealtCheck returns 200 OK
+	"github.com/jancajthaml-openbank/fio-bco-rest/system"
+	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
+)
+
+// HealtCheck returns 200 OK if service is healthy, 503 otherwise
 func HealtCheck(server *Server) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		units, err := server.SystemControl.GetUnitsProperties("fio-bco")
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusServiceUnavailable)
+			w.Write(emptyJSONObject)
+			return
+		}
+
+		status := system.SystemStatus{
+			Units: units,
+			Memory: system.MemoryStatus{
+				Free:      server.MemoryMonitor.GetFreeMemory(),
+				Used:      server.MemoryMonitor.GetUsedMemory(),
+				IsHealthy: server.MemoryMonitor.IsHealthy(),
+			},
+			Storage: system.StorageStatus{
+				Free:      server.DiskMonitor.GetFreeDiskSpace(),
+				Used:      server.DiskMonitor.GetUsedDiskSpace(),
+				IsHealthy: server.DiskMonitor.IsHealthy(),
+			},
+		}
+
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(emptyJSONObject)
+		resp, err := utils.JSON.Marshal(status)
+		if err != nil {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			w.Write(emptyJSONArray)
+		} else if !status.Storage.IsHealthy || !status.Memory.IsHealthy {
+			w.WriteHeader(http.StatusServiceUnavailable)
+			w.Write(resp)
+		} else {
+			w.WriteHeader(http.StatusOK)
+			w.Write(resp)
+		}
 	}
 }

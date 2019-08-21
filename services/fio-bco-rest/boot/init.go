@@ -22,7 +22,7 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-rest/api"
 	"github.com/jancajthaml-openbank/fio-bco-rest/config"
 	"github.com/jancajthaml-openbank/fio-bco-rest/metrics"
-	"github.com/jancajthaml-openbank/fio-bco-rest/systemd"
+	"github.com/jancajthaml-openbank/fio-bco-rest/system"
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
@@ -35,7 +35,9 @@ type Program struct {
 	metrics       metrics.Metrics
 	actorSystem   actor.ActorSystem
 	rest          api.Server
-	systemControl systemd.SystemControl
+	systemControl system.SystemControl
+	diskMonitor   system.DiskMonitor
+	memoryMonitor system.MemoryMonitor
 	cancel        context.CancelFunc
 }
 
@@ -47,7 +49,9 @@ func Initialize() Program {
 
 	utils.SetupLogger(cfg.LogLevel)
 
-	systemControlDaemon := systemd.NewSystemControl(ctx)
+	systemControlDaemon := system.NewSystemControl(ctx)
+	diskMonitorDaemon := system.NewDiskMonitor(ctx, cfg.MinFreeDiskSpace, cfg.RootStorage)
+	memoryMonitorDaemon := system.NewMemoryMonitor(ctx, cfg.MinFreeMemory)
 
 	storage := localfs.NewStorage(cfg.RootStorage)
 	storage.SetEncryptionKey(cfg.EncryptionKey)
@@ -55,7 +59,7 @@ func Initialize() Program {
 	metricsDaemon := metrics.NewMetrics(ctx, cfg.MetricsOutput, cfg.MetricsRefreshRate)
 
 	actorSystemDaemon := actor.NewActorSystem(ctx, cfg.LakeHostname, &metricsDaemon)
-	restDaemon := api.NewServer(ctx, cfg.ServerPort, cfg.SecretsPath, &actorSystemDaemon, &systemControlDaemon, &storage)
+	restDaemon := api.NewServer(ctx, cfg.ServerPort, cfg.SecretsPath, &actorSystemDaemon, &systemControlDaemon, &diskMonitorDaemon, &memoryMonitorDaemon, &storage)
 
 	return Program{
 		cfg:           cfg,
@@ -64,6 +68,8 @@ func Initialize() Program {
 		actorSystem:   actorSystemDaemon,
 		rest:          restDaemon,
 		systemControl: systemControlDaemon,
+		diskMonitor:   diskMonitorDaemon,
+		memoryMonitor: memoryMonitorDaemon,
 		cancel:        cancel,
 	}
 }
