@@ -110,3 +110,14 @@ Feature: REST
     Then HTTP response is
       | key    | value |
       | status | 200   |
+
+
+  Scenario: Health API
+    Given unit "vault-rest.service" is running
+
+    When I request HTTP https://127.0.0.1/health
+      | key    | value |
+      | method | GET   |
+    Then HTTP response is
+      | key    | value |
+      | status | 200   |

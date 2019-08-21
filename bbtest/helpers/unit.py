@@ -20,15 +20,17 @@ class UnitHelper(object):
       "LOG_LEVEL": "DEBUG",
       "FIO_GATEWAY": "https://127.0.0.1:4000",
       "SYNC_RATE": "1h",
+      "MEMORY_THRESHOLD": 0,
+      "STORAGE_THRESHOLD": 0,
       "VAULT_GATEWAY": "https://127.0.0.1:4400",
       "LEDGER_GATEWAY": "https://127.0.0.1:4401",
       "LAKE_HOSTNAME": "127.0.0.1",
+      "HTTP_PORT": 443,
+      "SECRETS": "/opt/fio-bco/secrets",
+      "ENCRYPTION_KEY": "/opt/fio-bco/secrets/fs_encryption.key",
       "METRICS_OUTPUT": "/tmp/reports/blackbox-tests/metrics",
       "METRICS_REFRESHRATE": "1h",
       #"METRICS_CONTINUOUS": "true",  # fixme implement
-      "HTTP_PORT": "443",
-      "SECRETS": "/opt/fio-bco/secrets",
-      "ENCRYPTION_KEY": "/opt/fio-bco/secrets/fs_encryption.key"
     }
 
   def get_arch(self):
