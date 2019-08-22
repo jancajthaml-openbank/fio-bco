@@ -25,9 +25,9 @@ case "$1" in
       enable fio-bco-rest.service
 
       if [ ${SYSTEMD_AVAIL} ] ; then
-        systemctl daemon-reload
-        systemctl start fio-bco.service
-        systemctl start fio-bco.path
+        (systemctl daemon-reload || :)
+        (systemctl start fio-bco.service || :)
+        (systemctl start fio-bco.path || :)
       fi
 
     else

@@ -58,7 +58,7 @@ case "$1" in
 
   upgrade|deconfigure)
     if [ ${SYSTEMD_AVAIL} ] ; then
-      systemctl stop fio-bco 2> /dev/null || :
+      (systemctl stop fio-bco 2> /dev/null || :)
     fi
   ;;
 
