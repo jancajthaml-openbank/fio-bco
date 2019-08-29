@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -38,12 +39,19 @@ func TestMarshalJSON(t *testing.T) {
 		entity.deleteTokenLatency.Update(time.Duration(3))
 
 		actual, err := entity.MarshalJSON()
-
 		require.Nil(t, err)
 
-		data := []byte("{\"getTokenLatency\":1,\"createTokenLatency\":2,\"deleteTokenLatency\":3}")
+		aux := &struct {
+			GetTokenLatency    float64 `json:"getTokenLatency"`
+			CreateTokenLatency float64 `json:"createTokenLatency"`
+			DeleteTokenLatency float64 `json:"deleteTokenLatency"`
+		}{}
 
-		assert.Equal(t, data, actual)
+		require.Nil(t, json.Unmarshal(actual, &aux))
+
+		assert.Equal(t, float64(1), aux.GetTokenLatency)
+		assert.Equal(t, float64(2), aux.CreateTokenLatency)
+		assert.Equal(t, float64(3), aux.DeleteTokenLatency)
 	}
 }
 
