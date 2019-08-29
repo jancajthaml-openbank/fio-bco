@@ -1,5 +1,5 @@
 Package: fio-bco
-Version: 1.2.7+health-check-status
+Version: 1.2.8+metrics-memory
 Section: misc
 Priority: extra
 Architecture: amd64
