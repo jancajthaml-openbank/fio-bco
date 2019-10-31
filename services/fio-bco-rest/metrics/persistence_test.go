@@ -22,7 +22,7 @@ func TestPersist(t *testing.T) {
 	t.Log("error when marshalling fails")
 	{
 		entity := Metrics{}
-		assert.EqualError(t, entity.Persist(), "json: error calling MarshalJSON for type *metrics.Metrics: cannot marshall nil references")
+		assert.EqualError(t, entity.Persist(), "cannot marshall nil references")
 	}
 
 	t.Log("error when cannot open tempfile for writing")
