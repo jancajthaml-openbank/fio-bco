@@ -8,6 +8,8 @@ github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f/go.mod h1:/YcGZj5zSblf
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
 github.com/gorilla/mux v1.7.3 h1:gnP5JzjVOuiZD07fKKToCAOjS0yOpj/qPETTXCCS6hw=
 github.com/gorilla/mux v1.7.3/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
+github.com/gorilla/mux v1.7.4 h1:VuZ8uybHlWmqV03+zRzdwKL4tUnIp1MAQtp1mIFE1bc=
+github.com/gorilla/mux v1.7.4/go.mod h1:DVbg23sWSpFRCP0SfiEN6jmj59UnW/n46BH5rLB71So=
 github.com/jancajthaml-openbank/actor-system v1.0.0 h1:3Gt5eZ8ezph96tYZaBK6k2daYfZuWvgnMOugk4WoV5A=
 github.com/jancajthaml-openbank/actor-system v1.0.0/go.mod h1:KGSJEIJaKXLhrSjLiSNgnFryYaZJVROlO/OEzSzmTvw=
 github.com/jancajthaml-openbank/lake-client v1.0.0 h1:iLd87jkb+KjUgJZfn35ApPK6G6jjuoRAsY418meuIWg=
