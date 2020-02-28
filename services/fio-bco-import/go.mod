@@ -7,5 +7,5 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a
 	github.com/sirupsen/logrus v1.4.2
-	github.com/stretchr/testify v1.5.0
+	github.com/stretchr/testify v1.5.1
 )
