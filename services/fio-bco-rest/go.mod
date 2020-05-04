@@ -12,6 +12,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a
 	github.com/rs/xid v1.2.1
-	github.com/sirupsen/logrus v1.5.0
+	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.5.1
 )
