@@ -112,5 +112,5 @@ func (fio FioImport) Start() {
 	}()
 
 	<-fio.IsDone
-	log.Info("Stop metrics daemon")
+	log.Info("Stop fio-import daemon")
 }
