@@ -16,7 +16,6 @@ package integration
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
@@ -40,7 +39,7 @@ type FioImport struct {
 // NewFioImport returns fio import fascade
 func NewFioImport(ctx context.Context, fioEndpoint string, syncRate time.Duration, storage *localfs.Storage, callback func(msg interface{}, to system.Coordinates, from system.Coordinates)) FioImport {
 	return FioImport{
-		DaemonSupport: utils.NewDaemonSupport(ctx),
+		DaemonSupport: utils.NewDaemonSupport(ctx, "fio"),
 		callback:      callback,
 		storage:       storage,
 		fioGateway:    fioEndpoint,
@@ -75,10 +74,6 @@ func (fio FioImport) importRoundtrip() {
 		return
 	}
 
-	if fio.IsDone() {
-		return
-	}
-
 	for _, item := range tokens {
 		log.Debugf("Request to import token %s", item)
 		msg := model.SynchronizeToken{}
@@ -88,43 +83,15 @@ func (fio FioImport) importRoundtrip() {
 	}
 }
 
-// WaitReady wait for fio import to be ready
-func (fio FioImport) WaitReady(deadline time.Duration) (err error) {
-	defer func() {
-		if e := recover(); e != nil {
-			switch x := e.(type) {
-			case string:
-				err = fmt.Errorf(x)
-			case error:
-				err = x
-			default:
-				err = fmt.Errorf("unknown panic")
-			}
-		}
-	}()
-
-	ticker := time.NewTicker(deadline)
-	select {
-	case <-fio.IsReady:
-		ticker.Stop()
-		err = nil
-		return
-	case <-ticker.C:
-		err = fmt.Errorf("daemon was not ready within %v seconds", deadline)
-		return
-	}
-}
-
 // Start handles everything needed to start fio import daemon
 func (fio FioImport) Start() {
-	defer fio.MarkDone()
-
 	fio.MarkReady()
 
 	select {
 	case <-fio.CanStart:
 		break
 	case <-fio.Done():
+		fio.MarkDone()
 		return
 	}
 
@@ -132,14 +99,18 @@ func (fio FioImport) Start() {
 
 	fio.importRoundtrip()
 
-	for {
-		select {
-		case <-fio.Done():
-			log.Info("Stopping fio-import daemon")
-			log.Info("Stop fio-import daemon")
-			return
-		case <-time.After(fio.syncRate):
-			fio.importRoundtrip()
+	go func() {
+		for {
+			select {
+			case <-fio.Done():
+				fio.MarkDone()
+				return
+			case <-time.After(fio.syncRate):
+				fio.importRoundtrip()
+			}
 		}
-	}
+	}()
+
+	<-fio.IsDone
+	log.Info("Stop metrics daemon")
 }

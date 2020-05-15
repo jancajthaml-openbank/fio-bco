@@ -39,7 +39,7 @@ type Metrics struct {
 // NewMetrics returns metrics fascade
 func NewMetrics(ctx context.Context, output string, refreshRate time.Duration) Metrics {
 	return Metrics{
-		DaemonSupport:      utils.NewDaemonSupport(ctx),
+		DaemonSupport:      utils.NewDaemonSupport(ctx, "metrics"),
 		output:             output,
 		refreshRate:        refreshRate,
 		createTokenLatency: metrics.NewTimer(),

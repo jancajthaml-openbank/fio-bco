@@ -1,4 +1,6 @@
-module github.com/jancajthaml-openbank/fio-bco/services/fio-bco-import
+module github.com/jancajthaml-openbank/fio-bco-import
+
+go 1.14
 
 require (
 	github.com/jancajthaml-openbank/actor-system v1.0.0

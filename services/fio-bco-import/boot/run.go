@@ -27,12 +27,12 @@ import (
 )
 
 // Stop stops the application
-func (app Program) Stop() {
-	close(app.interrupt)
+func (prog Program) Stop() {
+	close(prog.interrupt)
 }
 
 // WaitReady wait for daemons to be ready
-func (app Program) WaitReady(deadline time.Duration) error {
+func (prog Program) WaitReady(deadline time.Duration) error {
 	errors := make([]error, 0)
 	mux := new(sync.Mutex)
 
@@ -50,9 +50,9 @@ func (app Program) WaitReady(deadline time.Duration) error {
 	}
 
 	wg.Add(3)
-	waitWithDeadline(app.actorSystem)
-	waitWithDeadline(app.metrics)
-	waitWithDeadline(app.fio)
+	waitWithDeadline(prog.actorSystem)
+	waitWithDeadline(prog.metrics)
+	waitWithDeadline(prog.fio)
 	wg.Wait()
 
 	if len(errors) > 0 {
@@ -63,38 +63,41 @@ func (app Program) WaitReady(deadline time.Duration) error {
 }
 
 // GreenLight daemons
-func (app Program) GreenLight() {
-	app.metrics.GreenLight()
-	app.actorSystem.GreenLight()
-	app.fio.GreenLight()
+func (prog Program) GreenLight() {
+	prog.metrics.GreenLight()
+	prog.fio.GreenLight()
 }
 
 // WaitInterrupt wait for signal
-func (app Program) WaitInterrupt() {
-	<-app.interrupt
+func (prog Program) WaitInterrupt() {
+	<-prog.interrupt
 }
 
-// Run runs the application
-func (app Program) Run() {
-	go app.metrics.Start()
-	go app.actorSystem.Start()
-	go app.fio.Start()
+// WaitStop wait for daemons to stop
+func (prog Program) WaitStop() {
+	<-prog.fio.IsDone
+	<-prog.metrics.IsDone
+}
 
-	if err := app.WaitReady(5 * time.Second); err != nil {
+// Start runs the application
+func (prog Program) Start() {
+	go prog.actorSystem.Start()
+	go prog.metrics.Start()
+	go prog.fio.Start()
+
+	if err := prog.WaitReady(5 * time.Second); err != nil {
 		log.Errorf("Error when starting daemons: %+v", err)
 	} else {
 		log.Info(">>> Started <<<")
 		utils.NotifyServiceReady()
-		app.GreenLight()
-		signal.Notify(app.interrupt, syscall.SIGINT, syscall.SIGTERM)
-		app.WaitInterrupt()
+		prog.GreenLight()
+		signal.Notify(prog.interrupt, syscall.SIGINT, syscall.SIGTERM)
+		prog.WaitInterrupt()
 	}
 
 	log.Info(">>> Stopping <<<")
 	utils.NotifyServiceStopping()
 
-	app.fio.Stop()
-	app.metrics.Stop()
-	app.actorSystem.Stop()
-	app.cancel()
+	prog.cancel()
+	prog.WaitStop()
 }

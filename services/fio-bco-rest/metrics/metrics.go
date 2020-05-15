@@ -15,7 +15,6 @@
 package metrics
 
 import (
-	"fmt"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -36,37 +35,8 @@ func (metrics *Metrics) TimeDeleteToken(f func()) {
 	metrics.deleteTokenLatency.Time(f)
 }
 
-// WaitReady wait for metrics to be ready
-func (metrics Metrics) WaitReady(deadline time.Duration) (err error) {
-	defer func() {
-		if e := recover(); e != nil {
-			switch x := e.(type) {
-			case string:
-				err = fmt.Errorf(x)
-			case error:
-				err = x
-			default:
-				err = fmt.Errorf("unknown panic")
-			}
-		}
-	}()
-
-	ticker := time.NewTicker(deadline)
-	select {
-	case <-metrics.IsReady:
-		ticker.Stop()
-		err = nil
-		return
-	case <-ticker.C:
-		err = fmt.Errorf("daemon was not ready within %v seconds", deadline)
-		return
-	}
-}
-
 // Start handles everything needed to start metrics daemon
 func (metrics Metrics) Start() {
-	defer metrics.MarkDone()
-
 	ticker := time.NewTicker(metrics.refreshRate)
 	defer ticker.Stop()
 
@@ -79,20 +49,25 @@ func (metrics Metrics) Start() {
 	case <-metrics.CanStart:
 		break
 	case <-metrics.Done():
+		metrics.MarkDone()
 		return
 	}
 
 	log.Infof("Start metrics daemon, update each %v into %v", metrics.refreshRate, metrics.output)
 
-	for {
-		select {
-		case <-metrics.Done():
-			log.Info("Stopping metrics daemon")
-			metrics.Persist()
-			log.Info("Stop metrics daemon")
-			return
-		case <-ticker.C:
-			metrics.Persist()
+	go func() {
+		for {
+			select {
+			case <-metrics.Done():
+				metrics.Persist()
+				metrics.MarkDone()
+				return
+			case <-ticker.C:
+				metrics.Persist()
+			}
 		}
-	}
+	}()
+
+	<-metrics.IsDone
+	log.Info("Stop metrics daemon")
 }
