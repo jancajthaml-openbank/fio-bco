@@ -1,4 +1,6 @@
-module github.com/jancajthaml-openbank/bondster-bco/services/bondster-bco-rest
+module github.com/jancajthaml-openbank/fio-bco-rest
+
+go 1.14
 
 require (
 	github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142
