@@ -30,7 +30,7 @@ import (
 type ActorSystem struct {
 	system.Support
 	Tenant        string
-	Storage       *localfs.Storage
+	Storage       *localfs.EncryptedStorage
 	Metrics       *metrics.Metrics
 	FioGateway    string
 	LedgerGateway string
@@ -39,7 +39,7 @@ type ActorSystem struct {
 }
 
 // NewActorSystem returns actor system fascade
-func NewActorSystem(ctx context.Context, tenant string, lakeEndpoint string, fioEndpoint string, vaultEndpoint string, ledgerEndpoint string, metrics *metrics.Metrics, storage *localfs.Storage) ActorSystem {
+func NewActorSystem(ctx context.Context, tenant string, lakeEndpoint string, fioEndpoint string, vaultEndpoint string, ledgerEndpoint string, metrics *metrics.Metrics, storage *localfs.EncryptedStorage) ActorSystem {
 	result := ActorSystem{
 		Support:       system.NewSupport(ctx, "FioImport/"+tenant, lakeEndpoint),
 		Storage:       storage,

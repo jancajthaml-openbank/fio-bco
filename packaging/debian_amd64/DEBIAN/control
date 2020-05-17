@@ -1,5 +1,5 @@
 Package: fio-bco
-Version: 1.2.8+improve-daemons
+Version: 1.2.8+upgrade-localfs
 Section: misc
 Priority: extra
 Architecture: amd64
