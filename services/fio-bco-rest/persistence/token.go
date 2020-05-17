@@ -22,7 +22,7 @@ import (
 )
 
 // LoadTokens rehydrates token entity state from storage
-func LoadTokens(storage *localfs.Storage, tenant string) ([]actor.Token, error) {
+func LoadTokens(storage *localfs.EncryptedStorage, tenant string) ([]actor.Token, error) {
 	path := utils.TokensPath(tenant)
 	ok, err := storage.Exists(path)
 	if err != nil || !ok {
@@ -45,7 +45,7 @@ func LoadTokens(storage *localfs.Storage, tenant string) ([]actor.Token, error) 
 }
 
 // HydrateToken hydrate existing token from storage
-func HydrateToken(storage *localfs.Storage, tenant string, entity *actor.Token) *actor.Token {
+func HydrateToken(storage *localfs.EncryptedStorage, tenant string, entity *actor.Token) *actor.Token {
 	if entity == nil {
 		return nil
 	}
@@ -54,11 +54,7 @@ func HydrateToken(storage *localfs.Storage, tenant string, entity *actor.Token) 
 	if err != nil {
 		return nil
 	}
-	in, err := storage.Decrypt(data)
-	if err != nil {
-		return nil
-	}
-	err = entity.Deserialise(in)
+	err = entity.Deserialise(data)
 	if err != nil {
 		return nil
 	}

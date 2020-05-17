@@ -24,7 +24,7 @@ import (
 )
 
 // LoadTokens rehydrates token entity state from storage
-func LoadTokens(storage *localfs.Storage) ([]model.Token, error) {
+func LoadTokens(storage *localfs.EncryptedStorage) ([]model.Token, error) {
 	path := utils.TokensPath()
 	ok, err := storage.Exists(path)
 	if err != nil || !ok {
@@ -47,14 +47,14 @@ func LoadTokens(storage *localfs.Storage) ([]model.Token, error) {
 }
 
 // LoadToken rehydrates token entity state from storage
-func LoadToken(storage *localfs.Storage, id string) *model.Token {
+func LoadToken(storage *localfs.EncryptedStorage, id string) *model.Token {
 	result := new(model.Token)
 	result.ID = id
 	return HydrateToken(storage, result)
 }
 
 // CreateToken persist token entity state to storage
-func CreateToken(storage *localfs.Storage, id string, value string) *model.Token {
+func CreateToken(storage *localfs.EncryptedStorage, id string, value string) *model.Token {
 	return PersistToken(storage, &model.Token{
 		ID:           id,
 		Value:        value,
@@ -64,13 +64,13 @@ func CreateToken(storage *localfs.Storage, id string, value string) *model.Token
 }
 
 // DeleteToken deletes existing token entity
-func DeleteToken(storage *localfs.Storage, id string) bool {
+func DeleteToken(storage *localfs.EncryptedStorage, id string) bool {
 	path := utils.TokenPath(id)
 	return storage.DeleteFile(path) == nil
 }
 
 // PersistToken persist new token entity to storage
-func PersistToken(storage *localfs.Storage, entity *model.Token) *model.Token {
+func PersistToken(storage *localfs.EncryptedStorage, entity *model.Token) *model.Token {
 	if entity == nil {
 		return nil
 	}
@@ -79,18 +79,14 @@ func PersistToken(storage *localfs.Storage, entity *model.Token) *model.Token {
 	if err != nil {
 		return nil
 	}
-	out, err := storage.Encrypt(data)
-	if err != nil {
-		return nil
-	}
-	if storage.WriteFile(path, out) != nil {
+	if storage.WriteFileExclusive(path, data) != nil {
 		return nil
 	}
 	return entity
 }
 
 // HydrateToken hydrate existing token from storage
-func HydrateToken(storage *localfs.Storage, entity *model.Token) *model.Token {
+func HydrateToken(storage *localfs.EncryptedStorage, entity *model.Token) *model.Token {
 	if entity == nil {
 		return nil
 	}
@@ -99,11 +95,7 @@ func HydrateToken(storage *localfs.Storage, entity *model.Token) *model.Token {
 	if err != nil {
 		return nil
 	}
-	in, err := storage.Decrypt(data)
-	if err != nil {
-		return nil
-	}
-	err = entity.Deserialise(in)
+	err = entity.Deserialise(data)
 	if err != nil {
 		return nil
 	}
@@ -111,7 +103,7 @@ func HydrateToken(storage *localfs.Storage, entity *model.Token) *model.Token {
 }
 
 // UpdateToken updates data of existing token to storage
-func UpdateToken(storage *localfs.Storage, entity *model.Token) bool {
+func UpdateToken(storage *localfs.EncryptedStorage, entity *model.Token) bool {
 	if entity == nil {
 		return false
 	}
@@ -121,9 +113,5 @@ func UpdateToken(storage *localfs.Storage, entity *model.Token) bool {
 	if err != nil {
 		return false
 	}
-	out, err := storage.Encrypt(data)
-	if err != nil {
-		return false
-	}
-	return storage.UpdateFile(path, out) == nil
+	return storage.WriteFile(path, data) == nil
 }

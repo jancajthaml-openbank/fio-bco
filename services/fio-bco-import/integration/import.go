@@ -32,12 +32,12 @@ type FioImport struct {
 	utils.DaemonSupport
 	callback   func(msg interface{}, to system.Coordinates, from system.Coordinates)
 	fioGateway string
-	storage    *localfs.Storage
+	storage    *localfs.EncryptedStorage
 	syncRate   time.Duration
 }
 
 // NewFioImport returns fio import fascade
-func NewFioImport(ctx context.Context, fioEndpoint string, syncRate time.Duration, storage *localfs.Storage, callback func(msg interface{}, to system.Coordinates, from system.Coordinates)) FioImport {
+func NewFioImport(ctx context.Context, fioEndpoint string, syncRate time.Duration, storage *localfs.EncryptedStorage, callback func(msg interface{}, to system.Coordinates, from system.Coordinates)) FioImport {
 	return FioImport{
 		DaemonSupport: utils.NewDaemonSupport(ctx, "fio"),
 		callback:      callback,
