@@ -111,6 +111,6 @@ func (fio FioImport) Start() {
 		}
 	}()
 
-	<-fio.IsDone
+	fio.WaitStop()
 	log.Info("Stop fio-import daemon")
 }

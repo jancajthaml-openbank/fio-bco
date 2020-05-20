@@ -30,15 +30,10 @@ import (
 
 // Program encapsulate initialized application
 type Program struct {
-	interrupt     chan os.Signal
-	cfg           config.Configuration
-	metrics       metrics.Metrics
-	actorSystem   actor.ActorSystem
-	rest          api.Server
-	systemControl system.SystemControl
-	diskMonitor   system.DiskMonitor
-	memoryMonitor system.MemoryMonitor
-	cancel        context.CancelFunc
+	interrupt chan os.Signal
+	cfg       config.Configuration
+	daemons   []utils.Daemon
+	cancel    context.CancelFunc
 }
 
 // Initialize application
@@ -49,26 +44,28 @@ func Initialize() Program {
 
 	utils.SetupLogger(cfg.LogLevel)
 
+	storage := localfs.NewEncryptedStorage(cfg.RootStorage, cfg.EncryptionKey)
+
 	systemControlDaemon := system.NewSystemControl(ctx)
 	diskMonitorDaemon := system.NewDiskMonitor(ctx, cfg.MinFreeDiskSpace, cfg.RootStorage)
 	memoryMonitorDaemon := system.NewMemoryMonitor(ctx, cfg.MinFreeMemory)
-
-	storage := localfs.NewEncryptedStorage(cfg.RootStorage, cfg.EncryptionKey)
-
 	metricsDaemon := metrics.NewMetrics(ctx, cfg.MetricsOutput, cfg.MetricsRefreshRate)
-
 	actorSystemDaemon := actor.NewActorSystem(ctx, cfg.LakeHostname, &metricsDaemon)
 	restDaemon := api.NewServer(ctx, cfg.ServerPort, cfg.SecretsPath, &actorSystemDaemon, &systemControlDaemon, &diskMonitorDaemon, &memoryMonitorDaemon, &storage)
 
+	var daemons = make([]utils.Daemon, 0)
+	daemons = append(daemons, metricsDaemon)
+	daemons = append(daemons, actorSystemDaemon)
+	daemons = append(daemons, restDaemon)
+	daemons = append(daemons, systemControlDaemon)
+	daemons = append(daemons, diskMonitorDaemon)
+	daemons = append(daemons, memoryMonitorDaemon)
+
 	return Program{
-		interrupt:     make(chan os.Signal, 1),
-		cfg:           cfg,
-		metrics:       metricsDaemon,
-		actorSystem:   actorSystemDaemon,
-		rest:          restDaemon,
-		systemControl: systemControlDaemon,
-		diskMonitor:   diskMonitorDaemon,
-		memoryMonitor: memoryMonitorDaemon,
-		cancel:        cancel,
+		interrupt: make(chan os.Signal, 1),
+		cfg:       cfg,
+		daemons:   daemons,
+		cancel:    cancel,
 	}
+
 }
