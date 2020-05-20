@@ -67,5 +67,4 @@ func Initialize() Program {
 		daemons:   daemons,
 		cancel:    cancel,
 	}
-
 }
