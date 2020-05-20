@@ -49,7 +49,6 @@ func Initialize() Program {
 	actorSystemDaemon := actor.NewActorSystem(ctx, cfg.Tenant, cfg.LakeHostname, cfg.FioGateway, cfg.VaultGateway, cfg.LedgerGateway, &metricsDaemon, &storage)
 	fioDaemon := integration.NewFioImport(ctx, cfg.FioGateway, cfg.SyncRate, &storage, actor.ProcessLocalMessage(&actorSystemDaemon))
 
-
 	var daemons = make([]utils.Daemon, 0)
 	daemons = append(daemons, metricsDaemon)
 	daemons = append(daemons, actorSystemDaemon)
