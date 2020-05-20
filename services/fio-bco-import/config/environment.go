@@ -64,7 +64,7 @@ func loadConfFromEnv() Configuration {
 		LakeHostname:       lakeHostname,
 		LogLevel:           logLevel,
 		MetricsRefreshRate: metricsRefreshRate,
-		MetricsOutput:      metricsOutput + "/metrics." + tenant + ".json",
+		MetricsOutput:      metricsOutput,
 	}
 }
 
