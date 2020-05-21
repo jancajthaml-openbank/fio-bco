@@ -15,7 +15,6 @@
 package actor
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
@@ -24,26 +23,64 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func asEnvelopes(s *ActorSystem, msg string) (system.Coordinates, system.Coordinates, []string, error) {
-	parts := strings.Split(msg, " ")
+// ProcessRemoteMessage processing of remote message to this bondster-bco
+func ProcessMessage(s *ActorSystem) system.ProcessMessage {
+	return func(msg string, to system.Coordinates, from system.Coordinates) {
 
-	if len(parts) < 5 {
-		return system.Coordinates{}, system.Coordinates{}, nil, fmt.Errorf("invalid message received %+v", parts)
+		defer func() {
+			if r := recover(); r != nil {
+				log.Errorf("procesRemoteMessage recovered in [remote %v -> local %v] : %+v", from, to, r)
+				s.SendMessage(FatalErrorMessage(), to, from)
+			}
+		}()
+
+		ref, err := s.ActorOf(to.Name)
+		if err != nil {
+			ref, err = spawnTokenActor(s, to.Name)
+		}
+
+		if err != nil {
+			log.Warnf("Actor not found [remote %v -> local %v]", from, to)
+			s.SendMessage(FatalErrorMessage(), to, from)
+			return
+		}
+
+		parts := strings.Split(msg, " ")
+
+		var message interface{}
+
+		switch parts[0] {
+
+		case SynchronizeTokens:
+			message = model.SynchronizeToken{}
+
+		case ReqCreateToken:
+			if len(parts) == 2 {
+				message = model.CreateToken{
+					ID:    to.Name,
+					Value: parts[1],
+				}
+			} else {
+				message = nil
+			}
+
+		case ReqDeleteToken:
+			message = model.DeleteToken{
+				ID: to.Name,
+			}
+
+		default:
+			message = nil
+		}
+
+		if message == nil {
+			log.Warnf("Deserialization of unsuported message [remote %v -> local %v] : %+v", from, to, parts)
+			s.SendMessage(FatalErrorMessage(), to, from)
+			return
+		}
+
+		ref.Tell(message, to, from)
 	}
-
-	recieverRegion, senderRegion, receiverName, senderName := parts[0], parts[1], parts[2], parts[3]
-
-	from := system.Coordinates{
-		Name:   senderName,
-		Region: senderRegion,
-	}
-
-	to := system.Coordinates{
-		Name:   receiverName,
-		Region: recieverRegion,
-	}
-
-	return from, to, parts, nil
 }
 
 func spawnTokenActor(s *ActorSystem, id string) (*system.Envelope, error) {
@@ -57,93 +94,4 @@ func spawnTokenActor(s *ActorSystem, id string) (*system.Envelope, error) {
 
 	log.Debugf("%s ~ Token Spawned", id)
 	return envelope, nil
-}
-
-// ProcessRemoteMessage processing of remote message to this bondster-bco
-func ProcessRemoteMessage(s *ActorSystem) system.ProcessRemoteMessage {
-	return func(msg string) {
-		from, to, parts, err := asEnvelopes(s, msg)
-		if err != nil {
-			log.Warn(err.Error())
-			return
-		}
-
-		defer func() {
-			if r := recover(); r != nil {
-				log.Errorf("procesRemoteMessage recovered in [remote %v -> local %v] : %+v", from, to, r)
-				s.SendRemote(FatalErrorMessage(system.Context{
-					Receiver: to,
-					Sender:   from,
-				}))
-			}
-		}()
-
-		ref, err := s.ActorOf(to.Name)
-		if err != nil {
-			ref, err = spawnTokenActor(s, to.Name)
-		}
-
-		if err != nil {
-			log.Warnf("Actor not found [remote %v -> local %v]", from, to)
-			s.SendRemote(FatalErrorMessage(system.Context{
-				Receiver: to,
-				Sender:   from,
-			}))
-			return
-		}
-
-		var message interface{}
-
-		switch parts[4] {
-
-		case ReqCreateToken:
-			if len(parts) == 6 {
-				message = model.CreateToken{
-					ID:    parts[3],
-					Value: parts[5],
-				}
-			} else {
-				message = nil
-			}
-
-		case ReqDeleteToken:
-			message = model.DeleteToken{
-				ID: parts[3],
-			}
-
-		default:
-			message = nil
-		}
-
-		if message == nil {
-			log.Warnf("Deserialization of unsuported message [remote %v -> local %v] : %+v", from, to, parts)
-			s.SendRemote(FatalErrorMessage(system.Context{
-				Receiver: to,
-				Sender:   from,
-			}))
-			return
-		}
-
-		ref.Tell(message, to, from)
-	}
-}
-
-// ProcessLocalMessage processing of local message to this bco
-func ProcessLocalMessage(s *ActorSystem) system.ProcessLocalMessage {
-	return func(message interface{}, to system.Coordinates, from system.Coordinates) {
-		if to.Region != "" && to.Region != s.Name {
-			log.Warnf("Invalid region received [local %s -> local %s]", from, to)
-			return
-		}
-		ref, err := s.ActorOf(to.Name)
-		if err != nil {
-			ref, err = spawnTokenActor(s, to.Name)
-		}
-
-		if err != nil {
-			log.Warnf("Actor not found [local %s]", to)
-			return
-		}
-		ref.Tell(message, to, from)
-	}
 }

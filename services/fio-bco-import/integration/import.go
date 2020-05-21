@@ -18,11 +18,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/jancajthaml-openbank/fio-bco-import/model"
 	"github.com/jancajthaml-openbank/fio-bco-import/persistence"
 	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 
-	system "github.com/jancajthaml-openbank/actor-system"
 	localfs "github.com/jancajthaml-openbank/local-fs"
 	log "github.com/sirupsen/logrus"
 )
@@ -30,14 +28,14 @@ import (
 // FioImport represents fio gateway to ledger-rest import subroutine
 type FioImport struct {
 	utils.DaemonSupport
-	callback   func(msg interface{}, to system.Coordinates, from system.Coordinates)
+	callback   func(token string)
 	fioGateway string
 	storage    *localfs.EncryptedStorage
 	syncRate   time.Duration
 }
 
 // NewFioImport returns fio import fascade
-func NewFioImport(ctx context.Context, fioEndpoint string, syncRate time.Duration, storage *localfs.EncryptedStorage, callback func(msg interface{}, to system.Coordinates, from system.Coordinates)) FioImport {
+func NewFioImport(ctx context.Context, fioEndpoint string, syncRate time.Duration, storage *localfs.EncryptedStorage, callback func(token string)) FioImport {
 	return FioImport{
 		DaemonSupport: utils.NewDaemonSupport(ctx, "fio"),
 		callback:      callback,
@@ -76,10 +74,7 @@ func (fio FioImport) importRoundtrip() {
 
 	for _, item := range tokens {
 		log.Debugf("Request to import token %s", item)
-		msg := model.SynchronizeToken{}
-		to := system.Coordinates{Name: item}
-		from := system.Coordinates{Name: "token_import_cron"}
-		fio.callback(msg, to, from)
+		fio.callback(item)
 	}
 }
 

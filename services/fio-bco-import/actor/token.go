@@ -57,12 +57,12 @@ func NonExistToken(s *ActorSystem) func(interface{}, system.Context) {
 			tokenResult := persistence.CreateToken(s.Storage, state.ID, msg.Value)
 
 			if tokenResult == nil {
-				s.SendRemote(FatalErrorMessage(context))
+				s.SendMessage(FatalErrorMessage(), context.Sender, context.Receiver)
 				log.Debugf("%s ~ (NonExist CreateToken) Error", state.ID)
 				return
 			}
 
-			s.SendRemote(TokenCreatedMessage(context))
+			s.SendMessage(TokenCreatedMessage(), context.Sender, context.Receiver)
 			log.Infof("New Token %s Created", state.ID)
 			log.Debugf("%s ~ (NonExist CreateToken) OK", state.ID)
 			s.Metrics.TokenCreated()
@@ -71,14 +71,14 @@ func NonExistToken(s *ActorSystem) func(interface{}, system.Context) {
 			context.Self.Tell(model.SynchronizeToken{}, context.Receiver, context.Sender)
 
 		case model.DeleteToken:
-			s.SendRemote(FatalErrorMessage(context))
+			s.SendMessage(FatalErrorMessage(), context.Sender, context.Receiver)
 			log.Debugf("%s ~ (NonExist DeleteToken) Error", state.ID)
 
 		case model.SynchronizeToken:
 			break
 
 		default:
-			s.SendRemote(FatalErrorMessage(context))
+			s.SendMessage(FatalErrorMessage(), context.Sender, context.Receiver)
 			log.Debugf("%s ~ (NonExist Unknown Message) Error", state.ID)
 		}
 
@@ -94,7 +94,7 @@ func ExistToken(s *ActorSystem) func(interface{}, system.Context) {
 		switch context.Data.(type) {
 
 		case model.CreateToken:
-			s.SendRemote(FatalErrorMessage(context))
+			s.SendMessage(FatalErrorMessage(), context.Sender, context.Receiver)
 			log.Debugf("%s ~ (Exist CreateToken) Error", state.ID)
 
 		case model.SynchronizeToken:
@@ -103,18 +103,18 @@ func ExistToken(s *ActorSystem) func(interface{}, system.Context) {
 
 		case model.DeleteToken:
 			if !persistence.DeleteToken(s.Storage, state.ID) {
-				s.SendRemote(FatalErrorMessage(context))
+				s.SendMessage(FatalErrorMessage(), context.Sender, context.Receiver)
 				log.Debugf("%s ~ (Exist DeleteToken) Error", state.ID)
 				return
 			}
 			log.Infof("Token %s Deleted", state.ID)
 			log.Debugf("%s ~ (Exist DeleteToken) OK", state.ID)
 			s.Metrics.TokenDeleted()
-			s.SendRemote(TokenDeletedMessage(context))
+			s.SendMessage(TokenDeletedMessage(), context.Sender, context.Receiver)
 			context.Self.Become(state, NonExistToken(s))
 
 		default:
-			s.SendRemote(FatalErrorMessage(context))
+			s.SendMessage(FatalErrorMessage(), context.Sender, context.Receiver)
 			log.Warnf("%s ~ (Exist Unknown Message) Error", state.ID)
 
 		}
