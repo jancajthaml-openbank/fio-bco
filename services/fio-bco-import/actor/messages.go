@@ -14,15 +14,9 @@
 
 package actor
 
-import (
-	system "github.com/jancajthaml-openbank/actor-system"
-)
-
 const (
-	// ReqTokens fio message request code for "Get Tokens"
-	ReqTokens = "GT"
-	// RespTokens fio message response code for "Get Tokens"
-	RespTokens = "TG"
+	// SynchronizeTokens fio message request code for "Synchronize Tokens Now"
+	SynchronizeTokens = "ST"
 	// ReqCreateToken fio message request code for "New Token"
 	ReqCreateToken = "NT"
 	// RespCreateToken fio message response code for "New Token"
@@ -36,16 +30,16 @@ const (
 )
 
 // FatalErrorMessage is reply message carrying failure
-func FatalErrorMessage(context system.Context) string {
-	return context.Sender.Region + " " + context.Receiver.Region + " " + context.Sender.Name + " " + context.Receiver.Name + " " + FatalError
+func FatalErrorMessage() string {
+	return FatalError
 }
 
 // TokenCreatedMessage is reply message informing that token was created
-func TokenCreatedMessage(context system.Context) string {
-	return context.Sender.Region + " " + context.Receiver.Region + " " + context.Sender.Name + " " + context.Receiver.Name + " " + RespCreateToken
+func TokenCreatedMessage() string {
+	return RespCreateToken
 }
 
 // TokenDeletedMessage is reply message informing that token was deleted
-func TokenDeletedMessage(context system.Context) string {
-	return context.Sender.Region + " " + context.Receiver.Region + " " + context.Sender.Name + " " + context.Receiver.Name + " " + RespDeleteToken
+func TokenDeletedMessage() string {
+	return RespDeleteToken
 }

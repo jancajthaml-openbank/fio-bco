@@ -32,11 +32,11 @@ const (
 )
 
 // CreateTokenMessage is message for creation of new token
-func CreateTokenMessage(tenant string, sender string, token Token) string {
-	return "FioImport/" + tenant + " FioRest " + token.ID + " " + sender + " " + ReqCreateToken + " " + token.Value
+func CreateTokenMessage(token Token) string {
+	return ReqCreateToken + " " + token.Value
 }
 
 // DeleteTokenMessage is message for deletion of new token
-func DeleteTokenMessage(tenant string, sender string, token string) string {
-	return "FioImport/" + tenant + " FioRest " + token + " " + sender + " " + ReqDeleteToken
+func DeleteTokenMessage() string {
+	return ReqDeleteToken
 }
