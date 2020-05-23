@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2019, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2020, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package actor
 import (
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
 	"github.com/jancajthaml-openbank/fio-bco-import/persistence"
@@ -182,20 +181,14 @@ func importNewTransactions(s *ActorSystem, token model.Token) error {
 		}
 
 		uri := s.VaultGateway + "/account/" + s.Tenant
-		err = utils.Retry(10, time.Second, func() (err error) {
-			response, code, err = s.HttpClient.Post(uri, request)
-			if code == 200 || code == 409 || code == 400 {
-				return
-			} else if code >= 500 && err == nil {
-				err = fmt.Errorf("vault-rest POST %s error %d %+v", uri, code, string(response))
-			}
-			return
-		})
 
+		response, code, err = s.HttpClient.Post(uri, request)
 		if err != nil {
 			return fmt.Errorf("vault-rest account error %d %+v", code, err)
 		} else if code == 400 {
 			return fmt.Errorf("vault-rest account malformed request %+v", string(request))
+		} else if code == 503 {
+			return fmt.Errorf("vault-rest account timeout")
 		} else if code != 200 && code != 409 {
 			return fmt.Errorf("vault-rest account error %d %+v", code, string(response))
 		}
@@ -219,16 +212,8 @@ func importNewTransactions(s *ActorSystem, token model.Token) error {
 		}
 
 		uri := s.LedgerGateway + "/transaction/" + s.Tenant
-		err = utils.Retry(10, time.Second, func() (err error) {
-			response, code, err = s.HttpClient.Post(uri, request)
-			if code == 200 || code == 201 || code == 400 {
-				return
-			} else if code >= 500 && err == nil {
-				err = fmt.Errorf("ledger-rest POST %s error %d %+v", uri, code, string(response))
-			}
-			return
-		})
 
+		response, code, err = s.HttpClient.Post(uri, request)
 		if err != nil {
 			return fmt.Errorf("ledger-rest transaction error %d %+v", code, err)
 		}
@@ -237,6 +222,9 @@ func importNewTransactions(s *ActorSystem, token model.Token) error {
 		}
 		if code == 400 {
 			return fmt.Errorf("ledger-rest transaction malformed request %+v", string(request))
+		}
+		if code == 504 {
+			return fmt.Errorf("ledger-rest transaction timeout")
 		}
 		if code != 200 && code != 201 {
 			return fmt.Errorf("ledger-rest transaction error %d %+v", code, string(response))
@@ -248,9 +236,7 @@ func importNewTransactions(s *ActorSystem, token model.Token) error {
 				log.Warnf("Unable to update token %+v", token)
 			}
 		}
-
 	}
-
 	return nil
 }
 

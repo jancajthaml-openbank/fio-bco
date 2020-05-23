@@ -1,5 +1,5 @@
 Package: fio-bco
-Version: 1.2.8+upgrade-actor-system
+Version: 1.2.8+integration
 Section: misc
 Priority: extra
 Architecture: amd64

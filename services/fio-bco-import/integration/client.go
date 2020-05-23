@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2019, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2020, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,12 +36,12 @@ type Client struct {
 func NewClient() Client {
 	return Client{
 		underlying: &http.Client{
-			Timeout: 5 * time.Second,
+			Timeout: 120 * time.Second,
 			Transport: &http.Transport{
 				DialContext: (&net.Dialer{
-					Timeout: 5 * time.Second,
+					Timeout: 30 * time.Second,
 				}).DialContext,
-				TLSHandshakeTimeout: 5 * time.Second,
+				TLSHandshakeTimeout: 10 * time.Second,
 				TLSClientConfig: &tls.Config{
 					InsecureSkipVerify:       true,
 					MinVersion:               tls.VersionTLS12,
