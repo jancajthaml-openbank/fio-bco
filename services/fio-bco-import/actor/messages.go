@@ -28,18 +28,3 @@ const (
 	// FatalError fio message response code for "Error"
 	FatalError = "EE"
 )
-
-// FatalErrorMessage is reply message carrying failure
-func FatalErrorMessage() string {
-	return FatalError
-}
-
-// TokenCreatedMessage is reply message informing that token was created
-func TokenCreatedMessage() string {
-	return RespCreateToken
-}
-
-// TokenDeletedMessage is reply message informing that token was deleted
-func TokenDeletedMessage() string {
-	return RespDeleteToken
-}

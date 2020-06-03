@@ -26,6 +26,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+
 // NilToken represents token that is neither existing neither non existing
 func NilToken(s *ActorSystem) func(interface{}, system.Context) {
 	return func(t_state interface{}, context system.Context) {
@@ -52,16 +53,19 @@ func NonExistToken(s *ActorSystem) func(interface{}, system.Context) {
 
 		switch msg := context.Data.(type) {
 
+		case model.ProbeMessage:
+			break
+
 		case model.CreateToken:
 			tokenResult := persistence.CreateToken(s.Storage, state.ID, msg.Value)
 
 			if tokenResult == nil {
-				s.SendMessage(FatalErrorMessage(), context.Sender, context.Receiver)
+				s.SendMessage(FatalError, context.Sender, context.Receiver)
 				log.Debugf("%s ~ (NonExist CreateToken) Error", state.ID)
 				return
 			}
 
-			s.SendMessage(TokenCreatedMessage(), context.Sender, context.Receiver)
+			s.SendMessage(RespCreateToken, context.Sender, context.Receiver)
 			log.Infof("New Token %s Created", state.ID)
 			log.Debugf("%s ~ (NonExist CreateToken) OK", state.ID)
 			s.Metrics.TokenCreated()
@@ -70,14 +74,14 @@ func NonExistToken(s *ActorSystem) func(interface{}, system.Context) {
 			context.Self.Tell(model.SynchronizeToken{}, context.Receiver, context.Sender)
 
 		case model.DeleteToken:
-			s.SendMessage(FatalErrorMessage(), context.Sender, context.Receiver)
+			s.SendMessage(FatalError, context.Sender, context.Receiver)
 			log.Debugf("%s ~ (NonExist DeleteToken) Error", state.ID)
 
 		case model.SynchronizeToken:
 			break
 
 		default:
-			s.SendMessage(FatalErrorMessage(), context.Sender, context.Receiver)
+			s.SendMessage(FatalError, context.Sender, context.Receiver)
 			log.Debugf("%s ~ (NonExist Unknown Message) Error", state.ID)
 		}
 
@@ -92,29 +96,67 @@ func ExistToken(s *ActorSystem) func(interface{}, system.Context) {
 
 		switch context.Data.(type) {
 
+		case model.ProbeMessage:
+			break
+
 		case model.CreateToken:
-			s.SendMessage(FatalErrorMessage(), context.Sender, context.Receiver)
+			s.SendMessage(FatalError, context.Sender, context.Receiver)
 			log.Debugf("%s ~ (Exist CreateToken) Error", state.ID)
 
 		case model.SynchronizeToken:
-			importStatements(s, state)
-			log.Debugf("%s ~ (Exist SynchronizeToken) OK", state.ID)
+			log.Debugf("%s ~ (Exist SynchronizeToken)", state.ID)
+			context.Self.Become(t_state, SynchronizingToken(s))
+			go importStatements(s, state, func() {
+				context.Self.Become(t_state, NilToken(s))
+				context.Self.Tell(model.ProbeMessage{}, context.Receiver, context.Receiver)
+			})
 
 		case model.DeleteToken:
 			if !persistence.DeleteToken(s.Storage, state.ID) {
-				s.SendMessage(FatalErrorMessage(), context.Sender, context.Receiver)
+				s.SendMessage(FatalError, context.Sender, context.Receiver)
 				log.Debugf("%s ~ (Exist DeleteToken) Error", state.ID)
 				return
 			}
 			log.Infof("Token %s Deleted", state.ID)
 			log.Debugf("%s ~ (Exist DeleteToken) OK", state.ID)
 			s.Metrics.TokenDeleted()
-			s.SendMessage(TokenDeletedMessage(), context.Sender, context.Receiver)
+			s.SendMessage(RespDeleteToken, context.Sender, context.Receiver)
 			context.Self.Become(state, NonExistToken(s))
 
 		default:
-			s.SendMessage(FatalErrorMessage(), context.Sender, context.Receiver)
+			s.SendMessage(FatalError, context.Sender, context.Receiver)
 			log.Warnf("%s ~ (Exist Unknown Message) Error", state.ID)
+
+		}
+
+		return
+	}
+}
+
+// SynchronizingToken represents account that is currently synchronizing
+func SynchronizingToken(s *ActorSystem) func(interface{}, system.Context) {
+	return func(t_state interface{}, context system.Context) {
+		state := t_state.(model.Token)
+
+		switch context.Data.(type) {
+
+		case model.ProbeMessage:
+			break
+
+		case model.CreateToken:
+			s.SendMessage(FatalError, context.Sender, context.Receiver)
+			log.Debugf("%s ~ (Synchronizing CreateToken) Error", state.ID)
+
+		case model.SynchronizeToken:
+			log.Debugf("%s ~ (Synchronizing SynchronizeToken)", state.ID)
+
+		case model.DeleteToken:
+			s.SendMessage(FatalError, context.Sender, context.Receiver)
+			log.Debugf("%s ~ (Synchronizing DeleteToken) Error", state.ID)
+
+		default:
+			s.SendMessage(FatalError, context.Sender, context.Receiver)
+			log.Warnf("%s ~ (Synchronizing Unknown Message) Error", state.ID)
 
 		}
 
@@ -240,14 +282,13 @@ func importNewTransactions(s *ActorSystem, token model.Token) error {
 	return nil
 }
 
-func importStatements(s *ActorSystem, token model.Token) {
+func importStatements(s *ActorSystem, token model.Token, callback func()) {
 	if err := setLastSyncedID(s, token); err != nil {
 		log.Warnf("set Last Synced ID Failed : %+v for %+v", err, token.ID)
 		return
 	}
-
-	if err := importNewTransactions(s, token); err != nil {
-		log.Warnf("importNewTransactions failed %+v for %+v", err, token.ID)
-		return
-	}
+	log.Debugf("Import %+v Begin", token.ID)
+	importNewTransactions(s, token)
+	log.Debugf("Import %+v End", token.ID)
+	callback()
 }
