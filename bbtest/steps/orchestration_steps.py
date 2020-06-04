@@ -100,7 +100,7 @@ def operation_unit(context, operation, unit):
 @given('tenant {tenant} is offboarded')
 def offboard_unit(context, tenant):
   (code, result, error) = execute([
-    'journalctl', '-o', 'short-precise', '-t', 'fio-bco-import@{}'.format(tenant), '--no-pager'
+    'journalctl', '-o', 'short-precise', '-t', 'fio-bco-import', '-u', 'fio-bco-import@{}'.format(tenant), '--no-pager'
   ])
   if code == 0:
     with open('/tmp/reports/blackbox-tests/logs/fio-bco-import.{}.log'.format(tenant), 'w') as f:
@@ -111,7 +111,7 @@ def offboard_unit(context, tenant):
   ])
 
   (code, result, error) = execute([
-    'journalctl', '-o', 'short-precise', '-t', 'fio-bco-import@{}'.format(tenant), '--no-pager'
+    'journalctl', '-o', 'short-precise', '-t', 'fio-bco-import', '-u', 'fio-bco-import@{}'.format(tenant), '--no-pager'
   ])
   if code == 0:
     with open('/tmp/reports/blackbox-tests/logs/fio-bco-import.{}.log'.format(tenant), 'w') as f:
