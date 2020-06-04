@@ -18,8 +18,8 @@ class ZMQHelper(threading.Thread):
   def start(self):
     ctx = zmq.Context.instance()
 
-    self.__pull_url = 'tcp://*:5562'
-    self.__pub_url = 'tcp://*:5561'
+    self.__pull_url = 'tcp://127.0.0.1:5562'
+    self.__pub_url = 'tcp://127.0.0.1:5561'
 
     self.__pub = ctx.socket(zmq.PUB)
     self.__pub.bind(self.__pub_url)

@@ -93,7 +93,8 @@ func getEnvInteger(key string, fallback int) int {
 	}
 	cast, err := strconv.Atoi(value)
 	if err != nil {
-		log.Panicf("invalid value of variable %s", key)
+		log.Errorf("invalid value of variable %s", key)
+		return fallback
 	}
 	return cast
 }
@@ -105,7 +106,8 @@ func getEnvDuration(key string, fallback time.Duration) time.Duration {
 	}
 	cast, err := time.ParseDuration(value)
 	if err != nil {
-		log.Panicf("invalid value of variable %s", key)
+		log.Errorf("invalid value of variable %s", key)
+		return fallback
 	}
 	return cast
 }
