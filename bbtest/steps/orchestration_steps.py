@@ -102,7 +102,7 @@ def offboard_unit(context, tenant):
   (code, result, error) = execute([
     'journalctl', '-o', 'short-precise', '-t', 'fio-bco-import', '-u', 'fio-bco-import@{}'.format(tenant), '--no-pager'
   ])
-  if code == 0:
+  if code == 0 and result:
     with open('/tmp/reports/blackbox-tests/logs/fio-bco-import.{}.log'.format(tenant), 'w') as f:
       f.write(result)
 
@@ -113,7 +113,7 @@ def offboard_unit(context, tenant):
   (code, result, error) = execute([
     'journalctl', '-o', 'short-precise', '-t', 'fio-bco-import', '-u', 'fio-bco-import@{}'.format(tenant), '--no-pager'
   ])
-  if code == 0:
+  if code == 0 and result:
     with open('/tmp/reports/blackbox-tests/logs/fio-bco-import.{}.log'.format(tenant), 'w') as f:
       f.write(result)
 

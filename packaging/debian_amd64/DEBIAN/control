@@ -1,5 +1,5 @@
 Package: fio-bco
-Version: 1.2.9+improve-bbtests
+Version: 1.2.9+improved-logging
 Section: misc
 Priority: extra
 Architecture: amd64

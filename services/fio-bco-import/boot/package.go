@@ -12,20 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package boot
 
 import (
-	"fmt"
-
-	"github.com/jancajthaml-openbank/fio-bco-import/boot"
+  "github.com/jancajthaml-openbank/fio-bco-import/logging"
 )
 
-func main() {
-	fmt.Println(">>> Start <<<")
-	program := boot.Initialize()
-	defer func() {
-		program.Stop()
-		fmt.Println(">>> Stop <<<")
-	}()
-	program.Start()
-}
+var log = logging.NewLogger("boot")
+

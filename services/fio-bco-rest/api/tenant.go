@@ -19,7 +19,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
-	"github.com/labstack/gommon/log"
 )
 
 // TenantPartial returns http handler for single tenant

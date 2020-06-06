@@ -24,6 +24,7 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-rest/metrics"
 	"github.com/jancajthaml-openbank/fio-bco-rest/system"
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
+	"github.com/jancajthaml-openbank/fio-bco-rest/logging"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
 )
@@ -42,16 +43,44 @@ func Initialize() Program {
 
 	cfg := config.GetConfig()
 
-	utils.SetupLogger(cfg.LogLevel)
+	logging.SetupLogger(cfg.LogLevel)
 
-	storage := localfs.NewEncryptedStorage(cfg.RootStorage, cfg.EncryptionKey)
-
-	systemControlDaemon := system.NewSystemControl(ctx)
-	diskMonitorDaemon := system.NewDiskMonitor(ctx, cfg.MinFreeDiskSpace, cfg.RootStorage)
-	memoryMonitorDaemon := system.NewMemoryMonitor(ctx, cfg.MinFreeMemory)
-	metricsDaemon := metrics.NewMetrics(ctx, cfg.MetricsOutput, cfg.MetricsRefreshRate)
-	actorSystemDaemon := actor.NewActorSystem(ctx, cfg.LakeHostname, &metricsDaemon)
-	restDaemon := api.NewServer(ctx, cfg.ServerPort, cfg.SecretsPath, &actorSystemDaemon, &systemControlDaemon, &diskMonitorDaemon, &memoryMonitorDaemon, &storage)
+	storage := localfs.NewEncryptedStorage(
+		cfg.RootStorage,
+		cfg.EncryptionKey,
+	)
+	systemControlDaemon := system.NewSystemControl(
+		ctx,
+	)
+	diskMonitorDaemon := system.NewDiskMonitor(
+		ctx,
+		cfg.MinFreeDiskSpace,
+		cfg.RootStorage,
+	)
+	memoryMonitorDaemon := system.NewMemoryMonitor(
+		ctx,
+		cfg.MinFreeMemory,
+	)
+	metricsDaemon := metrics.NewMetrics(
+		ctx,
+		cfg.MetricsOutput,
+		cfg.MetricsRefreshRate,
+	)
+	actorSystemDaemon := actor.NewActorSystem(
+		ctx,
+		cfg.LakeHostname,
+		&metricsDaemon,
+	)
+	restDaemon := api.NewServer(
+		ctx,
+		cfg.ServerPort,
+		cfg.SecretsPath,
+		&actorSystemDaemon,
+		&systemControlDaemon,
+		&diskMonitorDaemon,
+		&memoryMonitorDaemon,
+		&storage,
+	)
 
 	var daemons = make([]utils.Daemon, 0)
 	daemons = append(daemons, metricsDaemon)

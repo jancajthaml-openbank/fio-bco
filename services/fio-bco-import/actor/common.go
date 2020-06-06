@@ -20,7 +20,6 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
 
 	system "github.com/jancajthaml-openbank/actor-system"
-	log "github.com/sirupsen/logrus"
 )
 
 // ProcessRemoteMessage processing of remote message to this bondster-bco

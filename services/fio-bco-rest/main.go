@@ -15,19 +15,17 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
+	"fmt"
 
 	"github.com/jancajthaml-openbank/fio-bco-rest/boot"
-	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 )
 
 func main() {
-	log.SetFormatter(new(utils.LogFormat))
-	log.Info(">>> Start <<<")
+	fmt.Println(">>> Start <<<")
 	program := boot.Initialize()
 	defer func() {
 		program.Stop()
-		log.Info(">>> Stop <<<")
+		fmt.Println(">>> Stop <<<")
 	}()
 	program.Start()
 }

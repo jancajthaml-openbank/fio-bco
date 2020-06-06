@@ -22,7 +22,6 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
-	log "github.com/sirupsen/logrus"
 )
 
 // FioImport represents fio gateway to ledger-rest import subroutine

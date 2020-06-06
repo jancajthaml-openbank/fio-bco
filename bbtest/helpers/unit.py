@@ -132,7 +132,7 @@ class UnitHelper(object):
       (code, journal, error) = execute([
         'journalctl', '-o', 'short-precise', '-t', service, '-u', unit, '--no-pager'
       ])
-      if code != 0:
+      if code != 0 or not result:
         continue
       with open('/tmp/reports/blackbox-tests/logs/{}.log'.format(unit), 'w') as f:
         f.write(journal)
