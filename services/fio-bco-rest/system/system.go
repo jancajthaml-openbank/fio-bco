@@ -24,8 +24,6 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 
 	"github.com/coreos/go-systemd/dbus"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // SystemControl represents systemctl subroutine

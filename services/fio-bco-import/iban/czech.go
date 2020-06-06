@@ -17,8 +17,6 @@ package iban
 import (
 	"strconv"
 	"strings"
-
-	log "github.com/sirupsen/logrus"
 )
 
 var checkSumToString = make([]string, 99)
