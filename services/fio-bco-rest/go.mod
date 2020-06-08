@@ -12,6 +12,6 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0
 	github.com/rs/xid v1.2.1
 	github.com/sirupsen/logrus v1.6.0
-	github.com/stretchr/testify v1.6.0
+	github.com/stretchr/testify v1.6.1
 	golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a // indirect
 )
