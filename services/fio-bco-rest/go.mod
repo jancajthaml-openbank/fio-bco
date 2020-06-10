@@ -7,7 +7,7 @@ require (
 	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect
 	github.com/gorilla/mux v1.7.4
 	github.com/jancajthaml-openbank/actor-system v1.0.7
-	github.com/jancajthaml-openbank/local-fs v1.1.3
+	github.com/jancajthaml-openbank/local-fs v1.1.4
 	github.com/json-iterator/go v1.1.10
 	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0
 	github.com/rs/xid v1.2.1
