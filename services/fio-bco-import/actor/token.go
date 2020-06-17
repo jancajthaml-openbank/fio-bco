@@ -15,9 +15,6 @@
 package actor
 
 import (
-	//"fmt"
-	//"strconv"
-
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
 	"github.com/jancajthaml-openbank/fio-bco-import/persistence"
 	"github.com/jancajthaml-openbank/fio-bco-import/metrics"
@@ -27,9 +24,7 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-import/vault"
 
 	system "github.com/jancajthaml-openbank/actor-system"
-	localfs "github.com/jancajthaml-openbank/local-fs"
 )
-
 
 // NilToken represents token that is neither existing neither non existing
 func NilToken(s *ActorSystem) func(interface{}, system.Context) {
@@ -168,49 +163,45 @@ func SynchronizingToken(s *ActorSystem) func(interface{}, system.Context) {
 	}
 }
 
-func importNewStatements(tenant string, fioClient *fio.FioClient, vaultClient *vault.VaultClient, ledgerClient *ledger.LedgerClient, storage *localfs.EncryptedStorage, metrics *metrics.Metrics, token *model.Token) error {
-
+func importNewStatements(tenant string, fioClient *fio.FioClient, vaultClient *vault.VaultClient, ledgerClient *ledger.LedgerClient, metrics *metrics.Metrics, token *model.Token) (int64, error) {
 	var (
 		statements *fio.FioImportEnvelope
 		err error
+		lastID int64 = token.LastSyncedID
 	)
 
 	metrics.TimeSyncLatency(func() {
 		statements, err = fioClient.GetTransactions()
 	})
 	if err != nil {
-		return err
+		return lastID, err
 	}
-
-	// FIXME getStatements end here
 
 	accounts := statements.GetAccounts()
 
 	for chunk := range utils.Partition(len(accounts), 10) {
 		work := accounts[chunk.Low:chunk.High]
-		log.WithField("token", token.ID).Debugf("importing %d/%d accounts", len(work), len(accounts))
+		log.WithField("token", token.ID).Debugf("importing %d/%d accounts", chunk.High, len(accounts))
 
 		for _, account := range work {
 			err = vaultClient.CreateAccount(tenant, account)
 			if err != nil {
-				return err
+				return lastID, err
 			}
 		}
 	}
-
-	var lastID int64
 
 	transactions := statements.GetTransactions(tenant)
 
   for chunk := range utils.Partition(len(transactions), 10) {
   	work := transactions[chunk.Low:chunk.High]
-  	log.WithField("token", token.ID).Debugf("importing %d/%d transactions", len(work), len(transactions))
+  	log.WithField("token", token.ID).Debugf("importing %d/%d transactions", chunk.High, len(transactions))
 
     for _, transaction := range work {
 
 			err = ledgerClient.CreateTransaction(tenant, transaction)
 			if err != nil {
-				return err
+				return lastID, err
 			}
 
 			metrics.TransactionImported()
@@ -221,18 +212,10 @@ func importNewStatements(tenant string, fioClient *fio.FioClient, vaultClient *v
 					lastID = transfer.IDTransfer
 				}
 			}
-
-			if lastID != 0 {
-				token.LastSyncedID = lastID
-				if !persistence.UpdateToken(storage, token) {
-					log.WithField("token", token.ID).Warn("Unable to update token")
-				}
-			}
 		}
   }
 
-	return nil
-
+	return lastID, nil
 }
 
 func importStatements(s *ActorSystem, token model.Token, callback func()) {
@@ -245,9 +228,15 @@ func importStatements(s *ActorSystem, token model.Token, callback func()) {
 	ledgerClient := ledger.NewLedgerClient(s.LedgerGateway)
 
 	log.WithField("token", token.ID).Debug("Import Begin")
-	err := importNewStatements(s.Tenant, &fioClient, &vaultClient, &ledgerClient, s.Storage, s.Metrics, &token)
+	lastID, err := importNewStatements(s.Tenant, &fioClient, &vaultClient, &ledgerClient, s.Metrics, &token)
 	if err != nil {
 		log.WithField("token", token.ID).Errorf("Import statements failed with %+v", err)
+	}
+	if lastID > token.LastSyncedID {
+		token.LastSyncedID = lastID
+		if !persistence.UpdateToken(s.Storage, &token) {
+			log.WithField("token", token.ID).Warn("Unable to update token")
+		}
 	}
 	log.WithField("token", token.ID).Debug("Import End")
 }

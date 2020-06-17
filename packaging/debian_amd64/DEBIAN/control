@@ -1,5 +1,5 @@
 Package: fio-bco
-Version: 1.2.9+separate-clients
+Version: 1.2.9+progress-logging
 Section: misc
 Priority: extra
 Architecture: amd64
