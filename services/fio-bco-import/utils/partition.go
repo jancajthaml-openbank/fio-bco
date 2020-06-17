@@ -14,12 +14,35 @@
 
 package utils
 
-// TokensPath returns filepath of tokens for given tenant
-func TokensPath(tenant string) string {
-	return "t_" + tenant + "/import/fio/token"
+type IdxRange struct {
+  Low int
+  High int
 }
 
-// TokenPath returns filepath of token for given tenant and token
-func TokenPath(tenant, value string) string {
-	return "t_" + tenant + "/import/fio/token/" + value
+func Partition(length int, size int) chan IdxRange {
+  c := make(chan IdxRange)
+  if size <= 0 {
+    close(c)
+    return c
+  }
+
+  go func() {
+    defer close(c)
+    numFullPartitions := length / size
+    var i int
+    for ; i < numFullPartitions; i++ {
+      c <- IdxRange{
+        Low: i * size,
+        High: (i + 1) * size,
+      }
+    }
+    if length%size != 0 {
+      c <- IdxRange{
+        Low: i * size,
+        High: length,
+      }
+    }
+  }()
+
+  return c
 }

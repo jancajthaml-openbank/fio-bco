@@ -30,11 +30,8 @@ func (metrics *Metrics) MarshalJSON() ([]byte, error) {
 	}
 
 	if metrics.createdTokens == nil || metrics.deletedTokens == nil ||
-		metrics.syncLatency == nil || metrics.importAccountLatency == nil ||
-		metrics.exportAccountLatency == nil || metrics.importTransactionLatency == nil ||
-		metrics.exportTransactionLatency == nil || metrics.importedAccounts == nil ||
-		metrics.exportedAccounts == nil || metrics.importedTransfers == nil ||
-		metrics.exportedTransfers == nil {
+		metrics.syncLatency == nil || metrics.importedTransfers == nil ||
+		metrics.importedTransactions == nil {
 		return nil, fmt.Errorf("cannot marshall nil references")
 	}
 
@@ -46,22 +43,10 @@ func (metrics *Metrics) MarshalJSON() ([]byte, error) {
 	buffer.WriteString(strconv.FormatInt(metrics.deletedTokens.Count(), 10))
 	buffer.WriteString(",\"syncLatency\":")
 	buffer.WriteString(strconv.FormatFloat(metrics.syncLatency.Percentile(0.95), 'f', -1, 64))
-	buffer.WriteString(",\"importAccountLatency\":")
-	buffer.WriteString(strconv.FormatFloat(metrics.importAccountLatency.Percentile(0.95), 'f', -1, 64))
-	buffer.WriteString(",\"exportAccountLatency\":")
-	buffer.WriteString(strconv.FormatFloat(metrics.exportAccountLatency.Percentile(0.95), 'f', -1, 64))
-	buffer.WriteString(",\"importTransactionLatency\":")
-	buffer.WriteString(strconv.FormatFloat(metrics.importTransactionLatency.Percentile(0.95), 'f', -1, 64))
-	buffer.WriteString(",\"exportTransactionLatency\":")
-	buffer.WriteString(strconv.FormatFloat(metrics.exportTransactionLatency.Percentile(0.95), 'f', -1, 64))
-	buffer.WriteString(",\"importedAccounts\":")
-	buffer.WriteString(strconv.FormatInt(metrics.importedAccounts.Count(), 10))
-	buffer.WriteString(",\"exportedAccounts\":")
-	buffer.WriteString(strconv.FormatInt(metrics.exportedAccounts.Count(), 10))
 	buffer.WriteString(",\"importedTransfers\":")
 	buffer.WriteString(strconv.FormatInt(metrics.importedTransfers.Count(), 10))
-	buffer.WriteString(",\"exportedTransfers\":")
-	buffer.WriteString(strconv.FormatInt(metrics.exportedTransfers.Count(), 10))
+	buffer.WriteString(",\"importedTransactions\":")
+	buffer.WriteString(strconv.FormatInt(metrics.importedTransactions.Count(), 10))
 	buffer.WriteString("}")
 
 	return buffer.Bytes(), nil
@@ -74,11 +59,8 @@ func (metrics *Metrics) UnmarshalJSON(data []byte) error {
 	}
 
 	if metrics.createdTokens == nil || metrics.deletedTokens == nil ||
-		metrics.syncLatency == nil || metrics.importAccountLatency == nil ||
-		metrics.exportAccountLatency == nil || metrics.importTransactionLatency == nil ||
-		metrics.exportTransactionLatency == nil || metrics.importedAccounts == nil ||
-		metrics.exportedAccounts == nil || metrics.importedTransfers == nil ||
-		metrics.exportedTransfers == nil {
+		metrics.syncLatency == nil || metrics.importedTransfers == nil ||
+		metrics.importedTransactions == nil {
 		return fmt.Errorf("cannot unmarshall to nil references")
 	}
 
@@ -86,14 +68,8 @@ func (metrics *Metrics) UnmarshalJSON(data []byte) error {
 		CreatedTokens            int64   `json:"createdTokens"`
 		DeletedTokens            int64   `json:"deletedTokens"`
 		SyncLatency              float64 `json:"syncLatency"`
-		ImportAccountLatency     float64 `json:"importAccountLatency"`
-		ExportAccountLatency     float64 `json:"exportAccountLatency"`
-		ImportTransactionLatency float64 `json:"importTransactionLatency"`
-		ExportTransactionLatency float64 `json:"exportTransactionLatency"`
-		ImportedAccounts         int64   `json:"importedAccounts"`
-		ExportedAccounts         int64   `json:"exportedAccounts"`
 		ImportedTransfers        int64   `json:"importedTransfers"`
-		ExportedTransfers        int64   `json:"exportedTransfers"`
+		ImportedTransactions     int64   `json:"importedTransactions"`
 	}{}
 
 	if err := utils.JSON.Unmarshal(data, &aux); err != nil {
@@ -105,14 +81,8 @@ func (metrics *Metrics) UnmarshalJSON(data []byte) error {
 	metrics.deletedTokens.Clear()
 	metrics.deletedTokens.Inc(aux.DeletedTokens)
 	metrics.syncLatency.Update(time.Duration(aux.SyncLatency))
-	metrics.importAccountLatency.Update(time.Duration(aux.ImportAccountLatency))
-	metrics.exportAccountLatency.Update(time.Duration(aux.ExportAccountLatency))
-	metrics.importTransactionLatency.Update(time.Duration(aux.ImportTransactionLatency))
-	metrics.exportTransactionLatency.Update(time.Duration(aux.ExportTransactionLatency))
-	metrics.importedAccounts.Mark(aux.ImportedAccounts)
-	metrics.exportedAccounts.Mark(aux.ExportedAccounts)
 	metrics.importedTransfers.Mark(aux.ImportedTransfers)
-	metrics.exportedTransfers.Mark(aux.ExportedTransfers)
+	metrics.importedTransactions.Mark(aux.ImportedTransactions)
 
 	return nil
 }

@@ -32,14 +32,8 @@ type Metrics struct {
 	createdTokens            metrics.Counter
 	deletedTokens            metrics.Counter
 	syncLatency              metrics.Timer
-	importAccountLatency     metrics.Timer
-	exportAccountLatency     metrics.Timer
-	importTransactionLatency metrics.Timer
-	exportTransactionLatency metrics.Timer
-	importedAccounts         metrics.Meter
-	exportedAccounts         metrics.Meter
 	importedTransfers        metrics.Meter
-	exportedTransfers        metrics.Meter
+	importedTransactions     metrics.Meter
 }
 
 // NewMetrics returns blank metrics holder
@@ -52,14 +46,8 @@ func NewMetrics(ctx context.Context, output string, tenant string, refreshRate t
 		createdTokens:            metrics.NewCounter(),
 		deletedTokens:            metrics.NewCounter(),
 		syncLatency:              metrics.NewTimer(),
-		importAccountLatency:     metrics.NewTimer(),
-		exportAccountLatency:     metrics.NewTimer(),
-		importTransactionLatency: metrics.NewTimer(),
-		exportTransactionLatency: metrics.NewTimer(),
-		importedAccounts:         metrics.NewMeter(),
-		exportedAccounts:         metrics.NewMeter(),
 		importedTransfers:        metrics.NewMeter(),
-		exportedTransfers:        metrics.NewMeter(),
+		importedTransactions:     metrics.NewMeter(),
 	}
 }
 
@@ -77,37 +65,15 @@ func (metrics *Metrics) TimeSyncLatency(f func()) {
 	metrics.syncLatency.Time(f)
 }
 
-func (metrics *Metrics) TimeImportAccount(f func()) {
-	metrics.importAccountLatency.Time(f)
+// TransactionImported increments transactions created by count
+func (metrics *Metrics) TransactionImported() {
+	metrics.importedTransactions.Mark(1)
 }
 
-func (metrics *Metrics) TimeExportAccount(f func()) {
-	metrics.exportAccountLatency.Time(f)
-}
-
-func (metrics *Metrics) TimeImportTransaction(f func()) {
-	metrics.importTransactionLatency.Time(f)
-}
-
-func (metrics *Metrics) TimeExportTransaction(f func()) {
-	metrics.exportTransactionLatency.Time(f)
-}
-
-func (metrics *Metrics) ImportedAccounts(num int64) {
-	metrics.importedAccounts.Mark(num)
-}
-
-func (metrics *Metrics) ExportedAccounts(num int64) {
-	metrics.exportedAccounts.Mark(num)
-}
-
-func (metrics *Metrics) ImportedTransfers(num int64) {
+func (metrics *Metrics) TransfersImported(num int64) {
 	metrics.importedTransfers.Mark(num)
 }
 
-func (metrics *Metrics) ExportedTransfers(num int64) {
-	metrics.exportedTransfers.Mark(num)
-}
 
 // Start handles everything needed to start metrics daemon
 func (metrics Metrics) Start() {

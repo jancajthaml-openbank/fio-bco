@@ -12,14 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package ledger
 
-// TokensPath returns filepath of tokens for given tenant
-func TokensPath(tenant string) string {
-	return "t_" + tenant + "/import/fio/token"
-}
+import (
+  "github.com/jancajthaml-openbank/fio-bco-import/logging"
+)
 
-// TokenPath returns filepath of token for given tenant and token
-func TokenPath(tenant, value string) string {
-	return "t_" + tenant + "/import/fio/token/" + value
-}
+var log = logging.NewLogger("ledger")

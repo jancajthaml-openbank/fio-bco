@@ -1,5 +1,6 @@
 from http.server import BaseHTTPRequestHandler
 import json
+import datetime
 
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -17,14 +18,11 @@ class RequestHandler(BaseHTTPRequestHandler):
     dateFrom = parts[5]
 
     try:
-      dateFrom = datetime.datetime.strptime(dateFrom, '%Y-%d-%m')
+      dateFrom = datetime.datetime.strptime(dateFrom, '%Y-%m-%d')
     except:
       return self.__respond(400)
 
     response = self.server.logic.set_last_date(token, dateFrom)
-
-    if not response:
-      return self.__respond(404)
 
     return self.__respond(200)
 
@@ -39,9 +37,6 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     response = self.server.logic.set_last_id(token, idFrom)
 
-    if not response:
-      return self.__respond(404)
-
     return self.__respond(200)
 
   def __get_last_statements(self):
@@ -52,12 +47,9 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     token = parts[4]
 
-    response = self.server.logic.__get_last_statements(token)
+    response = self.server.logic.get_last_statements(token)
 
-    if not response:
-      return self.__respond(404)
-
-    return self.__respond(200, [])
+    return self.__respond(200, response)
 
   def do_GET(self):
     if self.path.startswith('/ib_api/rest/set-last-date'):

@@ -10,14 +10,8 @@ Feature: Metrics test
       | key                      |
       | createdTokens            |
       | deletedTokens            |
-      | exportAccountLatency     |
-      | exportTransactionLatency |
-      | importTransactionLatency |
-      | importAccountLatency     |
-      | importedAccounts         |
+      | importedTransactions     |
       | importedTransfers        |
-      | exportedAccounts         |
-      | exportedTransfers        |
       | syncLatency              |
     And metrics file /tmp/reports/blackbox-tests/metrics/metrics.M1.json has permissions -rw-r--r--
 
@@ -39,29 +33,17 @@ Feature: Metrics test
       | key                      | value |
       | createdTokens            |     0 |
       | deletedTokens            |     0 |
-      | exportAccountLatency     |     0 |
-      | exportTransactionLatency |     0 |
-      | importTransactionLatency |     0 |
-      | importAccountLatency     |     0 |
-      | importedAccounts         |     0 |
+      | importedTransactions     |     0 |
       | importedTransfers        |     0 |
-      | exportedAccounts         |     0 |
-      | exportedTransfers        |     0 |
       | syncLatency              |     0 |
 
-    When token M1/A is created
+    When token M2/A is created
     Then metrics file /tmp/reports/blackbox-tests/metrics/metrics.M2.json reports:
       | key                      | value |
       | createdTokens            |     1 |
       | deletedTokens            |     0 |
-      | exportAccountLatency     |     0 |
-      | exportTransactionLatency |     0 |
-      | importTransactionLatency |     0 |
-      | importAccountLatency     |     0 |
-      | importedAccounts         |     0 |
+      | importedTransactions     |     0 |
       | importedTransfers        |     0 |
-      | exportedAccounts         |     0 |
-      | exportedTransfers        |     0 |
       | syncLatency              |     0 |
 
     When restart unit "fio-bco-import@M2.service"
@@ -69,12 +51,6 @@ Feature: Metrics test
       | key                      | value |
       | createdTokens            |     1 |
       | deletedTokens            |     0 |
-      | exportAccountLatency     |     0 |
-      | exportTransactionLatency |     0 |
-      | importTransactionLatency |     0 |
-      | importAccountLatency     |     0 |
-      | importedAccounts         |     0 |
+      | importedTransactions     |     0 |
       | importedTransfers        |     0 |
-      | exportedAccounts         |     0 |
-      | exportedTransfers        |     0 |
       | syncLatency              |     0 |
