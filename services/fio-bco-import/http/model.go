@@ -12,14 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package http
 
-// TokensPath returns filepath of tokens for given tenant
-func TokensPath(tenant string) string {
-	return "t_" + tenant + "/import/fio/token"
+import (
+  "fmt"
+)
+
+type Response struct {
+  Status int
+  Data   []byte
+  Header map[string]string
 }
 
-// TokenPath returns filepath of token for given tenant and token
-func TokenPath(tenant, value string) string {
-	return "t_" + tenant + "/import/fio/token/" + value
+func (value *Response) String() string {
+  if value == nil {
+    return "<nil>"
+  }
+  return fmt.Sprintf("Response{ Status: %d, Data: %s, Header: %+v }", value.Status, string(value.Data), value.Header)
 }

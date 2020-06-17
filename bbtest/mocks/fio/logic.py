@@ -12,5 +12,23 @@ class BussinessLogic(object):
   def set_last_id(self, token, idFrom):
     return True
 
-  def __get_last_statements(self, token):
-    return []
+  def get_last_statements(self, token):
+    return {
+      "accountStatement": {
+        "info": {
+          "accountId": None,
+          "bankId": None,
+          "currency": None,
+          "iban": None,
+          "bic": None,
+          "openingBalance": None,
+          "closingBalance": None,
+          "idFrom": None,
+          "idTo": None,
+          "idLastDownload": None
+        },
+        "transactionList": {
+          "transaction": []
+        }
+      }
+    }

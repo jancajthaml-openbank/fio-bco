@@ -18,7 +18,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/jancajthaml-openbank/fio-bco-import/integration"
+	//"github.com/jancajthaml-openbank/fio-bco-import/integration"
 	"github.com/jancajthaml-openbank/fio-bco-import/metrics"
 
 	system "github.com/jancajthaml-openbank/actor-system"
@@ -34,7 +34,6 @@ type ActorSystem struct {
 	FioGateway    string
 	LedgerGateway string
 	VaultGateway  string
-	HttpClient    integration.Client
 }
 
 // NewActorSystem returns actor system fascade
@@ -47,7 +46,6 @@ func NewActorSystem(ctx context.Context, tenant string, lakeEndpoint string, fio
 		FioGateway:    fioEndpoint,
 		LedgerGateway: ledgerEndpoint,
 		VaultGateway:  vaultEndpoint,
-		HttpClient:    integration.NewClient(),
 	}
 
 	result.System.RegisterOnMessage(ProcessMessage(&result))

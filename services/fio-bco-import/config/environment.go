@@ -53,7 +53,7 @@ func loadConfFromEnv() Configuration {
 
 	return Configuration{
 		Tenant:             tenant,
-		RootStorage:        rootStorage + "/" + tenant + "/import/fio",
+		RootStorage:        rootStorage + "/t_" + tenant + "/import/fio",
 		EncryptionKey:      []byte(key),
 		FioGateway:         fioGateway,
 		SyncRate:           syncRate,
