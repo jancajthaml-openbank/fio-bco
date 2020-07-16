@@ -70,6 +70,7 @@ bbtest:
 	@(docker rm -f $$(docker ps -a --filter="name=fio_bco_bbtest_amd64" -q) &> /dev/null || :)
 	@docker exec -t $$(\
 		docker run -d \
+			--cpuset-cpus=1 \
 			--name=fio_bco_bbtest_amd64 \
 			-e IMAGE_VERSION="$(VERSION)-$(META)" \
 			-e UNIT_VERSION="$(VERSION)+$(META)" \
