@@ -116,6 +116,7 @@ class UnitHelper(object):
     if params:
       options.update(params)
 
+    os.makedirs("/etc/init", exist_ok=True)
     with open('/etc/init/fio-bco.conf', 'w') as fd:
       for k, v in sorted(options.items()):
         fd.write('FIO_BCO_{}={}\n'.format(k, v))
