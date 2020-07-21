@@ -40,7 +40,7 @@ def step_impl(context, path):
 def step_impl(context, path):
   file_should_exist(context, path)
 
-  @eventually(20)
+  @eventually(5)
   def wait_for_metrics_update():
     actual = dict()
     with open(path, 'r') as fd:
