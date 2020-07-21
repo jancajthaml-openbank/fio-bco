@@ -40,7 +40,6 @@ class ZMQHelper(threading.Thread):
       except Exception as ex:
         if ex.errno != 11:
           return
-        print(ex)
 
   def send(self, data):
     self.__pub.send(data.encode())
