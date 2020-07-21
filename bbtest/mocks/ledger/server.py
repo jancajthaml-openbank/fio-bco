@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import threading
 from http.server import HTTPServer
 import ssl
@@ -17,6 +20,8 @@ class LedgerMock(threading.Thread):
     self.__keyfile = tempfile.NamedTemporaryFile()
     self.__certfile = tempfile.NamedTemporaryFile()
     os.system('openssl req -x509 -nodes -newkey rsa:2048 -keyout "{}" -out "{}" -days 1 -subj "/C=CZ/ST=Czechia/L=Prague/O=OpenBanking/OU=IT/CN=localhost/emailAddress=jan.cajthaml@gmail.com" > /dev/null 2>&1'.format(self.__keyfile.name, self.__certfile.name))
+    os.system('cp {} /usr/local/share/ca-certificates/ > /dev/null 2>&1'.format(self.__certfile.name))
+    os.system('update-ca-certificates > /dev/null 2>&1')
 
   def start(self):
     self.httpd = HTTPServer(('127.0.0.1', self.port), RequestHandler)

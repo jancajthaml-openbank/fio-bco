@@ -1,3 +1,4 @@
 .git
 .circleci
-packaging/debian_*/openbank
+packaging/debian/target
+services/*/vendor

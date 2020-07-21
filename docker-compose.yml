@@ -8,6 +8,7 @@ services:
 
   go:
     image: jancajthaml/go
+    tty: true
     volumes:
       - .:/project
       - ./services/fio-bco-rest:/go/src/github.com/jancajthaml-openbank/fio-bco-rest
@@ -19,7 +20,6 @@ services:
       - GOPATH=/go
       - COMPOSE_PROJECT_NAME
     entrypoint: ["go"]
-    privileged: true
 
   # -------------------------------------------------------------------------- #
 

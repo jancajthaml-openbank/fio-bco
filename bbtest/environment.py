@@ -1,7 +1,8 @@
-import os
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from helpers.unit import UnitHelper
 from helpers.zmq import ZMQHelper
-
 from mocks.fio.server import FioMock
 from mocks.vault.server import VaultMock
 from mocks.ledger.server import LedgerMock
@@ -17,7 +18,6 @@ def before_all(context):
   context.fio = FioMock(context)
   context.ledger = LedgerMock(context)
   context.vault = VaultMock(context)
-  os.system('rm -rf /tmp/reports/blackbox-tests/logs/*.log /tmp/reports/blackbox-tests/metrics/*.json')
   context.fio.start()
   context.ledger.start()
   context.vault.start()

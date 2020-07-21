@@ -129,9 +129,8 @@ class UnitHelper(object):
     result = [item.split('.service')[0] for item in result if ("fio-bco" in item and ".service" in item)]
 
     for unit in result:
-      service = unit.split('.service')[0].split('@')[0]
       (code, journal, error) = execute([
-        'journalctl', '-o', 'short-precise', '-t', service, '-u', unit, '--no-pager'
+        'journalctl', '-o', 'cat', '-u', '{}.service'.format(unit), '--no-pager'
       ])
       if code != 0 or not result:
         continue
