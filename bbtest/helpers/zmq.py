@@ -54,7 +54,7 @@ class ZMQHelper(threading.Thread):
     if self.__cancel.is_set():
       return
     self.__cancel.set()
-    self.__pub.send("kill")
+    self.__pub.send("kill".encode())
     try:
       self.join()
     except:
