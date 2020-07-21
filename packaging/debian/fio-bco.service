@@ -1,0 +1,12 @@
+[Unit]
+Description=openbank FIO Bank Connection services namespace
+After=inetd.service
+ConditionPathExists=/etc/fio-bco/conf.d/init.conf
+
+[Service]
+Type=oneshot
+ExecStart=/bin/echo start fio-bco namespace
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

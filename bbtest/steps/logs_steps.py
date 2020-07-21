@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 from behave import *
 from helpers.shell import execute
 from helpers.eventually import eventually
@@ -9,19 +12,18 @@ def step_impl(context, unit):
 
   @eventually(5)
   def impl():
-    service = unit.split('.service')[0].split('@')[0]
     (code, result, error) = execute([
-      "journalctl", "-o", "short-precise", "-t", service, "-u", unit, "--no-pager", "2>&1"
+      'journalctl', '-o', 'cat', '-u', unit, '--no-pager'
     ])
 
-    assert code == 0
+    assert code == 0, str(result) + ' ' + str(error)
 
     actual_lines_merged = [item.strip() for item in result.split('\n') if len(item.strip())]
     actual_lines = []
     idx = len(actual_lines_merged) - 1
 
     while True:
-      if idx < 0 or ("INFO >>> Start <<<" in actual_lines_merged[idx]):
+      if idx < 0 or (">>> Start <<<" in actual_lines_merged[idx]):
         break
       actual_lines.append(actual_lines_merged[idx])
       idx -= 1

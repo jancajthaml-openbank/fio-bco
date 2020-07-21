@@ -29,7 +29,7 @@ class UnitHelper(object):
       "SECRETS": "/opt/fio-bco/secrets",
       "ENCRYPTION_KEY": "/opt/fio-bco/secrets/fs_encryption.key",
       "METRICS_OUTPUT": "/tmp/reports/blackbox-tests/metrics",
-      "METRICS_REFRESHRATE": "1h",
+      "METRICS_REFRESHRATE": "12h",
       #"METRICS_CONTINUOUS": "true",  # fixme implement
     }
 
@@ -116,8 +116,8 @@ class UnitHelper(object):
     if params:
       options.update(params)
 
-    os.makedirs("/etc/init", exist_ok=True)
-    with open('/etc/init/fio-bco.conf', 'w') as fd:
+    os.makedirs("/etc/fio-bco/conf.d", exist_ok=True)
+    with open('/etc/fio-bco/conf.d/init.conf', 'w') as fd:
       for k, v in sorted(options.items()):
         fd.write('FIO_BCO_{}={}\n'.format(k, v))
 

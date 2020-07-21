@@ -1,0 +1,3 @@
+bin/fio-bco-rest-linux-armhf usr/bin
+bin/fio-bco-import-linux-armhf usr/bin
+init.conf etc/fio-bco/conf.d

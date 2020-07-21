@@ -8,17 +8,16 @@ from helpers.eventually import eventually
 def step_impl(context, package, operation):
   if operation == 'installed':
     (code, result, error) = execute([
-      "apt-get", "-y", "install", "-f", "/tmp/packages/{}.deb".format(package)
+      "apt-get", "install", "-f", "-qq", "-o=Dpkg::Use-Pty=0", "-o=Dpkg::Options::=--force-confdef", "-o=Dpkg::Options::=--force-confnew", "/tmp/packages/{}.deb".format(package)
     ])
-    assert code == 0
-    assert os.path.isfile('/etc/init/fio-bco.conf') is True
-
+    assert code == 0, "unable to install with code {} and {} {}".format(code, result, error)
+    assert os.path.isfile('/etc/fio-bco/conf.d/init.conf') is True
   elif operation == 'uninstalled':
     (code, result, error) = execute([
       "apt-get", "-y", "remove", package
     ])
-    assert code == 0
-    assert os.path.isfile('/etc/init/fio-bco.conf') is False
+    assert code == 0, "unable to uninstall with code {} and {} {}".format(code, result, error)
+    assert os.path.isfile('/etc/fio-bco/conf.d/init.conf') is False
 
   else:
     assert False
@@ -148,7 +147,7 @@ def unit_is_configured(context):
     'systemctl', 'list-units', '--no-legend'
   ])
   result = [item.split(' ')[0].strip() for item in result.split('\n')]
-  result = [item for item in result if ("fio-bco" in item and ".service" in item)]
+  result = [item for item in result if ("fio-bco-" in item and ".service" in item)]
 
   for unit in result:
     operation_unit(context, 'restart', unit)

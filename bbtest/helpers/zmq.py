@@ -26,7 +26,7 @@ class ZMQHelper(threading.Thread):
 
     self.__pull = ctx.socket(zmq.PULL)
     self.__pull.bind(self.__pull_url)
-    self.__pull.set_hwm(0)
+    self.__pull.set_hwm(100)
 
     threading.Thread.start(self)
 
@@ -34,11 +34,9 @@ class ZMQHelper(threading.Thread):
     while not self.__cancel.is_set():
       try:
         data = self.__pull.recv(zmq.NOBLOCK)
-        self.__pub.send(data)
-        if data[-1] != 93:
-          self.__mutex.acquire()
+        if len(data) and data[-1] != 93:
           self.backlog.append(data)
-          self.__mutex.release()
+        self.__pub.send(data)
       except Exception as ex:
         if ex.errno != 11:
           return

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import time
 
@@ -24,8 +25,8 @@ class eventually():
     while deadline > time.monotonic():
       try:
         return self.__block(*args, **kwargs)
-      except AssertionError as ex:
+      except Exception as ex:
         self.__last_exception = ex
         time.sleep(0.5)
-      except Exception as ex:
-        raise ex
+    if self.__last_exception:
+      raise self.__last_exception
