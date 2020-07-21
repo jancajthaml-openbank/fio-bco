@@ -43,7 +43,7 @@ func NewHttpClient() HttpClient {
         }).DialContext,
         TLSHandshakeTimeout: 10 * time.Second,
         TLSClientConfig: &tls.Config{
-          InsecureSkipVerify:       true,
+          InsecureSkipVerify:       false,
           MinVersion:               tls.VersionTLS12,
           MaxVersion:               tls.VersionTLS12,
           PreferServerCipherSuites: false,
