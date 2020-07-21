@@ -113,7 +113,7 @@ Feature: REST
 
 
   Scenario: Health API
-    Given unit "vault-rest.service" is running
+    Given unit "fio-bco-rest.service" is running
 
     When I request HTTP https://127.0.0.1/health
       | key    | value |

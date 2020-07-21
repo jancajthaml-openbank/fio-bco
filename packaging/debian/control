@@ -1,0 +1,13 @@
+Source: fio-bco
+Maintainer: Jan Cajthaml <jan.cajthaml@gmail.com>
+Section: misc
+Priority: optional
+Build-Depends: debhelper (>= 10)
+Standards-Version: 4.1.4
+
+Package: fio-bco
+Architecture: any
+Description: fio bank connector for openbank
+ Service managing FioBank tokens and synchronizing FioBank transactions.
+Depends: libzmq5 (>= 4.2.1~), openssl (>= 1.1~), ${shlibs:Depends}
+

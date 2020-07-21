@@ -1,0 +1,3 @@
+bin/fio-bco-rest-linux-amd64 usr/bin
+bin/fio-bco-import-linux-amd64 usr/bin
+init.conf etc/fio-bco/conf.d

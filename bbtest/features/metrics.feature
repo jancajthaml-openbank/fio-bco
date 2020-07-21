@@ -35,7 +35,6 @@ Feature: Metrics test
       | deletedTokens            |     0 |
       | importedTransactions     |     0 |
       | importedTransfers        |     0 |
-      | syncLatency              |     0 |
 
     When token M2/A is created
     Then metrics file /tmp/reports/blackbox-tests/metrics/metrics.M2.json reports:
@@ -44,7 +43,6 @@ Feature: Metrics test
       | deletedTokens            |     0 |
       | importedTransactions     |     0 |
       | importedTransfers        |     0 |
-      | syncLatency              |     0 |
 
     When restart unit "fio-bco-import@M2.service"
     Then metrics file /tmp/reports/blackbox-tests/metrics/metrics.M2.json reports:
@@ -53,4 +51,3 @@ Feature: Metrics test
       | deletedTokens            |     0 |
       | importedTransactions     |     0 |
       | importedTransfers        |     0 |
-      | syncLatency              |     0 |

@@ -1,0 +1,39 @@
+#!/bin/sh
+set -e
+
+#DEBHELPER#
+if [ "$1" = install -o "$1" = upgrade ] && [ -f /etc/fio-bco/conf.d/init.conf ] ; then
+  secrets=$(sed -n -e 's/^.*FIO_BCO_SECRETS=//p' /etc/fio-bco/conf.d/init.conf 2>/dev/null | awk '{gsub(/^ +| +$/,"")} {print $0}')
+
+  if [ -z "${secrets}" ] ; then
+    (>&2 echo "FIO_BCO_SECRETS are not defined at /etc/fio-bco/conf.d/init.conf")
+    exit 1
+  fi
+
+  if [ ! -f "${secrets}/domain.local.crt" ] || [ ! -f "${secrets}/domain.local.key" ] ; then
+    mkdir -p "${secrets}"
+
+    openssl req \
+      -x509 \
+      -nodes \
+      -newkey rsa:2048 \
+      -keyout "${secrets}/domain.local.key" \
+      -out "${secrets}/domain.local.crt" \
+      -days 1 \
+      -subj "/C=CZ/ST=Czechia/L=Prague/O=OpenBanking/OU=IT/CN=localhost/emailAddress=jan.cajthaml@gmail.com"
+    echo "generated temporary certificates at ${secrets} valid for 24 hours"
+  fi
+
+  encryptionKey=$(sed -n -e 's/^.*FIO_BCO_ENCRYPTION_KEY=//p' /etc/fio-bco/conf.d/init.conf 2>/dev/null | awk '{gsub(/^ +| +$/,"")} {print $0}')
+
+  if [ -z "${encryptionKey}" ] ; then
+    (>&2 echo "FIO_BCO_ENCRYPTION_KEY is not defined at /etc/fio-bco/conf.d/init.conf")
+    exit 1
+  fi
+
+  if [ ! -f "${encryptionKey}" ] ; then
+    mkdir -p $(basename "${encryptionKey}")
+    openssl rand -hex 32 | xargs --no-run-if-empty echo -n > "${encryptionKey}"
+    echo "generated 32B encryption key at ${encryptionKey}"
+  fi
+fi
