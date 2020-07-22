@@ -1,8 +1,7 @@
 #!/bin/sh
 set -e
 
-#DEBHELPER#
-if [ "$1" = install -o "$1" = upgrade ] && [ -f /etc/fio-bco/conf.d/init.conf ] ; then
+if [ "$1" = configure ] && [ -f /etc/fio-bco/conf.d/init.conf ] ; then
   secrets=$(sed -n -e 's/^.*FIO_BCO_SECRETS=//p' /etc/fio-bco/conf.d/init.conf 2>/dev/null | awk '{gsub(/^ +| +$/,"")} {print $0}')
 
   if [ -z "${secrets}" ] ; then
@@ -37,3 +36,5 @@ if [ "$1" = install -o "$1" = upgrade ] && [ -f /etc/fio-bco/conf.d/init.conf ] 
     echo "generated 32B encryption key at ${encryptionKey}"
   fi
 fi
+
+#DEBHELPER#
