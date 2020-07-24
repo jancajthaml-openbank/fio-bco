@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 from helpers.unit import UnitHelper
@@ -22,8 +22,8 @@ def before_all(context):
   context.ledger.start()
   context.vault.start()
   context.zmq.start()
-  context.unit.download()
   context.unit.configure()
+  context.unit.download()
 
 
 def after_all(context):

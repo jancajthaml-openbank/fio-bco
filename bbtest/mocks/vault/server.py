@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import threading
@@ -6,7 +6,6 @@ from http.server import HTTPServer
 import ssl
 import os
 import tempfile
-
 from .handler import RequestHandler
 from .logic import BussinessLogic
 
