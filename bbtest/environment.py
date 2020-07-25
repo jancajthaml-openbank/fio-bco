@@ -9,7 +9,7 @@ from mocks.ledger.server import LedgerMock
 
 
 def after_feature(context, feature):
-  context.unit.cleanup()
+  context.unit.collect_logs()
 
 
 def before_all(context):
