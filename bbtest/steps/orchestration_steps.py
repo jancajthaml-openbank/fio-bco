@@ -103,14 +103,14 @@ def unit_is_configured(context, unit):
 def offboard_unit(context, tenant):
   (code, result, error) = execute(['journalctl', '-o', 'cat', '-u', 'fio-bco-import@{}.service'.format(tenant), '--no-pager'])
   if code == 0 and result:
-    with open('/tmp/reports/blackbox-tests/logs/fio-bco-import.{}.log'.format(tenant), 'w') as f:
+    with open('reports/blackbox-tests/logs/fio-bco-import.{}.log'.format(tenant), 'w') as f:
       f.write(result)
 
   execute(['systemctl', 'stop', 'fio-bco-import@{}.service'.format(tenant)])
 
   (code, result, error) = execute(['journalctl', '-o', 'cat', '-u', 'fio-bco-import@{}.service'.format(tenant), '--no-pager'])
   if code == 0 and result:
-    with open('/tmp/reports/blackbox-tests/logs/fio-bco-import.{}.log'.format(tenant), 'w') as fd:
+    with open('reports/blackbox-tests/logs/fio-bco-import.{}.log'.format(tenant), 'w') as fd:
       fd.write(result)
 
   execute(['systemctl', 'disable', 'fio-bco-import@{}.service'.format(tenant)])
