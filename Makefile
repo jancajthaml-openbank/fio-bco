@@ -30,7 +30,7 @@ bundle-binaries-%: %
 
 .PHONY: bundle-debian-%
 bundle-debian-%: %
-	@docker-compose run --rm debian --version $(VERSION)+$(META) --arch $^ --pkg fio-bco --source /project/packaging
+	@docker-compose run --rm debian-package --version $(VERSION)+$(META) --arch $^ --pkg fio-bco --source /project/packaging
 
 .PHONY: bundle-docker
 bundle-docker:
