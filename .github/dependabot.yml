@@ -1,0 +1,13 @@
+version: 2
+
+updates:
+
+  - package-ecosystem: "gomod"
+    directory: "/services/fio-bco-rest"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "gomod"
+    directory: "/services/fio-bco-import"
+    schedule:
+      interval: "daily"
