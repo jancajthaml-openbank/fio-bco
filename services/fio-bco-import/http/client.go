@@ -15,152 +15,152 @@
 package http
 
 import (
-  "bytes"
-  "crypto/tls"
-  "fmt"
-  "io"
-  "io/ioutil"
-  "net"
-  "net/http"
-  "time"
+	"bytes"
+	"crypto/tls"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net"
+	"net/http"
+	"time"
 
-  "github.com/jancajthaml-openbank/fio-bco-import/utils"
+	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 )
 
 // HttpClient represents fascade for http client
 type HttpClient struct {
-  underlying *http.Client
+	underlying *http.Client
 }
 
 // NewHttpClient returns new http client
 func NewHttpClient() HttpClient {
-  return HttpClient{
-    underlying: &http.Client{
-      Timeout: 120 * time.Second,
-      Transport: &http.Transport{
-        DialContext: (&net.Dialer{
-          Timeout: 30 * time.Second,
-        }).DialContext,
-        TLSHandshakeTimeout: 10 * time.Second,
-        TLSClientConfig: &tls.Config{
-          InsecureSkipVerify:       false,
-          MinVersion:               tls.VersionTLS12,
-          MaxVersion:               tls.VersionTLS12,
-          PreferServerCipherSuites: false,
-          CurvePreferences: []tls.CurveID{
-            tls.CurveP521,
-            tls.CurveP384,
-            tls.CurveP256,
-          },
-          CipherSuites: utils.CipherSuites,
-        },
-      },
-    },
-  }
+	return HttpClient{
+		underlying: &http.Client{
+			Timeout: 120 * time.Second,
+			Transport: &http.Transport{
+				DialContext: (&net.Dialer{
+					Timeout: 30 * time.Second,
+				}).DialContext,
+				TLSHandshakeTimeout: 10 * time.Second,
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify:       false,
+					MinVersion:               tls.VersionTLS12,
+					MaxVersion:               tls.VersionTLS12,
+					PreferServerCipherSuites: false,
+					CurvePreferences: []tls.CurveID{
+						tls.CurveP521,
+						tls.CurveP384,
+						tls.CurveP256,
+					},
+					CipherSuites: utils.CipherSuites,
+				},
+			},
+		},
+	}
 }
 
 // Post performs http POST request for given url with given body
 func (client *HttpClient) Post(url string, body []byte, headers map[string]string) (response Response, err error) {
-  response = Response{
-    Status: 0,
-    Data:   nil,
-    Header: make(map[string]string),
-  }
+	response = Response{
+		Status: 0,
+		Data:   nil,
+		Header: make(map[string]string),
+	}
 
-  if client == nil {
-    return response, fmt.Errorf("cannot call methods on nil reference")
-  }
+	if client == nil {
+		return response, fmt.Errorf("cannot call methods on nil reference")
+	}
 
-  var (
-    req  *http.Request
-    resp *http.Response
-  )
-  defer func() {
-    if r := recover(); r != nil {
-      err = fmt.Errorf("runtime error %+v", r)
-    }
-    if err != nil && resp != nil {
-      _, err = io.Copy(ioutil.Discard, resp.Body)
-      resp.Body.Close()
-    } else if resp == nil && err != nil {
-      err = fmt.Errorf("runtime error, no response")
-    }
+	var (
+		req  *http.Request
+		resp *http.Response
+	)
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("runtime error %+v", r)
+		}
+		if err != nil && resp != nil {
+			_, err = io.Copy(ioutil.Discard, resp.Body)
+			resp.Body.Close()
+		} else if resp == nil && err != nil {
+			err = fmt.Errorf("runtime error, no response")
+		}
 
-    if err == nil {
-      response.Data, err = ioutil.ReadAll(resp.Body)
-      resp.Body.Close()
-    }
-  }()
-  req, err = http.NewRequest("POST", url, bytes.NewBuffer(body))
-  if err != nil {
-    return
-  }
-  req.Header.Set("content-type", "application/json")
-  req.Header.Set("accept", "application/json")
-  for k, v := range headers {
-    req.Header.Set(k, v)
-  }
-  resp, err = client.underlying.Do(req)
-  if err != nil {
-    return
-  }
-  for k, v := range resp.Header {
-    response.Header[k] = v[len(v)-1]
-  }
-  response.Status = resp.StatusCode
-  return
+		if err == nil {
+			response.Data, err = ioutil.ReadAll(resp.Body)
+			resp.Body.Close()
+		}
+	}()
+	req, err = http.NewRequest("POST", url, bytes.NewBuffer(body))
+	if err != nil {
+		return
+	}
+	req.Header.Set("content-type", "application/json")
+	req.Header.Set("accept", "application/json")
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+	resp, err = client.underlying.Do(req)
+	if err != nil {
+		return
+	}
+	for k, v := range resp.Header {
+		response.Header[k] = v[len(v)-1]
+	}
+	response.Status = resp.StatusCode
+	return
 }
 
 // Get performs http GET request for given url
 func (client *HttpClient) Get(url string, headers map[string]string) (response Response, err error) {
-  response = Response{
-    Status: 0,
-    Data:   nil,
-    Header: make(map[string]string),
-  }
+	response = Response{
+		Status: 0,
+		Data:   nil,
+		Header: make(map[string]string),
+	}
 
-  if client == nil {
-    return response, fmt.Errorf("cannot call methods on nil reference")
-  }
+	if client == nil {
+		return response, fmt.Errorf("cannot call methods on nil reference")
+	}
 
-  var (
-    req  *http.Request
-    resp *http.Response
-  )
+	var (
+		req  *http.Request
+		resp *http.Response
+	)
 
-  defer func() {
-    if r := recover(); r != nil {
-      err = fmt.Errorf("runtime error %+v", r)
-    }
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("runtime error %+v", r)
+		}
 
-    if err != nil && resp != nil {
-      _, err = io.Copy(ioutil.Discard, resp.Body)
-      resp.Body.Close()
-    } else if resp == nil && err != nil {
-      err = fmt.Errorf("runtime error, no response %+v", err)
-    }
+		if err != nil && resp != nil {
+			_, err = io.Copy(ioutil.Discard, resp.Body)
+			resp.Body.Close()
+		} else if resp == nil && err != nil {
+			err = fmt.Errorf("runtime error, no response %+v", err)
+		}
 
-    if err == nil {
-      response.Data, err = ioutil.ReadAll(resp.Body)
-      resp.Body.Close()
-    }
-  }()
+		if err == nil {
+			response.Data, err = ioutil.ReadAll(resp.Body)
+			resp.Body.Close()
+		}
+	}()
 
-  req, err = http.NewRequest("GET", url, nil)
-  if err != nil {
-    return
-  }
-  req.Header.Set("accept", "application/json")
-  for k, v := range headers {
-    req.Header.Set(k, v)
-  }
-  resp, err = client.underlying.Do(req)
-  if err != nil {
-    return
-  }
-  for k, v := range resp.Header {
-    response.Header[k] = v[len(v)-1]
-  }
-  response.Status = resp.StatusCode
-  return
+	req, err = http.NewRequest("GET", url, nil)
+	if err != nil {
+		return
+	}
+	req.Header.Set("accept", "application/json")
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+	resp, err = client.underlying.Do(req)
+	if err != nil {
+		return
+	}
+	for k, v := range resp.Header {
+		response.Header[k] = v[len(v)-1]
+	}
+	response.Status = resp.StatusCode
+	return
 }

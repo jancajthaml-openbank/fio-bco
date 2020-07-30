@@ -15,8 +15,7 @@
 package config
 
 import (
-  "github.com/jancajthaml-openbank/fio-bco-import/logging"
+	"github.com/jancajthaml-openbank/fio-bco-import/logging"
 )
 
 var log = logging.NewLogger("config")
-

@@ -23,7 +23,7 @@ import (
 	"time"
 )
 
-// MarshalJSON serialises Metrics as json bytes
+// MarshalJSON serializes Metrics as json bytes
 func (metrics *Metrics) MarshalJSON() ([]byte, error) {
 	if metrics == nil {
 		return nil, fmt.Errorf("cannot marshall nil")
@@ -65,11 +65,11 @@ func (metrics *Metrics) UnmarshalJSON(data []byte) error {
 	}
 
 	aux := &struct {
-		CreatedTokens            int64   `json:"createdTokens"`
-		DeletedTokens            int64   `json:"deletedTokens"`
-		SyncLatency              float64 `json:"syncLatency"`
-		ImportedTransfers        int64   `json:"importedTransfers"`
-		ImportedTransactions     int64   `json:"importedTransactions"`
+		CreatedTokens        int64   `json:"createdTokens"`
+		DeletedTokens        int64   `json:"deletedTokens"`
+		SyncLatency          float64 `json:"syncLatency"`
+		ImportedTransfers    int64   `json:"importedTransfers"`
+		ImportedTransactions int64   `json:"importedTransactions"`
 	}{}
 
 	if err := utils.JSON.Unmarshal(data, &aux); err != nil {
@@ -98,12 +98,12 @@ func (metrics *Metrics) Persist() error {
 		log.Warnf("unable to marshall metrics %+v", err)
 		return err
 	}
-	err = metrics.storage.WriteFile("metrics." + metrics.tenant + ".json", data)
+	err = metrics.storage.WriteFile("metrics."+metrics.tenant+".json", data)
 	if err != nil {
 		log.Warnf("unable to persist metrics %+v", err)
 		return err
 	}
-	err = os.Chmod(metrics.storage.Root+"/metrics." + metrics.tenant + ".json", 0644)
+	err = os.Chmod(metrics.storage.Root+"/metrics."+metrics.tenant+".json", 0644)
 	if err != nil {
 		return err
 	}

@@ -38,7 +38,7 @@ type Token struct {
 	Value     string    `json:"value"`
 }
 
-// MarshalJSON serialises Token as json
+// MarshalJSON serializes Token as json
 func (entity Token) MarshalJSON() ([]byte, error) {
 	return []byte("{\"id\":\"" + entity.ID + "\",\"createdAt\":\"" + entity.CreatedAt.Format(time.RFC3339) + "\"}"), nil
 }

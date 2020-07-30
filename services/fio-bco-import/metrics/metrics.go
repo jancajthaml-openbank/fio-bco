@@ -18,36 +18,36 @@ import (
 	"context"
 	"time"
 
-	localfs "github.com/jancajthaml-openbank/local-fs"
 	"github.com/jancajthaml-openbank/fio-bco-import/utils"
+	localfs "github.com/jancajthaml-openbank/local-fs"
 	metrics "github.com/rcrowley/go-metrics"
 )
 
 // Metrics holds metrics counters
 type Metrics struct {
 	utils.DaemonSupport
-	storage                  localfs.PlaintextStorage
-	tenant                   string
-	refreshRate              time.Duration
-	createdTokens            metrics.Counter
-	deletedTokens            metrics.Counter
-	syncLatency              metrics.Timer
-	importedTransfers        metrics.Meter
-	importedTransactions     metrics.Meter
+	storage              localfs.PlaintextStorage
+	tenant               string
+	refreshRate          time.Duration
+	createdTokens        metrics.Counter
+	deletedTokens        metrics.Counter
+	syncLatency          metrics.Timer
+	importedTransfers    metrics.Meter
+	importedTransactions metrics.Meter
 }
 
 // NewMetrics returns blank metrics holder
 func NewMetrics(ctx context.Context, output string, tenant string, refreshRate time.Duration) Metrics {
 	return Metrics{
-		DaemonSupport:            utils.NewDaemonSupport(ctx, "metrics"),
-		storage:                  localfs.NewPlaintextStorage(output),
-		tenant:                   tenant,
-		refreshRate:              refreshRate,
-		createdTokens:            metrics.NewCounter(),
-		deletedTokens:            metrics.NewCounter(),
-		syncLatency:              metrics.NewTimer(),
-		importedTransfers:        metrics.NewMeter(),
-		importedTransactions:     metrics.NewMeter(),
+		DaemonSupport:        utils.NewDaemonSupport(ctx, "metrics"),
+		storage:              localfs.NewPlaintextStorage(output),
+		tenant:               tenant,
+		refreshRate:          refreshRate,
+		createdTokens:        metrics.NewCounter(),
+		deletedTokens:        metrics.NewCounter(),
+		syncLatency:          metrics.NewTimer(),
+		importedTransfers:    metrics.NewMeter(),
+		importedTransactions: metrics.NewMeter(),
 	}
 }
 
@@ -73,7 +73,6 @@ func (metrics *Metrics) TransactionImported() {
 func (metrics *Metrics) TransfersImported(num int64) {
 	metrics.importedTransfers.Mark(num)
 }
-
 
 // Start handles everything needed to start metrics daemon
 func (metrics Metrics) Start() {

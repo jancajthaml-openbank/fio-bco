@@ -86,7 +86,7 @@ func Calculate(number, identityCode string) string {
 		"8296", //?
 		"8297", //?
 		"8298", //ANCSCZP1
-		"0730": // Česká národní banka - Clearing centre
+		"0730": // Česká národní banka - Clearing center
 		{
 			return CalculateCzech(number, identityCode)
 		}

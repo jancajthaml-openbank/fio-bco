@@ -21,10 +21,10 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-rest/actor"
 	"github.com/jancajthaml-openbank/fio-bco-rest/api"
 	"github.com/jancajthaml-openbank/fio-bco-rest/config"
+	"github.com/jancajthaml-openbank/fio-bco-rest/logging"
 	"github.com/jancajthaml-openbank/fio-bco-rest/metrics"
 	"github.com/jancajthaml-openbank/fio-bco-rest/system"
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
-	"github.com/jancajthaml-openbank/fio-bco-rest/logging"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
 )

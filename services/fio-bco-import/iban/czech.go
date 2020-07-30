@@ -42,7 +42,7 @@ func CalculateCzech(number, bankCode string) (result string) {
 		}
 	}()
 
-	// canonise input
+	// canonize input
 	canonisedNumber := strings.Replace(strings.Replace(number, "-", "", -1), " ", "", -1)
 	// accountNumber of length 16
 	paddedNumber := "0000000000000000"[0:16-len(canonisedNumber)] + canonisedNumber

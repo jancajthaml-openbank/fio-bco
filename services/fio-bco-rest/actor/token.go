@@ -50,12 +50,12 @@ func CreateToken(sys *ActorSystem, tenant string, token Token) (result interface
 		sys.SendMessage(
 			CreateTokenMessage(token),
 			system.Coordinates{
-				Region: "FioImport/"+tenant,
-				Name: token.ID,
+				Region: "FioImport/" + tenant,
+				Name:   token.ID,
 			},
 			system.Coordinates{
 				Region: "FioRest",
-				Name: envelope.Name,
+				Name:   envelope.Name,
 			},
 		)
 
@@ -74,7 +74,7 @@ func CreateToken(sys *ActorSystem, tenant string, token Token) (result interface
 }
 
 // DeleteToken deletes existing token for target tenant
-func DeleteToken(sys *ActorSystem, tenant string, tokenId string) (result interface{}) {
+func DeleteToken(sys *ActorSystem, tenant string, tokenID string) (result interface{}) {
 	sys.Metrics.TimeDeleteToken(func() {
 		defer func() {
 			if r := recover(); r != nil {
@@ -92,7 +92,7 @@ func DeleteToken(sys *ActorSystem, tenant string, tokenId string) (result interf
 		sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
 			switch msg := context.Data.(type) {
 			case *TokenDeleted:
-				log.Infof("Token %s/%s deleted", tenant, tokenId)
+				log.Infof("Token %s/%s deleted", tenant, tokenID)
 				ch <- msg
 			default:
 				ch <- nil
@@ -102,12 +102,12 @@ func DeleteToken(sys *ActorSystem, tenant string, tokenId string) (result interf
 		sys.SendMessage(
 			DeleteTokenMessage(),
 			system.Coordinates{
-				Region: "FioImport/"+tenant,
-				Name: tokenId,
+				Region: "FioImport/" + tenant,
+				Name:   tokenID,
 			},
 			system.Coordinates{
 				Region: "FioRest",
-				Name: envelope.Name,
+				Name:   envelope.Name,
 			},
 		)
 
