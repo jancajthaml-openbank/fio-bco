@@ -75,7 +75,7 @@ func PersistToken(storage *localfs.EncryptedStorage, entity *model.Token) *model
 		return nil
 	}
 	path := utils.TokenPath(entity.ID)
-	data, err := entity.Serialise()
+	data, err := entity.Serialize()
 	if err != nil {
 		return nil
 	}
@@ -95,7 +95,7 @@ func HydrateToken(storage *localfs.EncryptedStorage, entity *model.Token) *model
 	if err != nil {
 		return nil
 	}
-	err = entity.Deserialise(data)
+	err = entity.Deserialize(data)
 	if err != nil {
 		return nil
 	}
@@ -109,7 +109,7 @@ func UpdateToken(storage *localfs.EncryptedStorage, entity *model.Token) bool {
 	}
 	path := utils.TokenPath(entity.ID)
 	// FIXME check nil
-	data, err := entity.Serialise()
+	data, err := entity.Serialize()
 	if err != nil {
 		return false
 	}

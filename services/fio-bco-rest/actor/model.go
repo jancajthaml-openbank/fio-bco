@@ -62,10 +62,10 @@ func (entity *Token) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Deserialise Token entity from persistent data
-func (entity *Token) Deserialise(data []byte) error {
+// Deserialize Token entity from persistent data
+func (entity *Token) Deserialize(data []byte) error {
 	if entity == nil {
-		return fmt.Errorf("called Token.Deserialise over nil")
+		return fmt.Errorf("called Token.Deserialize over nil")
 	}
 
 	// FIXME more optimal split
