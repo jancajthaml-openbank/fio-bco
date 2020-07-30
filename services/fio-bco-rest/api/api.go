@@ -15,8 +15,7 @@
 package api
 
 import (
-  "github.com/jancajthaml-openbank/fio-bco-rest/logging"
+	"github.com/jancajthaml-openbank/fio-bco-rest/logging"
 )
 
 var log = logging.NewLogger("api")
-

@@ -15,34 +15,34 @@
 package utils
 
 type IdxRange struct {
-  Low int
-  High int
+	Low  int
+	High int
 }
 
 func Partition(length int, size int) chan IdxRange {
-  c := make(chan IdxRange)
-  if size <= 0 {
-    close(c)
-    return c
-  }
+	c := make(chan IdxRange)
+	if size <= 0 {
+		close(c)
+		return c
+	}
 
-  go func() {
-    defer close(c)
-    numFullPartitions := length / size
-    var i int
-    for ; i < numFullPartitions; i++ {
-      c <- IdxRange{
-        Low: i * size,
-        High: (i + 1) * size,
-      }
-    }
-    if length%size != 0 {
-      c <- IdxRange{
-        Low: i * size,
-        High: length,
-      }
-    }
-  }()
+	go func() {
+		defer close(c)
+		numFullPartitions := length / size
+		var i int
+		for ; i < numFullPartitions; i++ {
+			c <- IdxRange{
+				Low:  i * size,
+				High: (i + 1) * size,
+			}
+		}
+		if length%size != 0 {
+			c <- IdxRange{
+				Low:  i * size,
+				High: length,
+			}
+		}
+	}()
 
-  return c
+	return c
 }

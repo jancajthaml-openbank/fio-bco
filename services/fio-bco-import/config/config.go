@@ -22,7 +22,7 @@ import (
 type Configuration struct {
 	// Tenant represent tenant of given vault
 	Tenant string
-	// SyncRate represents interval in which new statements are synchronised
+	// SyncRate represents interval in which new statements are synchronized
 	SyncRate time.Duration
 	// FioGateway represent fio gateway uri
 	FioGateway string

@@ -31,11 +31,11 @@ func TestMarshalJSON(t *testing.T) {
 	t.Log("happy path")
 	{
 		entity := Metrics{
-			createdTokens:            metrics.NewCounter(),
-			deletedTokens:            metrics.NewCounter(),
-			syncLatency:              metrics.NewTimer(),
-			importedTransfers:        metrics.NewMeter(),
-			importedTransactions:     metrics.NewMeter(),
+			createdTokens:        metrics.NewCounter(),
+			deletedTokens:        metrics.NewCounter(),
+			syncLatency:          metrics.NewTimer(),
+			importedTransfers:    metrics.NewMeter(),
+			importedTransactions: metrics.NewMeter(),
 		}
 
 		entity.createdTokens.Inc(1)
@@ -73,11 +73,11 @@ func TestUnmarshalJSON(t *testing.T) {
 	t.Log("error on malformed data")
 	{
 		entity := Metrics{
-			createdTokens:            metrics.NewCounter(),
-			deletedTokens:            metrics.NewCounter(),
-			syncLatency:              metrics.NewTimer(),
-			importedTransfers:        metrics.NewMeter(),
-			importedTransactions:     metrics.NewMeter(),
+			createdTokens:        metrics.NewCounter(),
+			deletedTokens:        metrics.NewCounter(),
+			syncLatency:          metrics.NewTimer(),
+			importedTransfers:    metrics.NewMeter(),
+			importedTransactions: metrics.NewMeter(),
 		}
 
 		data := []byte("{")
@@ -87,11 +87,11 @@ func TestUnmarshalJSON(t *testing.T) {
 	t.Log("happy path")
 	{
 		entity := Metrics{
-			createdTokens:            metrics.NewCounter(),
-			deletedTokens:            metrics.NewCounter(),
-			syncLatency:              metrics.NewTimer(),
-			importedTransfers:        metrics.NewMeter(),
-			importedTransactions:     metrics.NewMeter(),
+			createdTokens:        metrics.NewCounter(),
+			deletedTokens:        metrics.NewCounter(),
+			syncLatency:          metrics.NewTimer(),
+			importedTransfers:    metrics.NewMeter(),
+			importedTransactions: metrics.NewMeter(),
 		}
 
 		data := []byte("{\"createdTokens\":1,\"deletedTokens\":2,\"syncLatency\":3,\"importedTransfers\":4,\"importedTransactions\":5}")
@@ -113,25 +113,24 @@ func TestPersist(t *testing.T) {
 		assert.EqualError(t, entity.Persist(), "cannot persist nil reference")
 	}
 
-	t.Log("error when marshalling fails")
+	t.Log("error when marshaling fails")
 	{
 		entity := Metrics{}
 		assert.EqualError(t, entity.Persist(), "cannot marshall nil references")
 	}
-
 
 	t.Log("happy path")
 	{
 		defer os.Remove("/tmp/metrics.json")
 
 		entity := Metrics{
-			storage:                  localfs.NewPlaintextStorage("/tmp"),
-			tenant:                   "1",
-			createdTokens:            metrics.NewCounter(),
-			deletedTokens:            metrics.NewCounter(),
-			syncLatency:              metrics.NewTimer(),
-			importedTransfers:        metrics.NewMeter(),
-			importedTransactions:     metrics.NewMeter(),
+			storage:              localfs.NewPlaintextStorage("/tmp"),
+			tenant:               "1",
+			createdTokens:        metrics.NewCounter(),
+			deletedTokens:        metrics.NewCounter(),
+			syncLatency:          metrics.NewTimer(),
+			importedTransfers:    metrics.NewMeter(),
+			importedTransactions: metrics.NewMeter(),
 		}
 
 		require.Nil(t, entity.Persist())
@@ -159,11 +158,11 @@ func TestHydrate(t *testing.T) {
 		defer os.Remove("/tmp/metrics.1.json")
 
 		old := Metrics{
-			createdTokens:            metrics.NewCounter(),
-			deletedTokens:            metrics.NewCounter(),
-			syncLatency:              metrics.NewTimer(),
-			importedTransfers:        metrics.NewMeter(),
-			importedTransactions:     metrics.NewMeter(),
+			createdTokens:        metrics.NewCounter(),
+			deletedTokens:        metrics.NewCounter(),
+			syncLatency:          metrics.NewTimer(),
+			importedTransfers:    metrics.NewMeter(),
+			importedTransactions: metrics.NewMeter(),
 		}
 
 		old.createdTokens.Inc(1)
@@ -178,13 +177,13 @@ func TestHydrate(t *testing.T) {
 		require.Nil(t, ioutil.WriteFile("/tmp/metrics.1.json", data, 0444))
 
 		entity := Metrics{
-			storage:                  localfs.NewPlaintextStorage("/tmp"),
-			tenant:                   "1",
-			createdTokens:            metrics.NewCounter(),
-			deletedTokens:            metrics.NewCounter(),
-			syncLatency:              metrics.NewTimer(),
-			importedTransfers:        metrics.NewMeter(),
-			importedTransactions:     metrics.NewMeter(),
+			storage:              localfs.NewPlaintextStorage("/tmp"),
+			tenant:               "1",
+			createdTokens:        metrics.NewCounter(),
+			deletedTokens:        metrics.NewCounter(),
+			syncLatency:          metrics.NewTimer(),
+			importedTransfers:    metrics.NewMeter(),
+			importedTransactions: metrics.NewMeter(),
 		}
 
 		require.Nil(t, entity.Hydrate())

@@ -15,74 +15,74 @@
 package fio
 
 import (
-  "fmt"
+	"fmt"
 
-  "github.com/jancajthaml-openbank/fio-bco-import/http"
-  "github.com/jancajthaml-openbank/fio-bco-import/model"
-  "github.com/jancajthaml-openbank/fio-bco-import/utils"
+	"github.com/jancajthaml-openbank/fio-bco-import/http"
+	"github.com/jancajthaml-openbank/fio-bco-import/model"
+	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 )
 
 // FioClient represents fascade for http client
 type FioClient struct {
-  underlying http.HttpClient
-  gateway    string
-  token      model.Token
+	underlying http.HttpClient
+	gateway    string
+	token      model.Token
 }
 
 // NewFioClient returns new bondster http client
 func NewFioClient(gateway string, token model.Token) FioClient {
-  return FioClient{
-    gateway:    gateway,
-    underlying: http.NewHttpClient(),
-    token:      token,
-  }
+	return FioClient{
+		gateway:    gateway,
+		underlying: http.NewHttpClient(),
+		token:      token,
+	}
 }
 
 func (client *FioClient) setLastSyncedID() error {
-  if client == nil {
-    return fmt.Errorf("nil deference")
-  }
+	if client == nil {
+		return fmt.Errorf("nil deference")
+	}
 
-  var uri string
-  if client.token.LastSyncedID != 0 {
-    uri = fmt.Sprintf("/ib_api/rest/set-last-id/%s/%d/", client.token.Value, client.token.LastSyncedID)
-  } else {
-    uri = fmt.Sprintf("/ib_api/rest/set-last-date/%s/2012-07-27/", client.token.Value)
-  }
+	var uri string
+	if client.token.LastSyncedID != 0 {
+		uri = fmt.Sprintf("/ib_api/rest/set-last-id/%s/%d/", client.token.Value, client.token.LastSyncedID)
+	} else {
+		uri = fmt.Sprintf("/ib_api/rest/set-last-date/%s/2012-07-27/", client.token.Value)
+	}
 
-  response, err := client.underlying.Get(client.gateway+uri, nil)
-  if err != nil {
-    return err
-  }
-  if response.Status != 200 {
-    return fmt.Errorf("fio set last synced id error %s", response.String())
-  }
-  return nil
+	response, err := client.underlying.Get(client.gateway+uri, nil)
+	if err != nil {
+		return err
+	}
+	if response.Status != 200 {
+		return fmt.Errorf("fio set last synced id error %s", response.String())
+	}
+	return nil
 }
 
 func (client *FioClient) GetTransactions() (*FioImportEnvelope, error) {
-  if client == nil {
-    return nil, fmt.Errorf("nil deference")
-  }
+	if client == nil {
+		return nil, fmt.Errorf("nil deference")
+	}
 
-  err := client.setLastSyncedID()
-  if err != nil {
-    return nil, err
-  }
+	err := client.setLastSyncedID()
+	if err != nil {
+		return nil, err
+	}
 
-  response, err := client.underlying.Get(client.gateway+"/ib_api/rest/last/" + client.token.Value + "/transactions.json", nil)
-  if err != nil {
-    return nil, err
-  }
-  if response.Status != 200 {
-    return nil, fmt.Errorf("fio set last synced id error %s", response.String())
-  }
+	response, err := client.underlying.Get(client.gateway+"/ib_api/rest/last/"+client.token.Value+"/transactions.json", nil)
+	if err != nil {
+		return nil, err
+	}
+	if response.Status != 200 {
+		return nil, fmt.Errorf("fio set last synced id error %s", response.String())
+	}
 
-  var envelope = new(FioImportEnvelope)
-  err = utils.JSON.Unmarshal(response.Data, envelope)
-  if err != nil {
-    return nil, err
-  }
+	var envelope = new(FioImportEnvelope)
+	err = utils.JSON.Unmarshal(response.Data, envelope)
+	if err != nil {
+		return nil, err
+	}
 
-  return envelope, nil
+	return envelope, nil
 }

@@ -38,7 +38,7 @@ type Token struct {
 	Value     string    `json:"value"`
 }
 
-// MarshalJSON serialises Token as json
+// MarshalJSON serializes Token as json
 func (entity Token) MarshalJSON() ([]byte, error) {
 	return []byte("{\"id\":\"" + entity.ID + "\",\"createdAt\":\"" + entity.CreatedAt.Format(time.RFC3339) + "\"}"), nil
 }
@@ -62,10 +62,10 @@ func (entity *Token) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Deserialise Token entity from persistent data
-func (entity *Token) Deserialise(data []byte) error {
+// Deserialize Token entity from persistent data
+func (entity *Token) Deserialize(data []byte) error {
 	if entity == nil {
-		return fmt.Errorf("called Token.Deserialise over nil")
+		return fmt.Errorf("called Token.Deserialize over nil")
 	}
 
 	// FIXME more optimal split

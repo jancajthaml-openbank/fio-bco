@@ -15,12 +15,12 @@
 package actor
 
 import (
-	"github.com/jancajthaml-openbank/fio-bco-import/model"
-	"github.com/jancajthaml-openbank/fio-bco-import/persistence"
-	"github.com/jancajthaml-openbank/fio-bco-import/metrics"
-	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 	"github.com/jancajthaml-openbank/fio-bco-import/fio"
 	"github.com/jancajthaml-openbank/fio-bco-import/ledger"
+	"github.com/jancajthaml-openbank/fio-bco-import/metrics"
+	"github.com/jancajthaml-openbank/fio-bco-import/model"
+	"github.com/jancajthaml-openbank/fio-bco-import/persistence"
+	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 	"github.com/jancajthaml-openbank/fio-bco-import/vault"
 
 	system "github.com/jancajthaml-openbank/actor-system"
@@ -166,8 +166,8 @@ func SynchronizingToken(s *ActorSystem) func(interface{}, system.Context) {
 func importNewStatements(tenant string, fioClient *fio.FioClient, vaultClient *vault.VaultClient, ledgerClient *ledger.LedgerClient, metrics *metrics.Metrics, token *model.Token) (int64, error) {
 	var (
 		statements *fio.FioImportEnvelope
-		err error
-		lastID int64 = token.LastSyncedID
+		err        error
+		lastID     int64 = token.LastSyncedID
 	)
 
 	metrics.TimeSyncLatency(func() {
@@ -193,11 +193,11 @@ func importNewStatements(tenant string, fioClient *fio.FioClient, vaultClient *v
 
 	transactions := statements.GetTransactions(tenant)
 
-  for chunk := range utils.Partition(len(transactions), 10) {
-  	work := transactions[chunk.Low:chunk.High]
-  	log.WithField("token", token.ID).Debugf("importing %d/%d transactions", chunk.High, len(transactions))
+	for chunk := range utils.Partition(len(transactions), 10) {
+		work := transactions[chunk.Low:chunk.High]
+		log.WithField("token", token.ID).Debugf("importing %d/%d transactions", chunk.High, len(transactions))
 
-    for _, transaction := range work {
+		for _, transaction := range work {
 
 			err = ledgerClient.CreateTransaction(tenant, transaction)
 			if err != nil {
@@ -213,7 +213,7 @@ func importNewStatements(tenant string, fioClient *fio.FioClient, vaultClient *v
 				}
 			}
 		}
-  }
+	}
 
 	return lastID, nil
 }

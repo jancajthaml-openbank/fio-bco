@@ -54,7 +54,7 @@ func HydrateToken(storage *localfs.EncryptedStorage, tenant string, entity *acto
 	if err != nil {
 		return nil
 	}
-	err = entity.Deserialise(data)
+	err = entity.Deserialize(data)
 	if err != nil {
 		return nil
 	}

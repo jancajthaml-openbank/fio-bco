@@ -21,9 +21,9 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-import/actor"
 	"github.com/jancajthaml-openbank/fio-bco-import/config"
 	"github.com/jancajthaml-openbank/fio-bco-import/integration"
+	"github.com/jancajthaml-openbank/fio-bco-import/logging"
 	"github.com/jancajthaml-openbank/fio-bco-import/metrics"
 	"github.com/jancajthaml-openbank/fio-bco-import/utils"
-	"github.com/jancajthaml-openbank/fio-bco-import/logging"
 
 	system "github.com/jancajthaml-openbank/actor-system"
 	localfs "github.com/jancajthaml-openbank/local-fs"
@@ -74,11 +74,11 @@ func Initialize() Program {
 			actorSystemDaemon.SendMessage(actor.SynchronizeTokens,
 				system.Coordinates{
 					Region: actorSystemDaemon.Name,
-					Name: token,
+					Name:   token,
 				},
 				system.Coordinates{
 					Region: actorSystemDaemon.Name,
-					Name: "token_import_cron",
+					Name:   "token_import_cron",
 				},
 			)
 		},
