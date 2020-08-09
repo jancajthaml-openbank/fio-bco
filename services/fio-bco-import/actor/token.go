@@ -186,7 +186,7 @@ func importNewStatements(tenant string, fioClient *fio.FioClient, vaultClient *v
 	log.WithField("token", token.ID).Debugf("sorting statements")
 
 	sort.SliceStable(statements.Statement.TransactionList.Transactions, func(i, j int) bool {
-		return statements.Statement.TransactionList.Transactions[i].Column17.Value == statements.Statement.TransactionList.Transactions[j].Column17.Value
+		return statements.Statement.TransactionList.Transactions[i].TransactionID.Value == statements.Statement.TransactionList.Transactions[j].TransactionID.Value
 	})
 
 	log.WithField("token", token.ID).Debugf("importing accounts")

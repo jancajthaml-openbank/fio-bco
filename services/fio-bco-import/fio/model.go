@@ -50,25 +50,15 @@ type transactionList struct {
 }
 
 type fioTransaction struct {
-	Column0  *stringNode `json:"column0"`
-	Column1  *floatNode  `json:"column1"`
-	Column2  *stringNode `json:"column2"`
-	Column3  *stringNode `json:"column3"`
-	Column4  *stringNode `json:"column4"`
-	Column5  *stringNode `json:"column5"`
-	Column6  *stringNode `json:"column6"`
-	Column7  *stringNode `json:"column7"`
-	Column8  *stringNode `json:"column8"`
-	Column9  *stringNode `json:"column9"`
-	Column10 *stringNode `json:"column10"`
-	Column12 *stringNode `json:"column12"`
-	Column14 *stringNode `json:"column14"`
-	Column16 *stringNode `json:"column16"`
-	Column17 *intNode    `json:"column17"`
-	Column18 *stringNode `json:"column18"`
-	Column22 *intNode    `json:"column22"`
-	Column25 *stringNode `json:"column25"`
-	Column26 *stringNode `json:"column26"`
+	TransferDate     *stringNode `json:"column0"`
+	Amount           *floatNode  `json:"column1"`
+	AccountTo        *stringNode `json:"column2"`
+	AcountToBankCode *stringNode `json:"column3"`
+	//TransferType  *stringNode `json:"column8"`	// FIXME e.g. "Příjem převodem uvnitř banky"
+	Currency      *stringNode `json:"column14"`
+	TransactionID *intNode    `json:"column17"`
+	TransferID    *intNode    `json:"column22"`
+	AccountToBIC  *stringNode `json:"column26"`
 }
 
 type stringNode struct {
@@ -112,47 +102,58 @@ func (envelope *FioImportEnvelope) GetTransactions(tenant string) <-chan model.T
 
 		var credit string
 		var debit string
+		var currency string
 		var valueDate time.Time
 
 		for _, transfer := range envelope.Statement.TransactionList.Transactions {
-			if transfer.Column22 == nil || transfer.Column1 == nil {
+			if transfer.TransferID == nil || transfer.Amount == nil {
 				continue
 			}
 
-			if transfer.Column1.Value > 0 {
+			if transfer.Amount.Value > 0 {
 				credit = envelope.Statement.Info.IBAN
-				if transfer.Column2 == nil {
+				if transfer.AccountTo == nil {
 					debit = envelope.Statement.Info.BIC
 				} else {
-					if transfer.Column3 != nil {
-						debit = model.NormalizeAccountNumber(transfer.Column2.Value, transfer.Column3.Value, envelope.Statement.Info.BankID)
+					if transfer.AcountToBankCode != nil {
+						debit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AcountToBankCode.Value, envelope.Statement.Info.BankID)
+					} else if transfer.AccountToBIC != nil {
+						debit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AccountToBIC.Value, envelope.Statement.Info.BankID)
 					} else {
-						debit = model.NormalizeAccountNumber(transfer.Column2.Value, "", envelope.Statement.Info.BankID)
+						debit = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.Statement.Info.BankID)
 					}
 				}
 			} else {
-				if transfer.Column2 == nil {
+				if transfer.AccountTo == nil {
 					credit = envelope.Statement.Info.BIC
 				} else {
-					if transfer.Column3 != nil {
-						credit = model.NormalizeAccountNumber(transfer.Column2.Value, transfer.Column3.Value, envelope.Statement.Info.BankID)
+					if transfer.AcountToBankCode != nil {
+						credit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AcountToBankCode.Value, envelope.Statement.Info.BankID)
+					} else if transfer.AccountToBIC != nil {
+						credit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AccountToBIC.Value, envelope.Statement.Info.BankID)
 					} else {
-						credit = model.NormalizeAccountNumber(transfer.Column2.Value, "", envelope.Statement.Info.BankID)
+						credit = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.Statement.Info.BankID)
 					}
 				}
 				debit = envelope.Statement.Info.IBAN
 			}
 
-			if transfer.Column0 == nil {
+			if transfer.TransferDate == nil {
 				valueDate = now
-			} else if date, err := time.Parse("2006-01-02-0700", transfer.Column0.Value); err == nil {
+			} else if date, err := time.Parse("2006-01-02-0700", transfer.TransferDate.Value); err == nil {
 				valueDate = date.UTC()
 			} else {
 				valueDate = now
 			}
 
+			if transfer.Currency == nil {
+				currency = envelope.Statement.Info.Currency
+			} else {
+				currency = transfer.Currency.Value
+			}
+
 			buffer = append(buffer, model.Transfer{
-				IDTransfer: transfer.Column22.Value,
+				IDTransfer: transfer.TransferID.Value,
 				Credit: model.AccountPair{
 					Tenant: tenant,
 					Name:   credit,
@@ -162,11 +163,11 @@ func (envelope *FioImportEnvelope) GetTransactions(tenant string) <-chan model.T
 					Name:   debit,
 				},
 				ValueDate: valueDate.Format("2006-01-02T15:04:05Z0700"),
-				Amount:    math.Abs(transfer.Column1.Value),
-				Currency:  envelope.Statement.Info.Currency, // FIXME not true in all cases
+				Amount:    math.Abs(transfer.Amount.Value),
+				Currency:  currency,
 			})
 
-			idTransaction := envelope.Statement.Info.IBAN + strconv.FormatInt(transfer.Column17.Value, 10)
+			idTransaction := envelope.Statement.Info.IBAN + strconv.FormatInt(transfer.TransactionID.Value, 10)
 
 			if previousIdTransaction == "" {
 				previousIdTransaction = idTransaction
@@ -214,11 +215,11 @@ func (envelope *FioImportEnvelope) GetAccounts() <-chan model.Account {
 		var set = make(map[string]fioTransaction)
 
 		for _, transfer := range envelope.Statement.TransactionList.Transactions {
-			if transfer.Column2 == nil {
+			if transfer.AccountTo == nil {
 				// INFO fee and taxes and maybe card payments
 				set[envelope.Statement.Info.BIC] = transfer
 			} else {
-				set[transfer.Column2.Value] = transfer
+				set[transfer.AccountTo.Value] = transfer
 			}
 		}
 
@@ -226,8 +227,8 @@ func (envelope *FioImportEnvelope) GetAccounts() <-chan model.Account {
 		var accountFormat string
 
 		for account, transfer := range set {
-			if transfer.Column3 != nil {
-				normalizedAccount = model.NormalizeAccountNumber(account, transfer.Column3.Value, envelope.Statement.Info.BankID)
+			if transfer.AcountToBankCode != nil {
+				normalizedAccount = model.NormalizeAccountNumber(account, transfer.AcountToBankCode.Value, envelope.Statement.Info.BankID)
 			} else {
 				normalizedAccount = model.NormalizeAccountNumber(account, "", envelope.Statement.Info.BankID)
 			}
