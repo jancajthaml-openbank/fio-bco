@@ -16,7 +16,6 @@ package fio
 
 import (
 	"math"
-	"sort"
 	"strconv"
 	"time"
 
@@ -96,144 +95,172 @@ type floatNode struct {
 	ID    int     `json:"id"`
 }
 
-// GetTransactions return list of fio transactions
-func (envelope *FioImportEnvelope) GetTransactions(tenant string) []model.Transaction {
+// GetTransactions return generator of fio transactions over given envelope
+func (envelope *FioImportEnvelope) GetTransactions(tenant string) <-chan model.Transaction {
+	chnl := make(chan model.Transaction)
 	if envelope == nil {
-		return nil
+		close(chnl)
+		return chnl
 	}
 
-	var set = make(map[int64][]model.Transfer)
+	var previousIdTransaction = ""
+	var buffer = make([]model.Transfer, 0)
 
-	now := time.Now()
+	go func() {
 
-	var credit string
-	var debit string
-	var valueDate time.Time
+		now := time.Now()
 
-	sort.SliceStable(envelope.Statement.TransactionList.Transactions, func(i, j int) bool {
-		return envelope.Statement.TransactionList.Transactions[i].Column22.Value < envelope.Statement.TransactionList.Transactions[j].Column22.Value
-	})
+		var credit string
+		var debit string
+		var valueDate time.Time
 
-	for _, transfer := range envelope.Statement.TransactionList.Transactions {
-		if transfer.Column22 == nil || transfer.Column1 == nil {
-			continue
-		}
+		for _, transfer := range envelope.Statement.TransactionList.Transactions {
+			if transfer.Column22 == nil || transfer.Column1 == nil {
+				continue
+			}
 
-		if transfer.Column1.Value > 0 {
-			credit = envelope.Statement.Info.IBAN
-			if transfer.Column2 == nil {
-				debit = envelope.Statement.Info.BIC
-			} else {
-				if transfer.Column3 != nil {
-					debit = model.NormalizeAccountNumber(transfer.Column2.Value, transfer.Column3.Value, envelope.Statement.Info.BankID)
+			if transfer.Column1.Value > 0 {
+				credit = envelope.Statement.Info.IBAN
+				if transfer.Column2 == nil {
+					debit = envelope.Statement.Info.BIC
 				} else {
-					debit = model.NormalizeAccountNumber(transfer.Column2.Value, "", envelope.Statement.Info.BankID)
+					if transfer.Column3 != nil {
+						debit = model.NormalizeAccountNumber(transfer.Column2.Value, transfer.Column3.Value, envelope.Statement.Info.BankID)
+					} else {
+						debit = model.NormalizeAccountNumber(transfer.Column2.Value, "", envelope.Statement.Info.BankID)
+					}
+				}
+			} else {
+				if transfer.Column2 == nil {
+					credit = envelope.Statement.Info.BIC
+				} else {
+					if transfer.Column3 != nil {
+						credit = model.NormalizeAccountNumber(transfer.Column2.Value, transfer.Column3.Value, envelope.Statement.Info.BankID)
+					} else {
+						credit = model.NormalizeAccountNumber(transfer.Column2.Value, "", envelope.Statement.Info.BankID)
+					}
+				}
+				debit = envelope.Statement.Info.IBAN
+			}
+
+			if transfer.Column0 == nil {
+				valueDate = now
+			} else if date, err := time.Parse("2006-01-02-0700", transfer.Column0.Value); err == nil {
+				valueDate = date.UTC()
+			} else {
+				valueDate = now
+			}
+
+			buffer = append(buffer, model.Transfer{
+				IDTransfer: transfer.Column22.Value,
+				Credit: model.AccountPair{
+					Tenant: tenant,
+					Name:   credit,
+				},
+				Debit: model.AccountPair{
+					Tenant: tenant,
+					Name:   debit,
+				},
+				ValueDate: valueDate.Format("2006-01-02T15:04:05Z0700"),
+				Amount:    math.Abs(transfer.Column1.Value),
+				Currency:  envelope.Statement.Info.Currency, // FIXME not true in all cases
+			})
+
+			idTransaction := envelope.Statement.Info.IBAN + strconv.FormatInt(transfer.Column17.Value, 10)
+
+			if previousIdTransaction == "" {
+				previousIdTransaction = idTransaction
+			} else if previousIdTransaction != idTransaction {
+				previousIdTransaction = idTransaction
+				transfers := make([]model.Transfer, len(buffer))
+				copy(transfers, buffer)
+				buffer = make([]model.Transfer, 0)
+				chnl <- model.Transaction{
+					IDTransaction: idTransaction,
+					Transfers:     transfers,
 				}
 			}
-		} else {
-			if transfer.Column2 == nil {
-				credit = envelope.Statement.Info.BIC
-			} else {
-				if transfer.Column3 != nil {
-					credit = model.NormalizeAccountNumber(transfer.Column2.Value, transfer.Column3.Value, envelope.Statement.Info.BankID)
-				} else {
-					credit = model.NormalizeAccountNumber(transfer.Column2.Value, "", envelope.Statement.Info.BankID)
-				}
+
+		}
+
+		if len(buffer) > 0 {
+			transfers := make([]model.Transfer, len(buffer))
+			copy(transfers, buffer)
+			buffer = make([]model.Transfer, 0)
+			chnl <- model.Transaction{
+				IDTransaction: previousIdTransaction,
+				Transfers:     transfers,
 			}
-			debit = envelope.Statement.Info.IBAN
 		}
 
-		if transfer.Column0 == nil {
-			valueDate = now
-		} else if date, err := time.Parse("2006-01-02-0700", transfer.Column0.Value); err == nil {
-			valueDate = date.UTC()
-		} else {
-			valueDate = now
-		}
+		close(chnl)
+	}()
 
-		set[transfer.Column17.Value] = append(set[transfer.Column17.Value], model.Transfer{
-			IDTransfer: transfer.Column22.Value,
-			Credit: model.AccountPair{
-				Tenant: tenant,
-				Name:   credit,
-			},
-			Debit: model.AccountPair{
-				Tenant: tenant,
-				Name:   debit,
-			},
-			ValueDate: valueDate.Format("2006-01-02T15:04:05Z0700"),
-			Amount:    math.Abs(transfer.Column1.Value),
-			Currency:  envelope.Statement.Info.Currency, // FIXME not true in all cases
-		})
-	}
-
-	result := make([]model.Transaction, 0)
-	for transaction, transfers := range set {
-		result = append(result, model.Transaction{
-			IDTransaction: envelope.Statement.Info.IBAN + strconv.FormatInt(transaction, 10),
-			Transfers:     transfers,
-		})
-	}
-
-	return result
-
+	return chnl
 }
 
-// GetAccounts return list of fio accounts
-func (envelope *FioImportEnvelope) GetAccounts() []model.Account {
+// GetAccounts return generator of fio accounts over given envelope
+func (envelope *FioImportEnvelope) GetAccounts() <-chan model.Account {
+	chnl := make(chan model.Account)
 	if envelope == nil {
-		return nil
+		close(chnl)
+		return chnl
 	}
 
-	var set = make(map[string]fioTransaction)
+	var visited = make(map[string]interface{})
 
-	for _, transfer := range envelope.Statement.TransactionList.Transactions {
-		if transfer.Column2 == nil {
-			// INFO fee and taxes and maybe card payments
-			set[envelope.Statement.Info.BIC] = transfer
-		} else {
-			set[transfer.Column2.Value] = transfer
-		}
-	}
+	go func() {
 
-	var (
-		normalizedAccount string
-		accountFormat     string
-		deduplicated      = make(map[string]model.Account)
-	)
+		var set = make(map[string]fioTransaction)
 
-	for account, transfer := range set {
-		if transfer.Column3 != nil {
-			normalizedAccount = model.NormalizeAccountNumber(account, transfer.Column3.Value, envelope.Statement.Info.BankID)
-		} else {
-			normalizedAccount = model.NormalizeAccountNumber(account, "", envelope.Statement.Info.BankID)
+		for _, transfer := range envelope.Statement.TransactionList.Transactions {
+			if transfer.Column2 == nil {
+				// INFO fee and taxes and maybe card payments
+				set[envelope.Statement.Info.BIC] = transfer
+			} else {
+				set[transfer.Column2.Value] = transfer
+			}
 		}
 
-		if normalizedAccount != account {
-			accountFormat = "IBAN"
-		} else {
-			accountFormat = "FIO_UNKNOWN"
+		var normalizedAccount string
+		var accountFormat string
+
+		for account, transfer := range set {
+			if transfer.Column3 != nil {
+				normalizedAccount = model.NormalizeAccountNumber(account, transfer.Column3.Value, envelope.Statement.Info.BankID)
+			} else {
+				normalizedAccount = model.NormalizeAccountNumber(account, "", envelope.Statement.Info.BankID)
+			}
+
+			if normalizedAccount != account {
+				accountFormat = "IBAN"
+			} else {
+				accountFormat = "FIO_UNKNOWN"
+			}
+
+			if _, ok := visited[normalizedAccount]; !ok {
+				chnl <- model.Account{
+					Name:           normalizedAccount,
+					Format:         accountFormat,
+					Currency:       envelope.Statement.Info.Currency, // FIXME not true in all cases
+					IsBalanceCheck: false,
+				}
+				visited[normalizedAccount] = nil
+			}
 		}
 
-		deduplicated[normalizedAccount] = model.Account{
-			Name:           normalizedAccount,
-			Format:         accountFormat,
-			Currency:       envelope.Statement.Info.Currency, // FIXME not true in all cases
-			IsBalanceCheck: false,
+		if _, ok := visited[envelope.Statement.Info.IBAN]; !ok {
+			chnl <- model.Account{
+				Name:           envelope.Statement.Info.IBAN,
+				Format:         "IBAN",
+				Currency:       envelope.Statement.Info.Currency,
+				IsBalanceCheck: false,
+			}
+			visited[envelope.Statement.Info.IBAN] = nil
 		}
-	}
 
-	deduplicated[envelope.Statement.Info.IBAN] = model.Account{
-		Name:           envelope.Statement.Info.IBAN,
-		Format:         "IBAN",
-		Currency:       envelope.Statement.Info.Currency,
-		IsBalanceCheck: false,
-	}
+		close(chnl)
+	}()
 
-	result := make([]model.Account, 0)
-	for _, item := range deduplicated {
-		result = append(result, item)
-	}
-
-	return result
+	return chnl
 }

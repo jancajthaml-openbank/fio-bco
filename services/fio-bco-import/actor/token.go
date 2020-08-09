@@ -15,12 +15,13 @@
 package actor
 
 import (
+	"sort"
+
 	"github.com/jancajthaml-openbank/fio-bco-import/fio"
 	"github.com/jancajthaml-openbank/fio-bco-import/ledger"
 	"github.com/jancajthaml-openbank/fio-bco-import/metrics"
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
 	"github.com/jancajthaml-openbank/fio-bco-import/persistence"
-	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 	"github.com/jancajthaml-openbank/fio-bco-import/vault"
 
 	system "github.com/jancajthaml-openbank/actor-system"
@@ -176,41 +177,41 @@ func importNewStatements(tenant string, fioClient *fio.FioClient, vaultClient *v
 	if err != nil {
 		return lastID, err
 	}
+	if len(statements.Statement.TransactionList.Transactions) == 0 {
+		return lastID, nil
+	}
 
-	accounts := statements.GetAccounts()
+	// FIXME getStatements end here
 
-	for chunk := range utils.Partition(len(accounts), 10) {
-		work := accounts[chunk.Low:chunk.High]
-		log.WithField("token", token.ID).Debugf("importing %d/%d accounts", chunk.High, len(accounts))
+	log.WithField("token", token.ID).Debugf("sorting statements")
 
-		for _, account := range work {
-			err = vaultClient.CreateAccount(tenant, account)
-			if err != nil {
-				return lastID, err
-			}
+	sort.SliceStable(statements.Statement.TransactionList.Transactions, func(i, j int) bool {
+		return statements.Statement.TransactionList.Transactions[i].Column17.Value == statements.Statement.TransactionList.Transactions[j].Column17.Value
+	})
+
+	log.WithField("token", token.ID).Debugf("importing accounts")
+
+	for account := range statements.GetAccounts() {
+		err = vaultClient.CreateAccount(tenant, account)
+		if err != nil {
+			return lastID, err
 		}
 	}
 
-	transactions := statements.GetTransactions(tenant)
+	log.WithField("token", token.ID).Debugf("importing transactions")
 
-	for chunk := range utils.Partition(len(transactions), 10) {
-		work := transactions[chunk.Low:chunk.High]
-		log.WithField("token", token.ID).Debugf("importing %d/%d transactions", chunk.High, len(transactions))
+	for transaction := range statements.GetTransactions(tenant) {
+		err = ledgerClient.CreateTransaction(tenant, transaction)
+		if err != nil {
+			return lastID, err
+		}
 
-		for _, transaction := range work {
+		metrics.TransactionImported()
+		metrics.TransfersImported(int64(len(transaction.Transfers)))
 
-			err = ledgerClient.CreateTransaction(tenant, transaction)
-			if err != nil {
-				return lastID, err
-			}
-
-			metrics.TransactionImported()
-			metrics.TransfersImported(int64(len(transaction.Transfers)))
-
-			for _, transfer := range transaction.Transfers {
-				if transfer.IDTransfer > lastID {
-					lastID = transfer.IDTransfer
-				}
+		for _, transfer := range transaction.Transfers {
+			if transfer.IDTransfer > lastID {
+				lastID = transfer.IDTransfer
 			}
 		}
 	}
