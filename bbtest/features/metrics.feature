@@ -33,21 +33,15 @@ Feature: Metrics test
       | key                      | value |
       | createdTokens            |     0 |
       | deletedTokens            |     0 |
-      | importedTransactions     |     0 |
-      | importedTransfers        |     0 |
 
     When token M2/A is created
     Then metrics file reports/blackbox-tests/metrics/metrics.M2.json reports:
       | key                      | value |
       | createdTokens            |     1 |
       | deletedTokens            |     0 |
-      | importedTransactions     |     0 |
-      | importedTransfers        |     0 |
 
     When restart unit "fio-bco-import@M2.service"
     Then metrics file reports/blackbox-tests/metrics/metrics.M2.json reports:
       | key                      | value |
       | createdTokens            |     1 |
       | deletedTokens            |     0 |
-      | importedTransactions     |     0 |
-      | importedTransfers        |     0 |
