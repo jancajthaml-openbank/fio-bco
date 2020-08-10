@@ -225,6 +225,7 @@ func (envelope *FioImportEnvelope) GetAccounts() <-chan model.Account {
 
 		var normalizedAccount string
 		var accountFormat string
+		var currency string
 
 		for account, transfer := range set {
 			if transfer.AcountToBankCode != nil {
@@ -239,11 +240,17 @@ func (envelope *FioImportEnvelope) GetAccounts() <-chan model.Account {
 				accountFormat = "FIO_UNKNOWN"
 			}
 
+			if transfer.Currency == nil {
+				currency = envelope.Statement.Info.Currency
+			} else {
+				currency = transfer.Currency.Value
+			}
+
 			if _, ok := visited[normalizedAccount]; !ok {
 				chnl <- model.Account{
 					Name:           normalizedAccount,
 					Format:         accountFormat,
-					Currency:       envelope.Statement.Info.Currency, // FIXME not true in all cases
+					Currency:       currency,
 					IsBalanceCheck: false,
 				}
 				visited[normalizedAccount] = nil
