@@ -20,6 +20,7 @@ import (
 
 // Transaction entity in ledger-rest format
 type Transaction struct {
+	Tenant        string     `json:"-"`
 	IDTransaction string     `json:"id"`
 	Transfers     []Transfer `json:"transfers"`
 }
@@ -42,6 +43,7 @@ type AccountPair struct {
 
 // Account entity in vault format
 type Account struct {
+	Tenant         string `json:"-"`
 	Name           string `json:"name"`
 	Format         string `json:"format"`
 	Currency       string `json:"currency"`

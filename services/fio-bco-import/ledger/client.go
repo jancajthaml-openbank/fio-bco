@@ -36,12 +36,12 @@ func NewLedgerClient(gateway string) LedgerClient {
 	}
 }
 
-func (client LedgerClient) CreateTransaction(tenant string, transaction model.Transaction) error {
+func (client LedgerClient) CreateTransaction(transaction model.Transaction) error {
 	request, err := utils.JSON.Marshal(transaction)
 	if err != nil {
 		return err
 	}
-	response, err := client.underlying.Post(client.gateway+"/transaction/"+tenant, request, nil)
+	response, err := client.underlying.Post(client.gateway+"/transaction/"+transaction.Tenant, request, nil)
 	if err != nil {
 		return fmt.Errorf("create transaction error %+v", err)
 	}
@@ -49,7 +49,7 @@ func (client LedgerClient) CreateTransaction(tenant string, transaction model.Tr
 		return fmt.Errorf("create transaction duplicate %+v", transaction)
 	}
 	if response.Status == 400 {
-		return fmt.Errorf("create transaction malformed request %+v", transaction)
+		return fmt.Errorf("create transaction malformed request %s", string(request))
 	}
 	if response.Status == 504 {
 		return fmt.Errorf("create transaction timeout")

@@ -97,6 +97,7 @@ func (envelope *FioImportEnvelope) GetTransactions(tenant string) <-chan model.T
 	var buffer = make([]model.Transfer, 0)
 
 	go func() {
+		defer close(chnl)
 
 		now := time.Now()
 
@@ -177,6 +178,7 @@ func (envelope *FioImportEnvelope) GetTransactions(tenant string) <-chan model.T
 				copy(transfers, buffer)
 				buffer = make([]model.Transfer, 0)
 				chnl <- model.Transaction{
+					Tenant:        tenant,
 					IDTransaction: idTransaction,
 					Transfers:     transfers,
 				}
@@ -184,24 +186,25 @@ func (envelope *FioImportEnvelope) GetTransactions(tenant string) <-chan model.T
 
 		}
 
-		if len(buffer) > 0 {
-			transfers := make([]model.Transfer, len(buffer))
-			copy(transfers, buffer)
-			buffer = make([]model.Transfer, 0)
-			chnl <- model.Transaction{
-				IDTransaction: previousIdTransaction,
-				Transfers:     transfers,
-			}
+		if len(buffer) == 0 {
+			return
 		}
 
-		close(chnl)
+		transfers := make([]model.Transfer, len(buffer))
+		copy(transfers, buffer)
+		buffer = make([]model.Transfer, 0)
+		chnl <- model.Transaction{
+			Tenant:        tenant,
+			IDTransaction: previousIdTransaction,
+			Transfers:     transfers,
+		}
 	}()
 
 	return chnl
 }
 
 // GetAccounts return generator of fio accounts over given envelope
-func (envelope *FioImportEnvelope) GetAccounts() <-chan model.Account {
+func (envelope *FioImportEnvelope) GetAccounts(tenant string) <-chan model.Account {
 	chnl := make(chan model.Account)
 	if envelope == nil {
 		close(chnl)
@@ -241,6 +244,7 @@ func (envelope *FioImportEnvelope) GetAccounts() <-chan model.Account {
 
 			if _, ok := visited[normalizedAccount]; !ok {
 				chnl <- model.Account{
+					Tenant:         tenant,
 					Name:           normalizedAccount,
 					Format:         accountFormat,
 					Currency:       envelope.Statement.Info.Currency, // FIXME not true in all cases
@@ -252,6 +256,7 @@ func (envelope *FioImportEnvelope) GetAccounts() <-chan model.Account {
 
 		if _, ok := visited[envelope.Statement.Info.IBAN]; !ok {
 			chnl <- model.Account{
+				Tenant:         tenant,
 				Name:           envelope.Statement.Info.IBAN,
 				Format:         "IBAN",
 				Currency:       envelope.Statement.Info.Currency,
