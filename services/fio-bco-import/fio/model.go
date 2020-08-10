@@ -153,6 +153,22 @@ func (envelope *FioImportEnvelope) GetTransactions(tenant string) <-chan model.T
 				currency = transfer.Currency.Value
 			}
 
+			idTransaction := envelope.Statement.Info.IBAN + strconv.FormatInt(transfer.TransactionID.Value, 10)
+
+			if previousIdTransaction == "" {
+				previousIdTransaction = idTransaction
+			} else if previousIdTransaction != idTransaction {
+				transfers := make([]model.Transfer, len(buffer))
+				copy(transfers, buffer)
+				buffer = make([]model.Transfer, 0)
+				chnl <- model.Transaction{
+					Tenant:        tenant,
+					IDTransaction: previousIdTransaction,
+					Transfers:     transfers,
+				}
+				previousIdTransaction = idTransaction
+			}
+
 			buffer = append(buffer, model.Transfer{
 				IDTransfer: transfer.TransferID.Value,
 				Credit: model.AccountPair{
@@ -167,23 +183,6 @@ func (envelope *FioImportEnvelope) GetTransactions(tenant string) <-chan model.T
 				Amount:    math.Abs(transfer.Amount.Value),
 				Currency:  currency,
 			})
-
-			idTransaction := envelope.Statement.Info.IBAN + strconv.FormatInt(transfer.TransactionID.Value, 10)
-
-			if previousIdTransaction == "" {
-				previousIdTransaction = idTransaction
-			} else if previousIdTransaction != idTransaction {
-				previousIdTransaction = idTransaction
-				transfers := make([]model.Transfer, len(buffer))
-				copy(transfers, buffer)
-				buffer = make([]model.Transfer, 0)
-				chnl <- model.Transaction{
-					Tenant:        tenant,
-					IDTransaction: idTransaction,
-					Transfers:     transfers,
-				}
-			}
-
 		}
 
 		if len(buffer) == 0 {
@@ -214,6 +213,7 @@ func (envelope *FioImportEnvelope) GetAccounts(tenant string) <-chan model.Accou
 	var visited = make(map[string]interface{})
 
 	go func() {
+		defer close(chnl)
 
 		var set = make(map[string]fioTransaction)
 
@@ -271,8 +271,6 @@ func (envelope *FioImportEnvelope) GetAccounts(tenant string) <-chan model.Accou
 			}
 			visited[envelope.Statement.Info.IBAN] = nil
 		}
-
-		close(chnl)
 	}()
 
 	return chnl
