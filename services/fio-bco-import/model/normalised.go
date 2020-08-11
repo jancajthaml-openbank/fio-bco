@@ -31,7 +31,7 @@ type Transfer struct {
 	Credit     AccountPair `json:"credit"`
 	Debit      AccountPair `json:"debit"`
 	ValueDate  string      `json:"valueDate"`
-	Amount     float64     `json:"amount,string"`
+	Amount     string      `json:"amount"`
 	Currency   string      `json:"currency"`
 }
 

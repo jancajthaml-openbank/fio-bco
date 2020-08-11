@@ -180,7 +180,7 @@ func (envelope *FioImportEnvelope) GetTransactions(tenant string) <-chan model.T
 					Name:   debit,
 				},
 				ValueDate: valueDate.Format("2006-01-02T15:04:05Z0700"),
-				Amount:    math.Abs(transfer.Amount.Value),
+				Amount:    strconv.FormatFloat(math.Abs(transfer.Amount.Value), 'f', -1, 64),
 				Currency:  currency,
 			})
 		}
