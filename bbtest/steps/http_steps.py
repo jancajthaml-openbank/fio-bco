@@ -67,8 +67,6 @@ def create_token(context, tenant, token):
 
   assert response.status == 200
 
-  response = response.read().decode('utf-8')
-
 
 @when('I request HTTP {uri}')
 def perform_http_request(context, uri):
