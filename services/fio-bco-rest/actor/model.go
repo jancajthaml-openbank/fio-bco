@@ -18,6 +18,10 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"math/rand"
+	"encoding/hex"
+
+	"github.com/rs/xid"
 
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 )
@@ -59,6 +63,11 @@ func (entity *Token) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("missing attribute \"value\"")
 	}
 	entity.Value = all.Value
+
+	noise := make([]byte, 10)
+	rand.Read(noise)
+	entity.ID = hex.EncodeToString(noise) + xid.New().String()
+
 	return nil
 }
 

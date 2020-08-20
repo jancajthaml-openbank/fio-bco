@@ -15,8 +15,7 @@
 package api
 
 import (
-	"crypto/rand"
-	"encoding/hex"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -24,177 +23,107 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-rest/persistence"
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 
-	"github.com/gorilla/mux"
-	"github.com/rs/xid"
+	localfs "github.com/jancajthaml-openbank/local-fs"
+	"github.com/labstack/echo/v4"
 )
 
-// TokenPartial returns http handler for single token
-func TokenPartial(server *Server) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-
-		tenant := vars["tenant"]
-		token := vars["token"]
-
-		if tenant == "" || token == "" {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusNotFound)
-			w.Write(emptyJSONObject)
-			return
-		}
-
-		switch r.Method {
-
-		case "DELETE":
-			DeleteToken(server, tenant, token, w, r)
-			return
-
-		default:
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			w.Write(emptyJSONObject)
-			return
-
-		}
-	}
-}
-
-// TokensPartial returns http handler for tokens
-func TokensPartial(server *Server) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-
-		tenant := vars["tenant"]
-
+// DeleteToken removes existing token
+func DeleteToken(system *actor.ActorSystem) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		tenant := c.Param("tenant")
 		if tenant == "" {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusNotFound)
-			w.Write(emptyJSONArray)
-			return
+			return fmt.Errorf("missing tenant")
+		}
+		id := c.Param("id")
+		if id == "" {
+			return fmt.Errorf("missing id")
 		}
 
-		switch r.Method {
+		switch actor.DeleteToken(system, tenant, id).(type) {
 
-		case "GET":
-			GetTokens(server, tenant, w, r)
-			return
+		case *actor.TokenDeleted:
+			c.Response().WriteHeader(http.StatusOK)
+			return nil
 
-		case "POST":
-			CreateToken(server, tenant, w, r)
-			return
+		case *actor.ReplyTimeout:
+			c.Response().WriteHeader(http.StatusGatewayTimeout)
+			return nil
 
 		default:
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			w.Write(emptyJSONObject)
-			return
+			return fmt.Errorf("internal error")
 
 		}
-
 	}
 }
 
-// CreateToken creates new token
-func CreateToken(server *Server, tenant string, w http.ResponseWriter, r *http.Request) {
-	b, err := ioutil.ReadAll(r.Body)
-	defer r.Body.Close()
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(emptyJSONObject)
-		return
-	}
+// CreateToken creates new token for given tenant
+func CreateToken(system *actor.ActorSystem) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		tenant := c.Param("tenant")
+		if tenant == "" {
+			return fmt.Errorf("missing tenant")
+		}
 
-	var req = new(actor.Token)
-	err = utils.JSON.Unmarshal(b, req)
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(emptyJSONObject)
-		return
-	}
-
-	noise := make([]byte, 10)
-	rand.Read(noise)
-	req.ID = hex.EncodeToString(noise) + xid.New().String()
-
-	switch actor.CreateToken(server.ActorSystem, tenant, *req).(type) {
-
-	case *actor.TokenCreated:
-
-		resp, err := utils.JSON.Marshal(req)
+		b, err := ioutil.ReadAll(c.Request().Body)
+		defer c.Request().Body.Close()
 		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(emptyJSONArray)
-			return
+			c.Response().WriteHeader(http.StatusBadRequest)
+			return err
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(resp)
-		return
+		var req = new(actor.Token)
+		if utils.JSON.Unmarshal(b, req) != nil {
+			c.Response().WriteHeader(http.StatusBadRequest)
+			return nil
+		}
 
-	case *actor.ReplyTimeout:
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusGatewayTimeout)
-		w.Write(emptyJSONObject)
-		return
+		switch actor.CreateToken(system, tenant, *req).(type) {
 
-	default:
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(emptyJSONObject)
-		return
+		case *actor.TokenCreated:
+			c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlainCharsetUTF8)
+			c.Response().WriteHeader(http.StatusOK)
+			c.Response().Write([]byte(req.ID))
+			c.Response().Flush()
+			return nil
 
+		case *actor.ReplyTimeout:
+			c.Response().WriteHeader(http.StatusGatewayTimeout)
+			return nil
+
+		default:
+			return fmt.Errorf("internal error")
+
+		}
 	}
 }
 
-// DeleteToken deletes existing token
-func DeleteToken(server *Server, tenant string, token string, w http.ResponseWriter, r *http.Request) {
-	switch actor.DeleteToken(server.ActorSystem, tenant, token).(type) {
+// GetTokens return existing tokens of given tenant
+func GetTokens(storage *localfs.EncryptedStorage) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		tenant := c.Param("tenant")
+		if tenant == "" {
+			return fmt.Errorf("missing tenant")
+		}
 
-	case *actor.TokenDeleted:
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(emptyJSONObject)
-		return
+		tokens, err := persistence.LoadTokens(storage, tenant)
+		if err != nil {
+			return err
+		}
 
-	case *actor.ReplyTimeout:
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusGatewayTimeout)
-		w.Write(emptyJSONObject)
-		return
+		c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlainCharsetUTF8)
+		c.Response().WriteHeader(http.StatusOK)
 
-	default:
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(emptyJSONObject)
-		return
+		// FIXME return full tokens
 
+		for idx, token := range tokens {
+			if idx == len(tokens)-1 {
+				c.Response().Write([]byte(token.ID))
+			} else {
+				c.Response().Write([]byte(token.ID + "\n"))
+			}
+			c.Response().Flush()
+		}
+
+		return nil
 	}
-}
-
-// GetTokens retruns list of existing tokens
-func GetTokens(server *Server, tenant string, w http.ResponseWriter, r *http.Request) {
-	tokens, err := persistence.LoadTokens(server.Storage, tenant)
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(emptyJSONArray)
-		return
-	}
-
-	resp, err := utils.JSON.Marshal(tokens)
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(emptyJSONArray)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
-	return
 }
