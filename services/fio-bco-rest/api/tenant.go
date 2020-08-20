@@ -26,6 +26,8 @@ import (
 // CreateTenant enables fio-bco-import@{tenant}
 func CreateTenant(systemctl *system.SystemControl) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+
 		tenant := c.Param("tenant")
 		if tenant == "" {
 			return fmt.Errorf("missing tenant")
@@ -45,6 +47,8 @@ func CreateTenant(systemctl *system.SystemControl) func(c echo.Context) error {
 // DeleteTenant disables fio-bco-import@{tenant}
 func DeleteTenant(systemctl *system.SystemControl) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+
 		tenant := c.Param("tenant")
 		if tenant == "" {
 			return fmt.Errorf("missing tenant")
@@ -64,6 +68,8 @@ func DeleteTenant(systemctl *system.SystemControl) func(c echo.Context) error {
 // ListTenants lists fio-bco-import@
 func ListTenants(systemctl *system.SystemControl) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+
 		units, err := systemctl.ListUnits("fio-bco-import@")
 		if err != nil {
 			return err

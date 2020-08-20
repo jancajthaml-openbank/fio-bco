@@ -30,6 +30,8 @@ import (
 // DeleteToken removes existing token
 func DeleteToken(system *actor.ActorSystem) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+
 		tenant := c.Param("tenant")
 		if tenant == "" {
 			return fmt.Errorf("missing tenant")
@@ -59,6 +61,8 @@ func DeleteToken(system *actor.ActorSystem) func(c echo.Context) error {
 // CreateToken creates new token for given tenant
 func CreateToken(system *actor.ActorSystem) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+
 		tenant := c.Param("tenant")
 		if tenant == "" {
 			return fmt.Errorf("missing tenant")
@@ -100,6 +104,8 @@ func CreateToken(system *actor.ActorSystem) func(c echo.Context) error {
 // GetTokens return existing tokens of given tenant
 func GetTokens(storage *localfs.EncryptedStorage) func(c echo.Context) error {
 	return func(c echo.Context) error {
+		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+
 		tenant := c.Param("tenant")
 		if tenant == "" {
 			return fmt.Errorf("missing tenant")
@@ -112,8 +118,6 @@ func GetTokens(storage *localfs.EncryptedStorage) func(c echo.Context) error {
 
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlainCharsetUTF8)
 		c.Response().WriteHeader(http.StatusOK)
-
-		// FIXME return full tokens
 
 		for idx, token := range tokens {
 			if idx == len(tokens)-1 {
