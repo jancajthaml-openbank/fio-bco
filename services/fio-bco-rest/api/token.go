@@ -120,10 +120,15 @@ func GetTokens(storage *localfs.EncryptedStorage) func(c echo.Context) error {
 		c.Response().WriteHeader(http.StatusOK)
 
 		for idx, token := range tokens {
+			chunk, err := utils.JSON.Marshal(token)
+			if err != nil {
+				return err
+			}
 			if idx == len(tokens)-1 {
-				c.Response().Write([]byte(token.ID))
+				c.Response().Write(chunk)
 			} else {
-				c.Response().Write([]byte(token.ID + "\n"))
+				c.Response().Write(chunk)
+				c.Response().Write([]byte("\n"))
 			}
 			c.Response().Flush()
 		}
