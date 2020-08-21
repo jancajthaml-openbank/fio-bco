@@ -23,7 +23,7 @@ import (
 
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 
-	"github.com/coreos/go-systemd/dbus"
+	"github.com/coreos/go-systemd/v22/dbus"
 )
 
 // SystemControl represents systemctl subroutine
