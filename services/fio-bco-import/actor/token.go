@@ -53,10 +53,10 @@ func NonExistToken(s *ActorSystem) func(interface{}, system.Context) {
 
 		switch msg := context.Data.(type) {
 
-		case model.ProbeMessage:
+		case ProbeMessage:
 			break
 
-		case model.CreateToken:
+		case CreateToken:
 			tokenResult := persistence.CreateToken(s.Storage, state.ID, msg.Value)
 
 			if tokenResult == nil {
@@ -71,13 +71,13 @@ func NonExistToken(s *ActorSystem) func(interface{}, system.Context) {
 			s.Metrics.TokenCreated()
 
 			context.Self.Become(*tokenResult, ExistToken(s))
-			context.Self.Tell(model.SynchronizeToken{}, context.Receiver, context.Sender)
+			context.Self.Tell(SynchronizeToken{}, context.Receiver, context.Sender)
 
-		case model.DeleteToken:
+		case DeleteToken:
 			s.SendMessage(FatalError, context.Sender, context.Receiver)
 			log.WithField("token", state.ID).Debug("(NonExist DeleteToken) Error")
 
-		case model.SynchronizeToken:
+		case SynchronizeToken:
 			break
 
 		default:
@@ -96,22 +96,22 @@ func ExistToken(s *ActorSystem) func(interface{}, system.Context) {
 
 		switch context.Data.(type) {
 
-		case model.ProbeMessage:
+		case ProbeMessage:
 			break
 
-		case model.CreateToken:
+		case CreateToken:
 			s.SendMessage(FatalError, context.Sender, context.Receiver)
 			log.WithField("token", state.ID).Debug("(Exist CreateToken) Error")
 
-		case model.SynchronizeToken:
+		case SynchronizeToken:
 			log.WithField("token", state.ID).Debug("(Exist SynchronizeToken)")
 			context.Self.Become(t_state, SynchronizingToken(s))
 			go importStatements(s, state, func() {
 				context.Self.Become(t_state, NilToken(s))
-				context.Self.Tell(model.ProbeMessage{}, context.Receiver, context.Receiver)
+				context.Self.Tell(ProbeMessage{}, context.Receiver, context.Receiver)
 			})
 
-		case model.DeleteToken:
+		case DeleteToken:
 			if !persistence.DeleteToken(s.Storage, state.ID) {
 				s.SendMessage(FatalError, context.Sender, context.Receiver)
 				log.WithField("token", state.ID).Debugf("(Exist DeleteToken) Error")
@@ -140,17 +140,17 @@ func SynchronizingToken(s *ActorSystem) func(interface{}, system.Context) {
 
 		switch context.Data.(type) {
 
-		case model.ProbeMessage:
+		case ProbeMessage:
 			break
 
-		case model.CreateToken:
+		case CreateToken:
 			s.SendMessage(FatalError, context.Sender, context.Receiver)
 			log.WithField("token", state.ID).Debug("(Synchronizing CreateToken) Error")
 
-		case model.SynchronizeToken:
+		case SynchronizeToken:
 			log.WithField("token", state.ID).Debug("(Synchronizing SynchronizeToken)")
 
-		case model.DeleteToken:
+		case DeleteToken:
 			s.SendMessage(FatalError, context.Sender, context.Receiver)
 			log.WithField("token", state.ID).Debug("(Synchronizing DeleteToken) Error")
 

@@ -17,13 +17,14 @@ package actor
 import (
 	"time"
 
+	"github.com/jancajthaml-openbank/fio-bco-rest/model"
 	"github.com/rs/xid"
 
 	system "github.com/jancajthaml-openbank/actor-system"
 )
 
 // CreateToken creates new token for target tenant
-func CreateToken(sys *ActorSystem, tenant string, token Token) (result interface{}) {
+func CreateToken(sys *ActorSystem, tenant string, token model.Token) (result interface{}) {
 	sys.Metrics.TimeCreateToken(func() {
 		defer func() {
 			if r := recover(); r != nil {

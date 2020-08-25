@@ -14,11 +14,25 @@
 
 package actor
 
-// ReplyTimeout message
-type ReplyTimeout struct{}
+// ListTokens is inbound request for listing of existing tokens
+type ListTokens struct {
+}
 
-// TokenCreated message
-type TokenCreated struct{}
+// CreateToken is inbound request for creation of new token
+type CreateToken struct {
+	ID    string
+	Value string
+}
 
-// TokenDeleted message
-type TokenDeleted struct{}
+// DeleteToken is inbound request for deletion of token
+type DeleteToken struct {
+	ID string
+}
+
+// SynchronizeToken is inbound request to perform synchronization
+type SynchronizeToken struct {
+}
+
+// ProbeMessage is internal noop message
+type ProbeMessage struct {
+}

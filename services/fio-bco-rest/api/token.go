@@ -20,6 +20,7 @@ import (
 	"net/http"
 
 	"github.com/jancajthaml-openbank/fio-bco-rest/actor"
+	"github.com/jancajthaml-openbank/fio-bco-rest/model"
 	"github.com/jancajthaml-openbank/fio-bco-rest/persistence"
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 
@@ -75,7 +76,7 @@ func CreateToken(system *actor.ActorSystem) func(c echo.Context) error {
 			return err
 		}
 
-		var req = new(actor.Token)
+		var req = new(model.Token)
 		if utils.JSON.Unmarshal(b, req) != nil {
 			c.Response().WriteHeader(http.StatusBadRequest)
 			return nil
