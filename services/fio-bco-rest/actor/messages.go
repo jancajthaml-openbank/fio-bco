@@ -14,6 +14,10 @@
 
 package actor
 
+import (
+	"github.com/jancajthaml-openbank/fio-bco-rest/model"
+)
+
 const (
 	// ReqTokens fio message request code for "Get Tokens"
 	ReqTokens = "GT"
@@ -32,7 +36,7 @@ const (
 )
 
 // CreateTokenMessage is message for creation of new token
-func CreateTokenMessage(token Token) string {
+func CreateTokenMessage(token model.Token) string {
 	return ReqCreateToken + " " + token.Value
 }
 

@@ -26,7 +26,8 @@ class UnitHelper(object):
       "LEDGER_GATEWAY": "https://127.0.0.1:4401",
       "LAKE_HOSTNAME": "127.0.0.1",
       "HTTP_PORT": 443,
-      "SECRETS": "/etc/fio-bco/secrets",
+      "SERVER_KEY": "/etc/fio-bco/secrets/domain.local.key",
+      "SERVER_CERT": "/etc/fio-bco/secrets/domain.local.crt",
       "ENCRYPTION_KEY": "/etc/fio-bco/secrets/fs_encryption.key",
       "METRICS_OUTPUT": "{}/reports/blackbox-tests/metrics".format(os.getcwd()),
       "METRICS_REFRESHRATE": "12h",
@@ -154,5 +155,5 @@ class UnitHelper(object):
   def __get_systemd_units(self):
     (code, result, error) = execute(['systemctl', 'list-units', '--no-legend'])
     result = [item.split(' ')[0].strip() for item in result.split(os.linesep)]
-    result = [item for item in result if "fio-bco" in item]
+    result = [item for item in result if "fio-bco" in item and not item.endswith('unit.slice')]
     return result

@@ -15,42 +15,51 @@
 package model
 
 import (
-	"bytes"
+	"encoding/hex"
 	"fmt"
-	"strconv"
+	"math/rand"
 	"strings"
 	"time"
+
+	"github.com/rs/xid"
+
+	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 )
 
 // Token represents metadata of token entity
 type Token struct {
-	ID           string
-	Value        string
-	CreatedAt    time.Time
-	LastSyncedID int64
+	ID        string    `json:"-"`
+	CreatedAt time.Time `json:"-"`
+	Value     string    `json:"value"`
 }
 
-// NewToken returns new Token
-func NewToken(id string) Token {
-	return Token{
-		ID:           id,
-		CreatedAt:    time.Now().UTC(),
-		LastSyncedID: 0,
-	}
+// MarshalJSON serializes Token as json
+func (entity Token) MarshalJSON() ([]byte, error) {
+	return []byte("{\"id\":\"" + entity.ID + "\",\"createdAt\":\"" + entity.CreatedAt.Format(time.RFC3339) + "\"}"), nil
 }
 
-// Serialize Token entity to persistable data
-func (entity *Token) Serialize() ([]byte, error) {
+// UnmarshalJSON unmarshal json of Token entity
+func (entity *Token) UnmarshalJSON(data []byte) error {
 	if entity == nil {
-		return nil, fmt.Errorf("called Token.Serialize over nil")
+		return fmt.Errorf("cannot unmarshall to nil pointer")
 	}
-	var buffer bytes.Buffer
-	buffer.WriteString(entity.CreatedAt.Format(time.RFC3339))
-	buffer.WriteString("\n")
-	buffer.WriteString(entity.Value)
-	buffer.WriteString("\n")
-	buffer.WriteString(strconv.FormatInt(entity.LastSyncedID, 10))
-	return buffer.Bytes(), nil
+	all := struct {
+		Value string `json:"value"`
+	}{}
+	err := utils.JSON.Unmarshal(data, &all)
+	if err != nil {
+		return err
+	}
+	if all.Value == "" {
+		return fmt.Errorf("missing attribute \"value\"")
+	}
+	entity.Value = all.Value
+
+	noise := make([]byte, 10)
+	rand.Read(noise)
+	entity.ID = hex.EncodeToString(noise) + xid.New().String()
+
+	return nil
 }
 
 // Deserialize Token entity from persistent data
@@ -61,18 +70,12 @@ func (entity *Token) Deserialize(data []byte) error {
 
 	// FIXME more optimal split
 	lines := strings.Split(string(data), "\n")
-	if len(lines) < 3 {
+	if len(lines) < 1 {
 		return fmt.Errorf("malformed data")
 	}
 
 	if cast, err := time.Parse(time.RFC3339, lines[0]); err == nil {
 		entity.CreatedAt = cast
-	}
-
-	entity.Value = lines[1]
-
-	if cast, err := strconv.ParseInt(lines[2], 10, 64); err == nil {
-		entity.LastSyncedID = cast
 	}
 
 	return nil
