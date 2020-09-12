@@ -66,7 +66,7 @@ func (metrics Metrics) Start() {
 	defer ticker.Stop()
 
 	if err := metrics.Hydrate(); err != nil {
-		log.Warn(err.Error())
+		log.Warn().Msg(err.Error())
 	}
 
 	metrics.Persist()
@@ -80,7 +80,7 @@ func (metrics Metrics) Start() {
 		return
 	}
 
-	log.Infof("Start metrics daemon, update each %v into %v", metrics.refreshRate, metrics.storage.Root)
+	log.Info().Msgf("Start metrics daemon, update each %v into %v", metrics.refreshRate, metrics.storage.Root)
 
 	go func() {
 		for {
@@ -96,5 +96,5 @@ func (metrics Metrics) Start() {
 	}()
 
 	metrics.WaitStop()
-	log.Info("Stop metrics daemon")
+	log.Info().Msg("Stop metrics daemon")
 }

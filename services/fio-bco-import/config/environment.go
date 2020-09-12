@@ -15,6 +15,7 @@
 package config
 
 import (
+	"fmt"
 	"encoding/hex"
 	"io/ioutil"
 	"os"
@@ -38,17 +39,20 @@ func loadConfFromEnv() Configuration {
 	metricsRefreshRate := getEnvDuration("FIO_BCO_METRICS_REFRESHRATE", time.Second)
 
 	if tenant == "" || lakeHostname == "" || rootStorage == "" || encryptionKey == "" {
-		log.Fatal("missing required parameter to run")
+		log.Error().Msg("missing required parameter to run")
+		panic("missing required parameter to run")
 	}
 
 	keyData, err := ioutil.ReadFile(encryptionKey)
 	if err != nil {
-		log.Fatalf("unable to load encryption key from %s", encryptionKey)
+		log.Error().Msgf("unable to load encryption key from %s", encryptionKey)
+		panic(fmt.Sprintf("unable to load encryption key from %s", encryptionKey))
 	}
 
 	key, err := hex.DecodeString(string(keyData))
 	if err != nil {
-		log.Fatalf("invalid encryption key %+v at %s", err, encryptionKey)
+		log.Error().Msgf("invalid encryption key %+v at %s", err, encryptionKey)
+		panic(fmt.Sprintf("invalid encryption key %+v at %s", err, encryptionKey))
 	}
 
 	return Configuration{
@@ -93,7 +97,7 @@ func getEnvInteger(key string, fallback int) int {
 	}
 	cast, err := strconv.Atoi(value)
 	if err != nil {
-		log.Errorf("invalid value of variable %s", key)
+		log.Error().Msgf("invalid value of variable %s", key)
 		return fallback
 	}
 	return cast
@@ -106,7 +110,7 @@ func getEnvDuration(key string, fallback time.Duration) time.Duration {
 	}
 	cast, err := time.ParseDuration(value)
 	if err != nil {
-		log.Errorf("invalid value of variable %s", key)
+		log.Error().Msgf("invalid value of variable %s", key)
 		return fallback
 	}
 	return cast

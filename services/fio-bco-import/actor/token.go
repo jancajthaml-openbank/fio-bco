@@ -36,10 +36,10 @@ func NilToken(s *ActorSystem) func(interface{}, system.Context) {
 
 		if tokenHydration == nil {
 			context.Self.Become(state, NonExistToken(s))
-			log.WithField("token", state.ID).Debug("Nil -> NonExist")
+			log.Debug().Msgf("token %s Nil -> NonExist", state.ID)
 		} else {
 			context.Self.Become(*tokenHydration, ExistToken(s))
-			log.WithField("token", state.ID).Debug("Nil -> Exist")
+			log.Debug().Msgf("token %s Nil -> Exist", state.ID)
 		}
 
 		context.Self.Receive(context)
@@ -61,13 +61,13 @@ func NonExistToken(s *ActorSystem) func(interface{}, system.Context) {
 
 			if tokenResult == nil {
 				s.SendMessage(FatalError, context.Sender, context.Receiver)
-				log.WithField("token", state.ID).Debug("(NonExist CreateToken) Error")
+				log.Debug().Msgf("token %s (NonExist CreateToken) Error", state.ID)
 				return
 			}
 
 			s.SendMessage(RespCreateToken, context.Sender, context.Receiver)
-			log.WithField("token", state.ID).Info("New Token Created")
-			log.WithField("token", state.ID).Debug("(NonExist CreateToken) OK")
+			log.Info().Msgf("New Token %s Created", state.ID)
+			log.Debug().Msgf("token %s (NonExist CreateToken) OK", state.ID)
 			s.Metrics.TokenCreated()
 
 			context.Self.Become(*tokenResult, ExistToken(s))
@@ -75,14 +75,14 @@ func NonExistToken(s *ActorSystem) func(interface{}, system.Context) {
 
 		case DeleteToken:
 			s.SendMessage(FatalError, context.Sender, context.Receiver)
-			log.WithField("token", state.ID).Debug("(NonExist DeleteToken) Error")
+			log.Debug().Msgf("token %s (NonExist DeleteToken) Error", state.ID)
 
 		case SynchronizeToken:
 			break
 
 		default:
 			s.SendMessage(FatalError, context.Sender, context.Receiver)
-			log.WithField("token", state.ID).Debug("(NonExist Unknown Message) Error")
+			log.Debug().Msgf("token %s (NonExist Unknown Message) Error", state.ID)
 		}
 
 		return
@@ -101,10 +101,10 @@ func ExistToken(s *ActorSystem) func(interface{}, system.Context) {
 
 		case CreateToken:
 			s.SendMessage(FatalError, context.Sender, context.Receiver)
-			log.WithField("token", state.ID).Debug("(Exist CreateToken) Error")
+			log.Debug().Msgf("token %s (Exist CreateToken) Error", state.ID)
 
 		case SynchronizeToken:
-			log.WithField("token", state.ID).Debug("(Exist SynchronizeToken)")
+			log.Debug().Msgf("token %s (Exist SynchronizeToken)", state.ID)
 			context.Self.Become(t_state, SynchronizingToken(s))
 			go importStatements(s, state, func() {
 				context.Self.Become(t_state, NilToken(s))
@@ -114,18 +114,19 @@ func ExistToken(s *ActorSystem) func(interface{}, system.Context) {
 		case DeleteToken:
 			if !persistence.DeleteToken(s.Storage, state.ID) {
 				s.SendMessage(FatalError, context.Sender, context.Receiver)
-				log.WithField("token", state.ID).Debugf("(Exist DeleteToken) Error")
+				log.Debug().Msgf("token %s (Exist DeleteToken) Error", state.ID)
 				return
 			}
-			log.WithField("token", state.ID).Info("Token Deleted")
-			log.WithField("token", state.ID).Debug("(Exist DeleteToken) OK")
+
+			log.Info().Msgf("Token %s Deleted", state.ID)
+			log.Debug().Msgf("token %s (Exist DeleteToken) OK", state.ID)
 			s.Metrics.TokenDeleted()
 			s.SendMessage(RespDeleteToken, context.Sender, context.Receiver)
 			context.Self.Become(state, NonExistToken(s))
 
 		default:
 			s.SendMessage(FatalError, context.Sender, context.Receiver)
-			log.WithField("token", state.ID).Warn("(Exist Unknown Message) Error")
+			log.Debug().Msgf("token %s (Exist Unknown Message) Error", state.ID)
 
 		}
 
@@ -145,18 +146,18 @@ func SynchronizingToken(s *ActorSystem) func(interface{}, system.Context) {
 
 		case CreateToken:
 			s.SendMessage(FatalError, context.Sender, context.Receiver)
-			log.WithField("token", state.ID).Debug("(Synchronizing CreateToken) Error")
+			log.Debug().Msgf("token %s (Synchronizing CreateToken) Error", state.ID)
 
 		case SynchronizeToken:
-			log.WithField("token", state.ID).Debug("(Synchronizing SynchronizeToken)")
+			log.Debug().Msgf("token %s (Synchronizing SynchronizeToken)", state.ID)
 
 		case DeleteToken:
 			s.SendMessage(FatalError, context.Sender, context.Receiver)
-			log.WithField("token", state.ID).Debug("(Synchronizing DeleteToken) Error")
+			log.Debug().Msgf("token %s (Synchronizing DeleteToken) Error", state.ID)
 
 		default:
 			s.SendMessage(FatalError, context.Sender, context.Receiver)
-			log.WithField("token", state.ID).Warn("(Synchronizing Unknown Message) Error")
+			log.Warn().Msgf("token %s (Synchronizing Unknown Message) Error", state.ID)
 
 		}
 
@@ -183,13 +184,13 @@ func importNewStatements(tenant string, fioClient *fio.FioClient, vaultClient *v
 
 	// FIXME getStatements end here
 
-	log.WithField("token", token.ID).Debugf("sorting statements")
+	log.Debug().Msgf("token %s sorting statements", token.ID)
 
 	sort.SliceStable(statements.Statement.TransactionList.Transactions, func(i, j int) bool {
 		return statements.Statement.TransactionList.Transactions[i].TransactionID.Value == statements.Statement.TransactionList.Transactions[j].TransactionID.Value
 	})
 
-	log.WithField("token", token.ID).Debugf("importing accounts")
+	log.Debug().Msgf("token %s importing accounts", token.ID)
 
 	for account := range statements.GetAccounts(tenant) {
 		err = vaultClient.CreateAccount(account)
@@ -198,7 +199,7 @@ func importNewStatements(tenant string, fioClient *fio.FioClient, vaultClient *v
 		}
 	}
 
-	log.WithField("token", token.ID).Debugf("importing transactions")
+	log.Debug().Msgf("token %s importing transactions", token.ID)
 
 	for transaction := range statements.GetTransactions(tenant) {
 		err = ledgerClient.CreateTransaction(transaction)
@@ -222,22 +223,22 @@ func importNewStatements(tenant string, fioClient *fio.FioClient, vaultClient *v
 func importStatements(s *ActorSystem, token model.Token, callback func()) {
 	defer callback()
 
-	log.WithField("token", token.ID).Debug("Importing statements")
+	log.Debug().Msgf("token %s Importing statements", token.ID)
 
 	fioClient := fio.NewFioClient(s.FioGateway, token)
 	vaultClient := vault.NewVaultClient(s.VaultGateway)
 	ledgerClient := ledger.NewLedgerClient(s.LedgerGateway)
 
-	log.WithField("token", token.ID).Debug("Import Begin")
+	log.Debug().Msgf("token %s Import Begin", token.ID)
 	lastID, err := importNewStatements(s.Tenant, &fioClient, &vaultClient, &ledgerClient, s.Metrics, &token)
 	if err != nil {
-		log.WithField("token", token.ID).Errorf("Import statements failed with %+v", err)
+		log.Error().Msgf("token %s Import statements failed with %+v", token.ID, err)
 	}
 	if lastID > token.LastSyncedID {
 		token.LastSyncedID = lastID
 		if !persistence.UpdateToken(s.Storage, &token) {
-			log.WithField("token", token.ID).Warn("Unable to update token")
+			log.Warn().Msgf("token %s Unable to update token", token.ID)
 		}
 	}
-	log.WithField("token", token.ID).Debug("Import End")
+	log.Debug().Msgf("token %s Import End", token.ID)
 }

@@ -76,7 +76,7 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 	return func(msg string, to system.Coordinates, from system.Coordinates) {
 		message, err := parseMessage(msg, to)
 		if err != nil {
-			log.Warnf("%s [remote %v -> local %v]", err, from, to)
+			log.Warn().Msgf("%s [remote %v -> local %v]", err, from, to)
 			s.SendMessage(FatalError, from, to)
 			return
 		}
@@ -85,7 +85,7 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 			ref, err = spawnTokenActor(s, to.Name)
 		}
 		if err != nil {
-			log.Warnf("Actor not found [remote %v -> local %v]", from, to)
+			log.Warn().Msgf("Actor not found [remote %v -> local %v]", from, to)
 			s.SendMessage(FatalError, to, from)
 			return
 		}
@@ -98,10 +98,10 @@ func spawnTokenActor(s *ActorSystem, id string) (*system.Envelope, error) {
 
 	err := s.RegisterActor(envelope, NilToken(s))
 	if err != nil {
-		log.Warnf("%s ~ Spawning Actor Error unable to register", id)
+		log.Warn().Msgf("%s ~ Spawning Actor Error unable to register", id)
 		return nil, err
 	}
 
-	log.Debugf("%s ~ Actor Spawned", id)
+	log.Debug().Msgf("%s ~ Actor Spawned", id)
 	return envelope, nil
 }

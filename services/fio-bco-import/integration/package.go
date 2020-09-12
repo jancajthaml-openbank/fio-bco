@@ -18,4 +18,4 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-import/logging"
 )
 
-var log = logging.NewLogger("integration")
+var log = logging.New("integration")
