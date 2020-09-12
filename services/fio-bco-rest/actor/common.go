@@ -49,12 +49,12 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 		ref, err := s.ActorOf(to.Name)
 		if err != nil {
 			// FIXME forward into deadletter receiver and finish whatever has started
-			log.Warnf("Deadletter received [remote %v -> local %v] : %+v", from, to, msg)
+			log.Warn().Msgf("Deadletter received [remote %v -> local %v] : %+v", from, to, msg)
 			return
 		}
 		message, err := parseMessage(msg)
 		if err != nil {
-			log.Warnf("%s [remote %v -> local %v]", err, from, to)
+			log.Warn().Msgf("%s [remote %v -> local %v]", err, from, to)
 		}
 		ref.Tell(message, to, from)
 		return

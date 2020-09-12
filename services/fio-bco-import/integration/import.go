@@ -67,12 +67,12 @@ func (fio FioImport) getActiveTokens() ([]string, error) {
 func (fio FioImport) importRoundtrip() {
 	tokens, err := fio.getActiveTokens()
 	if err != nil {
-		log.Errorf("unable to get active tokens %+v", err)
+		log.Error().Msgf("unable to get active tokens %+v", err)
 		return
 	}
 
 	for _, item := range tokens {
-		log.Debugf("Request to import token %s", item)
+		log.Debug().Msgf("Request to import token %s", item)
 		fio.callback(item)
 	}
 }
@@ -89,7 +89,7 @@ func (fio FioImport) Start() {
 		return
 	}
 
-	log.Infof("Start fio-import daemon, sync %v now and then each %v", fio.fioGateway, fio.syncRate)
+	log.Info().Msgf("Start fio-import daemon, sync %v now and then each %v", fio.fioGateway, fio.syncRate)
 
 	fio.importRoundtrip()
 
@@ -106,5 +106,5 @@ func (fio FioImport) Start() {
 	}()
 
 	fio.WaitStop()
-	log.Info("Stop fio-import daemon")
+	log.Info().Msg("Stop fio-import daemon")
 }

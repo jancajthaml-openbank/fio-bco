@@ -90,17 +90,16 @@ func (metrics *Metrics) UnmarshalJSON(data []byte) error {
 // Persist saved metrics state to storage
 func (metrics *Metrics) Persist() error {
 	if metrics == nil {
-		log.Warn("cannot persist nil reference")
 		return fmt.Errorf("cannot persist nil reference")
 	}
 	data, err := utils.JSON.Marshal(metrics)
 	if err != nil {
-		log.Warnf("unable to marshall metrics %+v", err)
+		log.Warn().Msgf("unable to marshall metrics %+v", err)
 		return err
 	}
 	err = metrics.storage.WriteFile("metrics."+metrics.tenant+".json", data)
 	if err != nil {
-		log.Warnf("unable to persist metrics %+v", err)
+		log.Warn().Msgf("unable to persist metrics %+v", err)
 		return err
 	}
 	err = os.Chmod(metrics.storage.Root+"/metrics."+metrics.tenant+".json", 0644)

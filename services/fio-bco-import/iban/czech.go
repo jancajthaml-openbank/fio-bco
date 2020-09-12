@@ -36,8 +36,7 @@ func init() {
 // CalculateCzech calculates IBAN for Czech Republic
 func CalculateCzech(number, bankCode string) (result string) {
 	defer func() {
-		if r := recover(); r != nil {
-			log.Errorf("iban.CalculateCzech(%s, %s) recovered in %+v", number, bankCode, r)
+		if recover() != nil {
 			result = ""
 		}
 	}()
