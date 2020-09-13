@@ -36,7 +36,7 @@ func CreateToken(sys *ActorSystem, tenant string, token model.Token) (result int
 		ch := make(chan interface{})
 		defer close(ch)
 
-		envelope := system.NewEnvelope("relay/"+xid.New().String(), nil)
+		envelope := system.NewActor("relay/"+xid.New().String(), nil)
 		defer sys.UnregisterActor(envelope.Name)
 
 		sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
@@ -87,7 +87,7 @@ func DeleteToken(sys *ActorSystem, tenant string, tokenID string) (result interf
 		ch := make(chan interface{})
 		defer close(ch)
 
-		envelope := system.NewEnvelope("relay/"+xid.New().String(), nil)
+		envelope := system.NewActor("relay/"+xid.New().String(), nil)
 		defer sys.UnregisterActor(envelope.Name)
 
 		sys.RegisterActor(envelope, func(state interface{}, context system.Context) {

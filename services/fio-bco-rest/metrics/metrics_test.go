@@ -15,7 +15,7 @@ func TestMetrics(t *testing.T) {
 
 	entity := NewMetrics(ctx, "/tmp", time.Hour)
 	delay := 1e8
-	delta := 1e8
+	delta := 1e7
 
 	t.Log("TimeGetToken properly times run of GetToken function")
 	{
