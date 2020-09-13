@@ -93,8 +93,8 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 	}
 }
 
-func spawnTokenActor(s *ActorSystem, id string) (*system.Envelope, error) {
-	envelope := system.NewEnvelope(id, model.NewToken(id))
+func spawnTokenActor(s *ActorSystem, id string) (*system.Actor, error) {
+	envelope := system.NewActor(id, model.NewToken(id))
 
 	err := s.RegisterActor(envelope, NilToken(s))
 	if err != nil {
