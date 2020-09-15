@@ -30,7 +30,7 @@ type Client struct {
 
 // NewClient returns new bondster http client
 func NewClient(gateway string, token model.Token) Client {
-	return FioClient{
+	return Client{
 		gateway:    gateway,
 		underlying: http.NewHTTPClient(),
 		token:      token,
