@@ -39,7 +39,7 @@ func (entity Token) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshal json of Token entity
 func (entity *Token) UnmarshalJSON(data []byte) error {
 	if entity == nil {
-		return fmt.Errorf("cannot unmarshall to nil pointer")
+		return fmt.Errorf("cannot unmarshal to nil pointer")
 	}
 	all := struct {
 		Value string `json:"value"`

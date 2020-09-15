@@ -26,13 +26,13 @@ import (
 // MarshalJSON serializes Metrics as json bytes
 func (metrics *Metrics) MarshalJSON() ([]byte, error) {
 	if metrics == nil {
-		return nil, fmt.Errorf("cannot marshall nil")
+		return nil, fmt.Errorf("cannot marshal nil")
 	}
 
 	if metrics.createdTokens == nil || metrics.deletedTokens == nil ||
 		metrics.syncLatency == nil || metrics.importedTransfers == nil ||
 		metrics.importedTransactions == nil {
-		return nil, fmt.Errorf("cannot marshall nil references")
+		return nil, fmt.Errorf("cannot marshal nil references")
 	}
 
 	var buffer bytes.Buffer
@@ -55,13 +55,13 @@ func (metrics *Metrics) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON deserializes Metrics from json bytes
 func (metrics *Metrics) UnmarshalJSON(data []byte) error {
 	if metrics == nil {
-		return fmt.Errorf("cannot unmarshall to nil")
+		return fmt.Errorf("cannot unmarshal to nil")
 	}
 
 	if metrics.createdTokens == nil || metrics.deletedTokens == nil ||
 		metrics.syncLatency == nil || metrics.importedTransfers == nil ||
 		metrics.importedTransactions == nil {
-		return fmt.Errorf("cannot unmarshall to nil references")
+		return fmt.Errorf("cannot unmarshal to nil references")
 	}
 
 	aux := &struct {
@@ -94,7 +94,7 @@ func (metrics *Metrics) Persist() error {
 	}
 	data, err := json.Marshal(metrics)
 	if err != nil {
-		log.Warn().Msgf("unable to marshall metrics %+v", err)
+		log.Warn().Msgf("unable to marshal metrics %+v", err)
 		return err
 	}
 	err = metrics.storage.WriteFile("metrics."+metrics.tenant+".json", data)

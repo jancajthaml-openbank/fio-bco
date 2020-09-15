@@ -18,14 +18,14 @@ func TestMarshalJSON(t *testing.T) {
 	{
 		var entity *Metrics
 		_, err := entity.MarshalJSON()
-		assert.EqualError(t, err, "cannot marshall nil")
+		assert.NotNil(t, err)
 	}
 
 	t.Log("error when values are nil")
 	{
 		entity := Metrics{}
 		_, err := entity.MarshalJSON()
-		assert.EqualError(t, err, "cannot marshall nil references")
+		assert.NotNil(t, err)
 	}
 
 	t.Log("happy path")
@@ -60,14 +60,14 @@ func TestUnmarshalJSON(t *testing.T) {
 	{
 		var entity *Metrics
 		err := entity.UnmarshalJSON([]byte(""))
-		assert.EqualError(t, err, "cannot unmarshall to nil")
+		assert.NotNil(t, err)
 	}
 
 	t.Log("error when values are nil")
 	{
 		entity := Metrics{}
 		err := entity.UnmarshalJSON([]byte(""))
-		assert.EqualError(t, err, "cannot unmarshall to nil references")
+		assert.NotNil(t, err)
 	}
 
 	t.Log("error on malformed data")
@@ -116,7 +116,7 @@ func TestPersist(t *testing.T) {
 	t.Log("error when marshaling fails")
 	{
 		entity := Metrics{}
-		assert.EqualError(t, entity.Persist(), "cannot marshall nil references")
+		assert.NotNil(t, entity.Persist())
 	}
 
 	t.Log("happy path")
