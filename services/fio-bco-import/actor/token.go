@@ -28,7 +28,7 @@ import (
 )
 
 // NilToken represents token that is neither existing neither non existing
-func NilToken(s *ActorSystem) func(interface{}, system.Context) {
+func NilToken(s *System) func(interface{}, system.Context) {
 	return func(t_state interface{}, context system.Context) {
 		state := t_state.(model.Token)
 
@@ -47,7 +47,7 @@ func NilToken(s *ActorSystem) func(interface{}, system.Context) {
 }
 
 // NonExistToken represents token that does not exist
-func NonExistToken(s *ActorSystem) func(interface{}, system.Context) {
+func NonExistToken(s *System) func(interface{}, system.Context) {
 	return func(t_state interface{}, context system.Context) {
 		state := t_state.(model.Token)
 
@@ -90,7 +90,7 @@ func NonExistToken(s *ActorSystem) func(interface{}, system.Context) {
 }
 
 // ExistToken represents account that does exist
-func ExistToken(s *ActorSystem) func(interface{}, system.Context) {
+func ExistToken(s *System) func(interface{}, system.Context) {
 	return func(t_state interface{}, context system.Context) {
 		state := t_state.(model.Token)
 
@@ -135,7 +135,7 @@ func ExistToken(s *ActorSystem) func(interface{}, system.Context) {
 }
 
 // SynchronizingToken represents account that is currently synchronizing
-func SynchronizingToken(s *ActorSystem) func(interface{}, system.Context) {
+func SynchronizingToken(s *System) func(interface{}, system.Context) {
 	return func(t_state interface{}, context system.Context) {
 		state := t_state.(model.Token)
 
@@ -165,9 +165,9 @@ func SynchronizingToken(s *ActorSystem) func(interface{}, system.Context) {
 	}
 }
 
-func importNewStatements(tenant string, fioClient *fio.FioClient, vaultClient *vault.VaultClient, ledgerClient *ledger.LedgerClient, metrics *metrics.Metrics, token *model.Token) (int64, error) {
+func importNewStatements(tenant string, fioClient *fio.Client, vaultClient *vault.Client, ledgerClient *ledger.Client, metrics *metrics.Metrics, token *model.Token) (int64, error) {
 	var (
-		statements *fio.FioImportEnvelope
+		statements *fio.ImportEnvelope
 		err        error
 		lastID     int64 = token.LastSyncedID
 	)
@@ -220,14 +220,14 @@ func importNewStatements(tenant string, fioClient *fio.FioClient, vaultClient *v
 	return lastID, nil
 }
 
-func importStatements(s *ActorSystem, token model.Token, callback func()) {
+func importStatements(s *System, token model.Token, callback func()) {
 	defer callback()
 
 	log.Debug().Msgf("token %s Importing statements", token.ID)
 
-	fioClient := fio.NewFioClient(s.FioGateway, token)
-	vaultClient := vault.NewVaultClient(s.VaultGateway)
-	ledgerClient := ledger.NewLedgerClient(s.LedgerGateway)
+	fioClient := fio.NewClient(s.FioGateway, token)
+	vaultClient := vault.NewClient(s.VaultGateway)
+	ledgerClient := ledger.NewClient(s.LedgerGateway)
 
 	log.Debug().Msgf("token %s Import Begin", token.ID)
 	lastID, err := importNewStatements(s.Tenant, &fioClient, &vaultClient, &ledgerClient, s.Metrics, &token)

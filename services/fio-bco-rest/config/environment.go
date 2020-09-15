@@ -16,8 +16,8 @@ package config
 
 import (
 	"encoding/hex"
-	"io/ioutil"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"

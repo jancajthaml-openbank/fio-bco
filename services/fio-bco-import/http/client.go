@@ -27,14 +27,14 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 )
 
-// HttpClient represents fascade for http client
-type HttpClient struct {
+// Client represents fascade for http client
+type Client struct {
 	underlying *http.Client
 }
 
-// NewHttpClient returns new http client
-func NewHttpClient() HttpClient {
-	return HttpClient{
+// NewHTTPClient returns new http client
+func NewHTTPClient() Client {
+	return Client{
 		underlying: &http.Client{
 			Timeout: 120 * time.Second,
 			Transport: &http.Transport{
@@ -60,7 +60,7 @@ func NewHttpClient() HttpClient {
 }
 
 // Post performs http POST request for given url with given body
-func (client *HttpClient) Post(url string, body []byte, headers map[string]string) (response Response, err error) {
+func (client *Client) Post(url string, body []byte, headers map[string]string) (response Response, err error) {
 	response = Response{
 		Status: 0,
 		Data:   nil,
@@ -112,7 +112,7 @@ func (client *HttpClient) Post(url string, body []byte, headers map[string]strin
 }
 
 // Get performs http GET request for given url
-func (client *HttpClient) Get(url string, headers map[string]string) (response Response, err error) {
+func (client *Client) Get(url string, headers map[string]string) (response Response, err error) {
 	response = Response{
 		Status: 0,
 		Data:   nil,

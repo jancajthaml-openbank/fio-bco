@@ -72,7 +72,7 @@ func parseMessage(msg string, to system.Coordinates) (interface{}, error) {
 }
 
 // ProcessMessage processing of remote message to this bondster-bco
-func ProcessMessage(s *ActorSystem) system.ProcessMessage {
+func ProcessMessage(s *System) system.ProcessMessage {
 	return func(msg string, to system.Coordinates, from system.Coordinates) {
 		message, err := parseMessage(msg, to)
 		if err != nil {
@@ -93,15 +93,15 @@ func ProcessMessage(s *ActorSystem) system.ProcessMessage {
 	}
 }
 
-func spawnTokenActor(s *ActorSystem, id string) (*system.Actor, error) {
+func spawnTokenActor(s *System, id string) (*system.Actor, error) {
 	envelope := system.NewActor(id, model.NewToken(id))
 
 	err := s.RegisterActor(envelope, NilToken(s))
 	if err != nil {
-		log.Warn().Msgf("%s ~ Spawning Actor Error unable to register", id)
+		log.Warn().Msgf("Unable to register %s actor", id)
 		return nil, err
 	}
 
-	log.Debug().Msgf("%s ~ Actor Spawned", id)
+	log.Debug().Msgf("Actor %s registered", id)
 	return envelope, nil
 }

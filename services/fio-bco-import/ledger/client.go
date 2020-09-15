@@ -16,28 +16,28 @@ package ledger
 
 import (
 	"fmt"
-
+	"encoding/json"
 	"github.com/jancajthaml-openbank/fio-bco-import/http"
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
-	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 )
 
-// LedgerClient represents fascade for http client
-type LedgerClient struct {
-	underlying http.HttpClient
+// Client represents fascade for http client
+type Client struct {
+	underlying http.Client
 	gateway    string
 }
 
-// NewLedgerClient returns new ledger http client
-func NewLedgerClient(gateway string) LedgerClient {
-	return LedgerClient{
+// NewClient returns new ledger http client
+func NewClient(gateway string) Client {
+	return Client{
 		gateway:    gateway,
-		underlying: http.NewHttpClient(),
+		underlying: http.NewHTTPClient(),
 	}
 }
 
-func (client LedgerClient) CreateTransaction(transaction model.Transaction) error {
-	request, err := utils.JSON.Marshal(transaction)
+// CreateTransaction creates transaction via ledger
+func (client Client) CreateTransaction(transaction model.Transaction) error {
+	request, err := json.Marshal(transaction)
 	if err != nil {
 		return err
 	}

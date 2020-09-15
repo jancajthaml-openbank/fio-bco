@@ -18,6 +18,7 @@ import (
 	"fmt"
 )
 
+// Response http response fascade
 type Response struct {
 	Status int
 	Data   []byte
