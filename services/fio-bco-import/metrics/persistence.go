@@ -17,7 +17,7 @@ package metrics
 import (
 	"bytes"
 	"fmt"
-	"github.com/jancajthaml-openbank/fio-bco-import/utils"
+	"encoding/json"
 	"os"
 	"strconv"
 	"time"
@@ -72,7 +72,7 @@ func (metrics *Metrics) UnmarshalJSON(data []byte) error {
 		ImportedTransactions int64   `json:"importedTransactions"`
 	}{}
 
-	if err := utils.JSON.Unmarshal(data, &aux); err != nil {
+	if err := json.Unmarshal(data, &aux); err != nil {
 		return err
 	}
 
@@ -92,7 +92,7 @@ func (metrics *Metrics) Persist() error {
 	if metrics == nil {
 		return fmt.Errorf("cannot persist nil reference")
 	}
-	data, err := utils.JSON.Marshal(metrics)
+	data, err := json.Marshal(metrics)
 	if err != nil {
 		log.Warn().Msgf("unable to marshall metrics %+v", err)
 		return err
@@ -118,7 +118,7 @@ func (metrics *Metrics) Hydrate() error {
 	if err != nil {
 		return err
 	}
-	err = utils.JSON.Unmarshal(data, metrics)
+	err = json.Unmarshal(data, metrics)
 	if err != nil {
 		return err
 	}

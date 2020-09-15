@@ -15,8 +15,8 @@
 package config
 
 import (
-	"fmt"
 	"encoding/hex"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
