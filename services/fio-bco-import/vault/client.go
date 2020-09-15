@@ -16,33 +16,33 @@ package vault
 
 import (
 	"fmt"
-
+	"encoding/json"
 	"github.com/jancajthaml-openbank/fio-bco-import/http"
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
-	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 )
 
-// VaultClient represents fascade for http client
-type VaultClient struct {
-	underlying http.HttpClient
+// Client represents fascade for http client
+type Client struct {
+	underlying http.Client
 	gateway    string
 	cache      map[model.Account]interface{}
 }
 
-// NewVaultClient returns new vault http client
-func NewVaultClient(gateway string) VaultClient {
-	return VaultClient{
+// NewClient returns new vault http client
+func NewClient(gateway string) Client {
+	return Client{
 		gateway:    gateway,
-		underlying: http.NewHttpClient(),
+		underlying: http.NewHTTPClient(),
 		cache:      make(map[model.Account]interface{}),
 	}
 }
 
-func (client VaultClient) CreateAccount(account model.Account) error {
+// CreateAccount creates account via vault
+func (client Client) CreateAccount(account model.Account) error {
 	if _, ok := client.cache[account]; ok {
 		return nil
 	}
-	request, err := utils.JSON.Marshal(account)
+	request, err := json.Marshal(account)
 	if err != nil {
 		return err
 	}

@@ -22,8 +22,8 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
 )
 
-// FioImportEnvelope represents fio gateway import statement entity
-type FioImportEnvelope struct {
+// ImportEnvelope represents fio gateway import statement entity
+type ImportEnvelope struct {
 	Statement accountStatement `json:"accountStatement"`
 }
 
@@ -86,14 +86,14 @@ type floatNode struct {
 }
 
 // GetTransactions return generator of fio transactions over given envelope
-func (envelope *FioImportEnvelope) GetTransactions(tenant string) <-chan model.Transaction {
+func (envelope *ImportEnvelope) GetTransactions(tenant string) <-chan model.Transaction {
 	chnl := make(chan model.Transaction)
 	if envelope == nil {
 		close(chnl)
 		return chnl
 	}
 
-	var previousIdTransaction = ""
+	var previousIDTransaction = ""
 	var buffer = make([]model.Transfer, 0)
 
 	go func() {
@@ -155,18 +155,18 @@ func (envelope *FioImportEnvelope) GetTransactions(tenant string) <-chan model.T
 
 			idTransaction := envelope.Statement.Info.IBAN + strconv.FormatInt(transfer.TransactionID.Value, 10)
 
-			if previousIdTransaction == "" {
-				previousIdTransaction = idTransaction
-			} else if previousIdTransaction != idTransaction {
+			if previousIDTransaction == "" {
+				previousIDTransaction = idTransaction
+			} else if previousIDTransaction != idTransaction {
 				transfers := make([]model.Transfer, len(buffer))
 				copy(transfers, buffer)
 				buffer = make([]model.Transfer, 0)
 				chnl <- model.Transaction{
 					Tenant:        tenant,
-					IDTransaction: previousIdTransaction,
+					IDTransaction: previousIDTransaction,
 					Transfers:     transfers,
 				}
-				previousIdTransaction = idTransaction
+				previousIDTransaction = idTransaction
 			}
 
 			buffer = append(buffer, model.Transfer{
@@ -194,7 +194,7 @@ func (envelope *FioImportEnvelope) GetTransactions(tenant string) <-chan model.T
 		buffer = make([]model.Transfer, 0)
 		chnl <- model.Transaction{
 			Tenant:        tenant,
-			IDTransaction: previousIdTransaction,
+			IDTransaction: previousIDTransaction,
 			Transfers:     transfers,
 		}
 	}()
@@ -203,7 +203,7 @@ func (envelope *FioImportEnvelope) GetTransactions(tenant string) <-chan model.T
 }
 
 // GetAccounts return generator of fio accounts over given envelope
-func (envelope *FioImportEnvelope) GetAccounts(tenant string) <-chan model.Account {
+func (envelope *ImportEnvelope) GetAccounts(tenant string) <-chan model.Account {
 	chnl := make(chan model.Account)
 	if envelope == nil {
 		close(chnl)

@@ -20,10 +20,8 @@ import (
 	"math/rand"
 	"strings"
 	"time"
-
+	"encoding/json"
 	"github.com/rs/xid"
-
-	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 )
 
 // Token represents metadata of token entity
@@ -41,12 +39,12 @@ func (entity Token) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON unmarshal json of Token entity
 func (entity *Token) UnmarshalJSON(data []byte) error {
 	if entity == nil {
-		return fmt.Errorf("cannot unmarshall to nil pointer")
+		return fmt.Errorf("cannot unmarshal to nil pointer")
 	}
 	all := struct {
 		Value string `json:"value"`
 	}{}
-	err := utils.JSON.Unmarshal(data, &all)
+	err := json.Unmarshal(data, &all)
 	if err != nil {
 		return err
 	}

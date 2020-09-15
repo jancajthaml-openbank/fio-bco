@@ -18,18 +18,18 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"encoding/json"
 
 	"github.com/jancajthaml-openbank/fio-bco-rest/actor"
 	"github.com/jancajthaml-openbank/fio-bco-rest/model"
 	"github.com/jancajthaml-openbank/fio-bco-rest/persistence"
-	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
 	"github.com/labstack/echo/v4"
 )
 
 // DeleteToken removes existing token
-func DeleteToken(system *actor.ActorSystem) func(c echo.Context) error {
+func DeleteToken(system *actor.System) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 
@@ -60,7 +60,7 @@ func DeleteToken(system *actor.ActorSystem) func(c echo.Context) error {
 }
 
 // CreateToken creates new token for given tenant
-func CreateToken(system *actor.ActorSystem) func(c echo.Context) error {
+func CreateToken(system *actor.System) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 
@@ -77,7 +77,7 @@ func CreateToken(system *actor.ActorSystem) func(c echo.Context) error {
 		}
 
 		var req = new(model.Token)
-		if utils.JSON.Unmarshal(b, req) != nil {
+		if json.Unmarshal(b, req) != nil {
 			c.Response().WriteHeader(http.StatusBadRequest)
 			return nil
 		}
@@ -121,7 +121,7 @@ func GetTokens(storage *localfs.EncryptedStorage) func(c echo.Context) error {
 		c.Response().WriteHeader(http.StatusOK)
 
 		for idx, token := range tokens {
-			chunk, err := utils.JSON.Marshal(token)
+			chunk, err := json.Marshal(token)
 			if err != nil {
 				return err
 			}

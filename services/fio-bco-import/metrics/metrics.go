@@ -61,15 +61,17 @@ func (metrics *Metrics) TokenDeleted() {
 	metrics.deletedTokens.Inc(1)
 }
 
+// TimeSyncLatency measures time of sync duration
 func (metrics *Metrics) TimeSyncLatency(f func()) {
 	metrics.syncLatency.Time(f)
 }
 
-// TransactionImported increments transactions created by count
+// TransactionImported increments transactions importer by one
 func (metrics *Metrics) TransactionImported() {
 	metrics.importedTransactions.Mark(1)
 }
 
+// TransfersImported increments transfers importer by given num
 func (metrics *Metrics) TransfersImported(num int64) {
 	metrics.importedTransfers.Mark(num)
 }
