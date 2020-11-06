@@ -272,17 +272,17 @@ pipeline {
                         "files": [
                             {
                                 "pattern": "${env.WORKSPACE}/packaging/bin/fio-bco-rest-linux-(*)",
-                                "target": "generic-local/openbank/fio-bco/linux/{1}/${env.VERSION}/fio-bco-rest",
+                                "target": "generic-local/openbank/fio-bco/${env.VERSION}/linux/{1}/fio-bco-rest",
                                 "recursive": "false"
                             },
                             {
                                 "pattern": "${env.WORKSPACE}/packaging/bin/fio-bco-import-linux-(*)",
-                                "target": "generic-local/openbank/fio-bco/linux/{1}/${env.VERSION}/fio-bco-import",
+                                "target": "generic-local/openbank/fio-bco/${env.VERSION}/linux/{1}/fio-bco-import",
                                 "recursive": "false"
                             },
                             {
                                 "pattern": "${env.WORKSPACE}/packaging/bin/fio-bco_(*)_(*).deb",
-                                "target": "generic-local/openbank/fio-bco/linux/{2}/{1}/fio-bco.deb",
+                                "target": "generic-local/openbank/fio-bco/{1}/linux/{2}/fio-bco.deb",
                                 "recursive": "false"
                             }
                         ]
