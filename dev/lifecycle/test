@@ -60,6 +60,8 @@ lifecycle::go::test() {
     -input ${test_out} \
     -output ${output}/${target}-results.xml
 
+  mkdir -p ${output}/${target}-coverage
+
   go tool cover \
     --html=${coverage_out} \
     -o ${output}/${target}-coverage/index.html
