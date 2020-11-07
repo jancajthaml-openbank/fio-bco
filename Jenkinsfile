@@ -157,14 +157,14 @@ pipeline {
                     sh """
                         ${env.WORKSPACE}/dev/lifecycle/test \
                         --source ${env.WORKSPACE}/services/fio-bco-rest \
-                        --output ${env.WORKSPACE}/reports/unit-tests/fio-bco-rest
+                        --output ${env.WORKSPACE}/reports/unit-tests
                     """
                 }
                 script {
                     sh """
                         ${env.WORKSPACE}/dev/lifecycle/test \
                         --source ${env.WORKSPACE}/services/fio-bco-import \
-                        --output ${env.WORKSPACE}/reports/unit-tests/fio-bco-import
+                        --output ${env.WORKSPACE}/reports/unit-tests
                     """
                 }
             }
