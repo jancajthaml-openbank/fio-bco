@@ -62,7 +62,7 @@ lifecycle::go::test() {
 
   go tool cover \
     --html=${coverage_out} \
-    -o ${output}/${target}-coverage.html
+    -o ${output}/${target}-coverage/index.html
 
   # run only benchmarks
   cd ${dir} && \
