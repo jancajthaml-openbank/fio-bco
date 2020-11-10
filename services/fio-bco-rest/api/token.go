@@ -15,10 +15,10 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"encoding/json"
 
 	"github.com/jancajthaml-openbank/fio-bco-rest/actor"
 	"github.com/jancajthaml-openbank/fio-bco-rest/model"

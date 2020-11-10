@@ -16,8 +16,8 @@ package metrics
 
 import (
 	"bytes"
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"os"
 	"strconv"
 	"time"

@@ -15,8 +15,8 @@
 package api
 
 import (
-	"net/http"
 	"encoding/json"
+	"net/http"
 
 	"github.com/jancajthaml-openbank/fio-bco-rest/system"
 

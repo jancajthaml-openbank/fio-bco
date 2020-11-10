@@ -15,8 +15,8 @@
 package vault
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"github.com/jancajthaml-openbank/fio-bco-import/http"
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
 )
