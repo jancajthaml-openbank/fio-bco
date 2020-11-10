@@ -15,9 +15,6 @@
 package config
 
 import (
-	"encoding/hex"
-	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -25,64 +22,33 @@ import (
 	"time"
 )
 
-func loadConfFromEnv() Configuration {
-	logLevel := strings.ToUpper(getEnvString("FIO_BCO_LOG_LEVEL", "DEBUG"))
-	encryptionKey := getEnvString("FIO_BCO_ENCRYPTION_KEY", "")
-	rootStorage := getEnvString("FIO_BCO_STORAGE", "/data")
-	tenant := getEnvString("FIO_BCO_TENANT", "")
-	fioGateway := getEnvString("FIO_BCO_FIO_GATEWAY", "https://www.fio.cz/ib_api/rest")
-	ledgerGateway := getEnvString("FIO_BCO_LEDGER_GATEWAY", "https://127.0.0.1:4401")
-	vaultGateway := getEnvString("FIO_BCO_VAULT_GATEWAY", "https://127.0.0.1:4400")
-	syncRate := getEnvDuration("FIO_BCO_SYNC_RATE", 22*time.Second)
-	lakeHostname := getEnvString("FIO_BCO_LAKE_HOSTNAME", "")
-	metricsOutput := getEnvFilename("FIO_BCO_METRICS_OUTPUT", "/tmp")
-	metricsRefreshRate := getEnvDuration("FIO_BCO_METRICS_REFRESHRATE", time.Second)
-
-	if tenant == "" || lakeHostname == "" || rootStorage == "" || encryptionKey == "" {
-		log.Error().Msg("missing required parameter to run")
-		panic("missing required parameter to run")
+func envBoolean(key string, fallback bool) bool {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return fallback
 	}
-
-	keyData, err := ioutil.ReadFile(encryptionKey)
+	cast, err := strconv.ParseBool(value)
 	if err != nil {
-		log.Error().Msgf("unable to load encryption key from %s", encryptionKey)
-		panic(fmt.Sprintf("unable to load encryption key from %s", encryptionKey))
+		log.Error().Msgf("invalid value of variable %s", key)
+		return fallback
 	}
-
-	key, err := hex.DecodeString(string(keyData))
-	if err != nil {
-		log.Error().Msgf("invalid encryption key %+v at %s", err, encryptionKey)
-		panic(fmt.Sprintf("invalid encryption key %+v at %s", err, encryptionKey))
-	}
-
-	return Configuration{
-		Tenant:             tenant,
-		RootStorage:        rootStorage + "/t_" + tenant + "/import/fio",
-		EncryptionKey:      []byte(key),
-		FioGateway:         fioGateway,
-		SyncRate:           syncRate,
-		LedgerGateway:      ledgerGateway,
-		VaultGateway:       vaultGateway,
-		LakeHostname:       lakeHostname,
-		LogLevel:           logLevel,
-		MetricsRefreshRate: metricsRefreshRate,
-		MetricsOutput:      metricsOutput,
-	}
+	return cast
 }
 
-func getEnvFilename(key string, fallback string) string {
+func envFilename(key string, fallback string) string {
 	var value = strings.TrimSpace(os.Getenv(key))
 	if value == "" {
 		return fallback
 	}
 	value = filepath.Clean(value)
 	if os.MkdirAll(value, os.ModePerm) != nil {
+		log.Error().Msgf("invalid value of variable %s", key)
 		return fallback
 	}
 	return value
 }
 
-func getEnvString(key string, fallback string) string {
+func envString(key string, fallback string) string {
 	value := strings.TrimSpace(os.Getenv(key))
 	if value == "" {
 		return fallback
@@ -90,7 +56,7 @@ func getEnvString(key string, fallback string) string {
 	return value
 }
 
-func getEnvInteger(key string, fallback int) int {
+func envInteger(key string, fallback int) int {
 	value := strings.TrimSpace(os.Getenv(key))
 	if value == "" {
 		return fallback
@@ -103,7 +69,7 @@ func getEnvInteger(key string, fallback int) int {
 	return cast
 }
 
-func getEnvDuration(key string, fallback time.Duration) time.Duration {
+func envDuration(key string, fallback time.Duration) time.Duration {
 	value := strings.TrimSpace(os.Getenv(key))
 	if value == "" {
 		return fallback
