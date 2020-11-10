@@ -17,9 +17,6 @@ package config
 import (
 	"time"
 	"strings"
-	"io/ioutil"
-	"encoding/hex"
-	"fmt"
 )
 
 // Configuration of application
@@ -53,46 +50,17 @@ type Configuration struct {
 
 // GetConfig loads application configuration
 func GetConfig() Configuration {
-	logLevel := strings.ToUpper(envString("FIO_BCO_LOG_LEVEL", "INFO"))
-	encryptionKey := envString("FIO_BCO_ENCRYPTION_KEY", "")
-	serverKey := envString("FIO_BCO_SERVER_KEY", "")
-	serverCert := envString("FIO_BCO_SERVER_CERT", "")
-	rootStorage := envString("FIO_BCO_STORAGE", "/data")
-	lakeHostname := envString("FIO_BCO_LAKE_HOSTNAME", "")
-	port := envInteger("FIO_BCO_HTTP_PORT", 4000)
-	minFreeDiskSpace := envInteger("VAULT_STORAGE_THRESHOLD", 0)
-	minFreeMemory := envInteger("VAULT_MEMORY_THRESHOLD", 0)
-	metricsOutput := envFilename("FIO_BCO_METRICS_OUTPUT", "/tmp")
-	metricsRefreshRate := envDuration("FIO_BCO_METRICS_REFRESHRATE", time.Second)
-
-	if lakeHostname == "" || serverKey == "" || serverCert == "" || rootStorage == "" || encryptionKey == "" {
-		log.Error().Msg("missing required parameter to run")
-		panic("missing required parameter to run")
-	}
-
-	keyData, err := ioutil.ReadFile(encryptionKey)
-	if err != nil {
-		log.Error().Msgf("unable to load encryption key from %s", encryptionKey)
-		panic(fmt.Sprintf("unable to load encryption key from %s", encryptionKey))
-	}
-
-	key, err := hex.DecodeString(string(keyData))
-	if err != nil {
-		log.Error().Msgf("invalid encryption key %+v at %s", err, encryptionKey)
-		panic(fmt.Sprintf("invalid encryption key %+v at %s", err, encryptionKey))
-	}
-
 	return Configuration{
-		RootStorage:        rootStorage,
-		EncryptionKey:      []byte(key),
-		ServerPort:         port,
-		ServerKey:          serverKey,
-		ServerCert:         serverCert,
-		LakeHostname:       lakeHostname,
-		LogLevel:           logLevel,
-		MetricsRefreshRate: metricsRefreshRate,
-		MetricsOutput:      metricsOutput,
-		MinFreeDiskSpace:   uint64(minFreeDiskSpace),
-		MinFreeMemory:      uint64(minFreeMemory),
+		RootStorage:        envString("FIO_BCO_STORAGE", "/data"),
+		EncryptionKey:      envSecret("FIO_BCO_ENCRYPTION_KEY", nil),
+		ServerPort:         envInteger("FIO_BCO_HTTP_PORT", 4000),
+		ServerKey:          envString("FIO_BCO_SERVER_KEY", ""),
+		ServerCert:         envString("FIO_BCO_SERVER_CERT", ""),
+		LakeHostname:       envString("FIO_BCO_LAKE_HOSTNAME", "127.0.0.1"),
+		LogLevel:           strings.ToUpper(envString("FIO_BCO_LOG_LEVEL", "INFO")),
+		MetricsRefreshRate: envDuration("FIO_BCO_METRICS_REFRESHRATE", time.Second),
+		MetricsOutput:      envFilename("FIO_BCO_METRICS_OUTPUT", "/tmp/fio-bco-rest-metrics"),
+		MinFreeDiskSpace:   uint64(envInteger("VAULT_STORAGE_THRESHOLD", 0)),
+		MinFreeMemory:      uint64(envInteger("VAULT_MEMORY_THRESHOLD", 0)),
 	}
 }

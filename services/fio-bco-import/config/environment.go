@@ -20,6 +20,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"io/ioutil"
+	"encoding/hex"
 )
 
 func envBoolean(key string, fallback bool) bool {
@@ -54,6 +56,22 @@ func envString(key string, fallback string) string {
 		return fallback
 	}
 	return value
+}
+
+func envSecret(key string, fallback []byte) []byte {
+	var value = strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return fallback
+	}
+	data, err := ioutil.ReadFile(filepath.Clean(value))
+	if err != nil {
+		return fallback
+	}
+	decoded, err := hex.DecodeString(string(data))
+	if err != nil {
+		return fallback
+	}
+	return []byte(decoded)
 }
 
 func envInteger(key string, fallback int) int {
