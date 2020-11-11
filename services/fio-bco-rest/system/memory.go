@@ -93,7 +93,7 @@ func (monitor *MemoryMonitor) CheckMemoryAllocation() {
 }
 
 // Start handles everything needed to start memory daemon
-func (monitor MemoryMonitor) Start() {
+func (monitor *MemoryMonitor) Start() {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 

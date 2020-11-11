@@ -77,7 +77,7 @@ func (metrics *Metrics) TransfersImported(num int64) {
 }
 
 // Start handles everything needed to start metrics daemon
-func (metrics Metrics) Start() {
+func (metrics *Metrics) Start() {
 	ticker := time.NewTicker(metrics.refreshRate)
 	defer ticker.Stop()
 

@@ -86,7 +86,7 @@ func (monitor *DiskMonitor) CheckDiskSpace() {
 }
 
 // Start handles everything needed to start storage daemon
-func (monitor DiskMonitor) Start() {
+func (monitor *DiskMonitor) Start() {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
