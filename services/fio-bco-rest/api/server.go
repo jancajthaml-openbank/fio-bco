@@ -54,7 +54,7 @@ func NewServer(ctx context.Context, port int, certPath string, keyPath string, r
 	certificate, err := tls.LoadX509KeyPair(certPath, keyPath)
 	if err != nil {
 		log.Error().Msgf("Invalid cert %s and key %s", certPath, keyPath)
-		panic(fmt.Sprintf("Invalid cert %s and key %s", certPath, keyPath))
+		return nil
 	}
 
 	router.GET("/health", HealtCheck(memoryMonitor, diskMonitor))
