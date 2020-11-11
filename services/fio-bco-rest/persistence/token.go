@@ -22,7 +22,7 @@ import (
 )
 
 // LoadTokens rehydrates token entity state from storage
-func LoadTokens(storage *localfs.EncryptedStorage, tenant string) ([]model.Token, error) {
+func LoadTokens(storage localfs.Storage, tenant string) ([]model.Token, error) {
 	path := utils.TokensPath(tenant)
 	ok, err := storage.Exists(path)
 	if err != nil || !ok {
@@ -45,7 +45,7 @@ func LoadTokens(storage *localfs.EncryptedStorage, tenant string) ([]model.Token
 }
 
 // HydrateToken hydrate existing token from storage
-func HydrateToken(storage *localfs.EncryptedStorage, tenant string, entity *model.Token) *model.Token {
+func HydrateToken(storage localfs.Storage, tenant string, entity *model.Token) *model.Token {
 	if entity == nil {
 		return nil
 	}

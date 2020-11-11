@@ -26,7 +26,7 @@ import (
 // Metrics holds metrics counters
 type Metrics struct {
 	utils.DaemonSupport
-	storage            localfs.PlaintextStorage
+	storage            localfs.Storage
 	refreshRate        time.Duration
 	getTokenLatency    metrics.Timer
 	createTokenLatency metrics.Timer
@@ -34,10 +34,15 @@ type Metrics struct {
 }
 
 // NewMetrics returns blank metrics holder
-func NewMetrics(ctx context.Context, output string, refreshRate time.Duration) Metrics {
-	return Metrics{
+func NewMetrics(ctx context.Context, output string, refreshRate time.Duration) *Metrics {
+	storage, err := localfs.NewPlaintextStorage(output)
+	if err != nil {
+		log.Error().Msgf("Failed to ensure storage %+v", err)
+		return nil
+	}
+	return &Metrics{
 		DaemonSupport:      utils.NewDaemonSupport(ctx, "metrics"),
-		storage:            localfs.NewPlaintextStorage(output),
+		storage:            storage,
 		refreshRate:        refreshRate,
 		createTokenLatency: metrics.NewTimer(),
 		deleteTokenLatency: metrics.NewTimer(),
@@ -47,21 +52,34 @@ func NewMetrics(ctx context.Context, output string, refreshRate time.Duration) M
 
 // TimeGetToken measure execution of GetToken
 func (metrics *Metrics) TimeGetToken(f func()) {
+	if metrics == nil {
+		return
+	}
 	metrics.getTokenLatency.Time(f)
 }
 
 // TimeCreateToken measure execution of CreateToken
 func (metrics *Metrics) TimeCreateToken(f func()) {
+	if metrics == nil {
+		return
+	}
 	metrics.createTokenLatency.Time(f)
 }
 
 // TimeDeleteToken measure execution of DeleteToken
 func (metrics *Metrics) TimeDeleteToken(f func()) {
+	if metrics == nil {
+		return
+	}
 	metrics.deleteTokenLatency.Time(f)
 }
 
 // Start handles everything needed to start metrics daemon
 func (metrics *Metrics) Start() {
+	if metrics == nil {
+		return
+	}
+
 	ticker := time.NewTicker(metrics.refreshRate)
 	defer ticker.Stop()
 
@@ -80,7 +98,7 @@ func (metrics *Metrics) Start() {
 		return
 	}
 
-	log.Info().Msgf("Start metrics daemon, update each %v into %v", metrics.refreshRate, metrics.storage.Root)
+	log.Info().Msgf("Start metrics daemon, update file each %v", metrics.refreshRate)
 
 	go func() {
 		for {

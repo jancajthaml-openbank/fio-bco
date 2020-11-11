@@ -26,7 +26,6 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 
 	system "github.com/jancajthaml-openbank/actor-system"
-	localfs "github.com/jancajthaml-openbank/local-fs"
 )
 
 // Program encapsulate initialized application
@@ -45,10 +44,6 @@ func Initialize() Program {
 
 	logging.SetupLogger(cfg.LogLevel)
 
-	storage := localfs.NewEncryptedStorage(
-		cfg.RootStorage,
-		cfg.EncryptionKey,
-	)
 	metricsDaemon := metrics.NewMetrics(
 		ctx,
 		cfg.MetricsOutput,
@@ -62,14 +57,16 @@ func Initialize() Program {
 		cfg.FioGateway,
 		cfg.VaultGateway,
 		cfg.LedgerGateway,
-		&metricsDaemon,
-		&storage,
+		cfg.RootStorage,
+		cfg.EncryptionKey,
+		metricsDaemon,
 	)
 	fioDaemon := integration.NewFioImport(
 		ctx,
 		cfg.FioGateway,
 		cfg.SyncRate,
-		&storage,
+		cfg.RootStorage,
+		cfg.EncryptionKey,
 		func(token string) {
 			actorSystemDaemon.SendMessage(actor.SynchronizeTokens,
 				system.Coordinates{
@@ -85,9 +82,9 @@ func Initialize() Program {
 	)
 
 	var daemons = make([]utils.Daemon, 0)
-	daemons = append(daemons, &metricsDaemon)
-	daemons = append(daemons, &actorSystemDaemon)
-	daemons = append(daemons, &fioDaemon)
+	daemons = append(daemons, metricsDaemon)
+	daemons = append(daemons, actorSystemDaemon)
+	daemons = append(daemons, fioDaemon)
 
 	return Program{
 		interrupt: make(chan os.Signal, 1),

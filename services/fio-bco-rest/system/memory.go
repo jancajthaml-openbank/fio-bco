@@ -34,8 +34,8 @@ type MemoryMonitor struct {
 }
 
 // NewMemoryMonitor returns new memory monitor fascade
-func NewMemoryMonitor(ctx context.Context, limit uint64) MemoryMonitor {
-	return MemoryMonitor{
+func NewMemoryMonitor(ctx context.Context, limit uint64) *MemoryMonitor {
+	return &MemoryMonitor{
 		DaemonSupport: utils.NewDaemonSupport(ctx, "memory-check"),
 		limit:         limit,
 		free:          0,

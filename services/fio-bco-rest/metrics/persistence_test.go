@@ -121,8 +121,10 @@ func TestPersist(t *testing.T) {
 	{
 		defer os.Remove("/tmp/metrics.json")
 
+		storage, _ := localfs.NewPlaintextStorage("/tmp")
+
 		entity := Metrics{
-			storage:            localfs.NewPlaintextStorage("/tmp"),
+			storage:            storage,
 			createTokenLatency: metrics.NewTimer(),
 			deleteTokenLatency: metrics.NewTimer(),
 			getTokenLatency:    metrics.NewTimer(),
@@ -167,8 +169,10 @@ func TestHydrate(t *testing.T) {
 
 		require.Nil(t, ioutil.WriteFile("/tmp/metrics.json", data, 0444))
 
+		storage, err := localfs.NewPlaintextStorage("/tmp")
+
 		entity := Metrics{
-			storage:            localfs.NewPlaintextStorage("/tmp"),
+			storage:            storage,
 			createTokenLatency: metrics.NewTimer(),
 			deleteTokenLatency: metrics.NewTimer(),
 			getTokenLatency:    metrics.NewTimer(),
