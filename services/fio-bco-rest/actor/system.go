@@ -32,7 +32,12 @@ type System struct {
 // NewActorSystem returns actor system fascade
 func NewActorSystem(ctx context.Context, lakeEndpoint string, metrics *metrics.Metrics) *System {
 	result := new(System)
-	result.System = system.New(ctx, "FioRest", lakeEndpoint)
+	sys, err := system.New(ctx, "FioRest", lakeEndpoint)
+	if err != nil {
+		log.Error().Msgf("Failed to register actor system %+v", err)
+		return nil
+	}
+	result.System = sys
 	result.Metrics = metrics
 	result.System.RegisterOnMessage(ProcessMessage(result))
 	return result
