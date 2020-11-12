@@ -15,10 +15,10 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"encoding/json"
 
 	"github.com/jancajthaml-openbank/fio-bco-rest/actor"
 	"github.com/jancajthaml-openbank/fio-bco-rest/model"
@@ -103,7 +103,7 @@ func CreateToken(system *actor.System) func(c echo.Context) error {
 }
 
 // GetTokens return existing tokens of given tenant
-func GetTokens(storage *localfs.EncryptedStorage) func(c echo.Context) error {
+func GetTokens(storage localfs.Storage) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 

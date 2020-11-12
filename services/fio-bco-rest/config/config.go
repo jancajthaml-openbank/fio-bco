@@ -14,7 +14,10 @@
 
 package config
 
-import "time"
+import (
+	"time"
+	"strings"
+)
 
 // Configuration of application
 type Configuration struct {
@@ -47,5 +50,17 @@ type Configuration struct {
 
 // GetConfig loads application configuration
 func GetConfig() Configuration {
-	return loadConfFromEnv()
+	return Configuration{
+		RootStorage:        envString("FIO_BCO_STORAGE", "/data"),
+		EncryptionKey:      envSecret("FIO_BCO_ENCRYPTION_KEY", nil),
+		ServerPort:         envInteger("FIO_BCO_HTTP_PORT", 4000),
+		ServerKey:          envString("FIO_BCO_SERVER_KEY", ""),
+		ServerCert:         envString("FIO_BCO_SERVER_CERT", ""),
+		LakeHostname:       envString("FIO_BCO_LAKE_HOSTNAME", "127.0.0.1"),
+		LogLevel:           strings.ToUpper(envString("FIO_BCO_LOG_LEVEL", "INFO")),
+		MetricsRefreshRate: envDuration("FIO_BCO_METRICS_REFRESHRATE", time.Second),
+		MetricsOutput:      envFilename("FIO_BCO_METRICS_OUTPUT", "/tmp/fio-bco-rest-metrics"),
+		MinFreeDiskSpace:   uint64(envInteger("VAULT_STORAGE_THRESHOLD", 0)),
+		MinFreeMemory:      uint64(envInteger("VAULT_MEMORY_THRESHOLD", 0)),
+	}
 }

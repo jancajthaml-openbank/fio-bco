@@ -25,8 +25,6 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-rest/metrics"
 	"github.com/jancajthaml-openbank/fio-bco-rest/system"
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
-
-	localfs "github.com/jancajthaml-openbank/local-fs"
 )
 
 // Program encapsulate initialized application
@@ -45,10 +43,6 @@ func Initialize() Program {
 
 	logging.SetupLogger(cfg.LogLevel)
 
-	storage := localfs.NewEncryptedStorage(
-		cfg.RootStorage,
-		cfg.EncryptionKey,
-	)
 	systemControlDaemon := system.NewSystemControl(
 		ctx,
 	)
@@ -69,18 +63,19 @@ func Initialize() Program {
 	actorSystemDaemon := actor.NewActorSystem(
 		ctx,
 		cfg.LakeHostname,
-		&metricsDaemon,
+		metricsDaemon,
 	)
 	restDaemon := api.NewServer(
 		ctx,
 		cfg.ServerPort,
 		cfg.ServerCert,
 		cfg.ServerKey,
-		&actorSystemDaemon,
-		&systemControlDaemon,
-		&diskMonitorDaemon,
-		&memoryMonitorDaemon,
-		&storage,
+		cfg.RootStorage,
+		cfg.EncryptionKey,
+		actorSystemDaemon,
+		systemControlDaemon,
+		diskMonitorDaemon,
+		memoryMonitorDaemon,
 	)
 
 	var daemons = make([]utils.Daemon, 0)

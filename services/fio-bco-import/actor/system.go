@@ -28,7 +28,7 @@ import (
 type System struct {
 	system.System
 	Tenant        string
-	Storage       *localfs.EncryptedStorage
+	Storage       localfs.Storage
 	Metrics       *metrics.Metrics
 	FioGateway    string
 	LedgerGateway string
@@ -36,18 +36,26 @@ type System struct {
 }
 
 // NewActorSystem returns actor system fascade
-func NewActorSystem(ctx context.Context, tenant string, lakeEndpoint string, fioEndpoint string, vaultEndpoint string, ledgerEndpoint string, metrics *metrics.Metrics, storage *localfs.EncryptedStorage) System {
-	result := System{
-		System:        system.New(ctx, "FioImport/"+tenant, lakeEndpoint),
-		Storage:       storage,
-		Metrics:       metrics,
-		Tenant:        tenant,
-		FioGateway:    fioEndpoint,
-		LedgerGateway: ledgerEndpoint,
-		VaultGateway:  vaultEndpoint,
+func NewActorSystem(ctx context.Context, tenant string, lakeEndpoint string, fioEndpoint string, vaultEndpoint string, ledgerEndpoint string, rootStorage string, storageKey []byte, metrics *metrics.Metrics) *System {
+	storage, err := localfs.NewEncryptedStorage(rootStorage, storageKey)
+	if err != nil {
+		log.Error().Msgf("Failed to ensure storage %+v", err)
+		return nil
 	}
-
-	result.System.RegisterOnMessage(ProcessMessage(&result))
+	sys, err := system.New(ctx, "FioImport/"+tenant, lakeEndpoint)
+	if err != nil {
+		log.Error().Msgf("Failed to register actor system %+v", err)
+		return nil
+	}
+	result := new(System)
+	result.System = sys
+	result.Storage = storage
+	result.Metrics = metrics
+	result.Tenant = tenant
+	result.FioGateway = fioEndpoint
+	result.LedgerGateway = ledgerEndpoint
+	result.VaultGateway = vaultEndpoint
+	result.System.RegisterOnMessage(ProcessMessage(result))
 	return result
 }
 

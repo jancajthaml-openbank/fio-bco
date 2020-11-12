@@ -16,12 +16,12 @@ package model
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"github.com/rs/xid"
 	"math/rand"
 	"strings"
 	"time"
-	"encoding/json"
-	"github.com/rs/xid"
 )
 
 // Token represents metadata of token entity

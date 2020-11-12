@@ -29,13 +29,18 @@ type FioImport struct {
 	utils.DaemonSupport
 	callback   func(token string)
 	fioGateway string
-	storage    *localfs.EncryptedStorage
+	storage    localfs.Storage
 	syncRate   time.Duration
 }
 
 // NewFioImport returns fio import fascade
-func NewFioImport(ctx context.Context, fioEndpoint string, syncRate time.Duration, storage *localfs.EncryptedStorage, callback func(token string)) FioImport {
-	return FioImport{
+func NewFioImport(ctx context.Context, fioEndpoint string, syncRate time.Duration, rootStorage string, storageKey []byte, callback func(token string)) *FioImport {
+	storage, err := localfs.NewEncryptedStorage(rootStorage, storageKey)
+	if err != nil {
+		log.Error().Msgf("Failed to ensure storage %+v", err)
+		return nil
+	}
+	return &FioImport{
 		DaemonSupport: utils.NewDaemonSupport(ctx, "fio"),
 		callback:      callback,
 		storage:       storage,

@@ -16,9 +16,8 @@ package metrics
 
 import (
 	"bytes"
-	"fmt"
 	"encoding/json"
-	"os"
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -102,7 +101,7 @@ func (metrics *Metrics) Persist() error {
 		log.Warn().Msgf("unable to persist metrics %+v", err)
 		return err
 	}
-	err = os.Chmod(metrics.storage.Root+"/metrics."+metrics.tenant+".json", 0644)
+	err = metrics.storage.Chmod("metrics."+metrics.tenant+".json", 0644)
 	if err != nil {
 		return err
 	}
