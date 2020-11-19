@@ -169,7 +169,7 @@ func TestHydrate(t *testing.T) {
 
 		require.Nil(t, ioutil.WriteFile("/tmp/metrics.json", data, 0444))
 
-		storage, err := localfs.NewPlaintextStorage("/tmp")
+		storage, _ := localfs.NewPlaintextStorage("/tmp")
 
 		entity := Metrics{
 			storage:            storage,

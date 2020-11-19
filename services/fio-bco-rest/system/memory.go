@@ -24,8 +24,9 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 )
 
-// MemoryMonitor represents memory monitoring subroutine
+// MemoryMonitor monitors capacity of memory
 type MemoryMonitor struct {
+	CapacityCheck
 	utils.DaemonSupport
 	limit uint64
 	free  uint64
@@ -52,16 +53,16 @@ func (monitor *MemoryMonitor) IsHealthy() bool {
 	return atomic.LoadInt32(&(monitor.ok)) != 0
 }
 
-// GetFreeMemory returns free memory
-func (monitor *MemoryMonitor) GetFreeMemory() uint64 {
+// GetFree returns free memory
+func (monitor *MemoryMonitor) GetFree() uint64 {
 	if monitor == nil {
 		return 0
 	}
 	return atomic.LoadUint64(&(monitor.free))
 }
 
-// GetUsedMemory returns allocated memory
-func (monitor *MemoryMonitor) GetUsedMemory() uint64 {
+// GetUsed returns allocated memory
+func (monitor *MemoryMonitor) GetUsed() uint64 {
 	if monitor == nil {
 		return 0
 	}
