@@ -20,12 +20,11 @@ import (
 	localfs "github.com/jancajthaml-openbank/local-fs"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
-	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 )
 
 // LoadTokens rehydrates token entity state from storage
 func LoadTokens(storage localfs.Storage) ([]model.Token, error) {
-	path := utils.TokensPath()
+	path := "token"
 	ok, err := storage.Exists(path)
 	if err != nil || !ok {
 		return make([]model.Token, 0), nil
@@ -65,7 +64,7 @@ func CreateToken(storage localfs.Storage, id string, value string) *model.Token 
 
 // DeleteToken deletes existing token entity
 func DeleteToken(storage localfs.Storage, id string) bool {
-	path := utils.TokenPath(id)
+	path := "token/" + id
 	return storage.DeleteFile(path) == nil
 }
 
@@ -74,7 +73,7 @@ func PersistToken(storage localfs.Storage, entity *model.Token) *model.Token {
 	if entity == nil {
 		return nil
 	}
-	path := utils.TokenPath(entity.ID)
+	path := "token/" + entity.ID
 	data, err := entity.Serialize()
 	if err != nil {
 		return nil
@@ -90,7 +89,7 @@ func HydrateToken(storage localfs.Storage, entity *model.Token) *model.Token {
 	if entity == nil {
 		return nil
 	}
-	path := utils.TokenPath(entity.ID)
+	path := "token/" + entity.ID
 	data, err := storage.ReadFileFully(path)
 	if err != nil {
 		return nil
@@ -107,7 +106,7 @@ func UpdateToken(storage localfs.Storage, entity *model.Token) bool {
 	if entity == nil {
 		return false
 	}
-	path := utils.TokenPath(entity.ID)
+	path := "token/" + entity.ID
 	// FIXME check nil
 	data, err := entity.Serialize()
 	if err != nil {

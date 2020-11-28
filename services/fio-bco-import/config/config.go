@@ -46,8 +46,8 @@ type Configuration struct {
 	MetricsOutput string
 }
 
-// GetConfig loads application configuration
-func GetConfig() Configuration {
+// LoadConfig loads application configuration
+func LoadConfig() Configuration {
 	return Configuration{
 		Tenant:             envString("FIO_BCO_TENANT", ""),
 		RootStorage:        envString("FIO_BCO_STORAGE", "/data") + "/t_" + envString("FIO_BCO_TENANT", "") + "/import/fio",

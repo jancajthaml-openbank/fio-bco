@@ -12,26 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package concurrent
 
 import (
-	"sync"
 	"context"
 	"fmt"
+	"sync"
 	"time"
 )
+
+// Daemon contract for program sub routines
+type Daemon interface {
+	Start()
+	Stop()
+	GreenLight()
+	WaitStop()
+	WaitReady(time.Duration) error
+}
 
 // DaemonSupport provides support for graceful shutdown
 type DaemonSupport struct {
 	Daemon
-	name       string
-	ctx        context.Context
-	cancel     context.CancelFunc
-	done       chan interface{}
-	doneOnce sync.Once
-	ExitSignal chan struct{}
-	IsReady    chan interface{}
-	CanStart   chan interface{}
+	name              string
+	ctx               context.Context
+	cancel            context.CancelFunc
+	done              chan interface{}
+	doneOnce          sync.Once
+	ExitSignal        chan struct{}
+	IsReady           chan interface{}
+	CanStart          chan interface{}
 	closeCanStartOnce sync.Once
 }
 
@@ -49,29 +58,14 @@ func NewDaemonSupport(parentCtx context.Context, name string) DaemonSupport {
 }
 
 // WaitReady wait for daemon to be ready within given deadline
-func (daemon DaemonSupport) WaitReady(deadline time.Duration) (err error) {
-	defer func() {
-		if e := recover(); e != nil {
-			switch x := e.(type) {
-			case string:
-				err = fmt.Errorf(x)
-			case error:
-				err = x
-			default:
-				err = fmt.Errorf("%s-daemon unknown panic", daemon.name)
-			}
-		}
-	}()
-
+func (daemon DaemonSupport) WaitReady(deadline time.Duration) error {
 	ticker := time.NewTicker(deadline)
 	select {
 	case <-daemon.IsReady:
 		ticker.Stop()
-		err = nil
-		return
+		return nil
 	case <-ticker.C:
-		err = fmt.Errorf("%s-daemon was not ready within %v seconds", daemon.name, deadline)
-		return
+		return fmt.Errorf("%s-daemon was not ready within %v seconds", daemon.name, deadline)
 	}
 }
 

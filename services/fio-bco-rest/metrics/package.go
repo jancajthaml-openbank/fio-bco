@@ -14,8 +14,6 @@
 
 package metrics
 
-import (
-	"github.com/jancajthaml-openbank/fio-bco-rest/logging"
-)
+import "github.com/jancajthaml-openbank/fio-bco-rest/support/logging"
 
 var log = logging.New("metrics")

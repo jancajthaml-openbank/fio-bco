@@ -23,8 +23,6 @@ import (
 	"net"
 	"net/http"
 	"time"
-
-	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 )
 
 // Client represents fascade for http client
@@ -52,7 +50,7 @@ func NewHTTPClient() Client {
 						tls.CurveP384,
 						tls.CurveP256,
 					},
-					CipherSuites: utils.CipherSuites,
+					CipherSuites: CipherSuites,
 				},
 			},
 		},

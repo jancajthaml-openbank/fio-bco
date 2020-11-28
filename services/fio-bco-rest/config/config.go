@@ -48,8 +48,8 @@ type Configuration struct {
 	MinFreeMemory uint64
 }
 
-// GetConfig loads application configuration
-func GetConfig() Configuration {
+// LoadConfig loads application configuration
+func LoadConfig() Configuration {
 	return Configuration{
 		RootStorage:        envString("FIO_BCO_STORAGE", "/data"),
 		EncryptionKey:      envSecret("FIO_BCO_ENCRYPTION_KEY", nil),

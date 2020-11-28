@@ -14,9 +14,7 @@
 
 package model
 
-import (
-	"github.com/jancajthaml-openbank/fio-bco-import/iban"
-)
+import "github.com/jancajthaml-openbank/fio-bco-import/support/iban"
 
 // Transaction entity in ledger-rest format
 type Transaction struct {

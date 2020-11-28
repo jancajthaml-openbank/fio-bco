@@ -21,9 +21,9 @@ import (
 	"github.com/jancajthaml-openbank/fio-bco-import/actor"
 	"github.com/jancajthaml-openbank/fio-bco-import/config"
 	"github.com/jancajthaml-openbank/fio-bco-import/integration"
-	"github.com/jancajthaml-openbank/fio-bco-import/logging"
 	"github.com/jancajthaml-openbank/fio-bco-import/metrics"
-	"github.com/jancajthaml-openbank/fio-bco-import/utils"
+	"github.com/jancajthaml-openbank/fio-bco-import/support/concurrent"
+	"github.com/jancajthaml-openbank/fio-bco-import/support/logging"
 
 	system "github.com/jancajthaml-openbank/actor-system"
 )
@@ -32,15 +32,15 @@ import (
 type Program struct {
 	interrupt chan os.Signal
 	cfg       config.Configuration
-	daemons   []utils.Daemon
+	daemons   []concurrent.Daemon
 	cancel    context.CancelFunc
 }
 
-// Initialize application
-func Initialize() Program {
+// NewProgram returns new program
+func NewProgram() Program {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	cfg := config.GetConfig()
+	cfg := config.LoadConfig()
 
 	logging.SetupLogger(cfg.LogLevel)
 
@@ -81,7 +81,7 @@ func Initialize() Program {
 		},
 	)
 
-	var daemons = make([]utils.Daemon, 0)
+	var daemons = make([]concurrent.Daemon, 0)
 	daemons = append(daemons, metricsDaemon)
 	daemons = append(daemons, actorSystemDaemon)
 	daemons = append(daemons, fioDaemon)

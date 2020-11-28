@@ -19,14 +19,14 @@ import (
 	"time"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/persistence"
-	"github.com/jancajthaml-openbank/fio-bco-import/utils"
+	"github.com/jancajthaml-openbank/fio-bco-import/support/concurrent"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
 )
 
 // FioImport represents fio gateway to ledger-rest import subroutine
 type FioImport struct {
-	utils.DaemonSupport
+	concurrent.DaemonSupport
 	callback   func(token string)
 	fioGateway string
 	storage    localfs.Storage
@@ -41,7 +41,7 @@ func NewFioImport(ctx context.Context, fioEndpoint string, syncRate time.Duratio
 		return nil
 	}
 	return &FioImport{
-		DaemonSupport: utils.NewDaemonSupport(ctx, "fio"),
+		DaemonSupport: concurrent.NewDaemonSupport(ctx, "fio"),
 		callback:      callback,
 		storage:       storage,
 		fioGateway:    fioEndpoint,
