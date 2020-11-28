@@ -12,31 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ledger
+package http
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jancajthaml-openbank/fio-bco-import/http"
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
 )
 
-// Client represents fascade for http client
-type Client struct {
-	underlying http.Client
+// LedgerClient represents fascade for ledger http interactions
+type LedgerClient struct {
+	underlying Client
 	gateway    string
 }
 
-// NewClient returns new ledger http client
-func NewClient(gateway string) Client {
-	return Client{
+// NewLedgerClient returns new ledger http client
+func NewLedgerClient(gateway string) LedgerClient {
+	return LedgerClient{
 		gateway:    gateway,
-		underlying: http.NewHTTPClient(),
+		underlying: NewHTTPClient(),
 	}
 }
 
-// CreateTransaction creates transaction via ledger
-func (client Client) CreateTransaction(transaction model.Transaction) error {
+// CreateTransaction creates transaction in ledger
+func (client LedgerClient) CreateTransaction(transaction model.Transaction) error {
 	request, err := json.Marshal(transaction)
 	if err != nil {
 		return err

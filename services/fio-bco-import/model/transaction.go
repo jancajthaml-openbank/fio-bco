@@ -12,8 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ledger
+package model
 
-import "github.com/jancajthaml-openbank/fio-bco-import/support/logging"
+// Transaction entity in ledger-rest format
+type Transaction struct {
+	Tenant        string     `json:"-"`
+	IDTransaction string     `json:"id"`
+	Transfers     []Transfer `json:"transfers"`
+}
 
-var log = logging.New("ledger")
+// Transfer entity in ledger-rest format
+type Transfer struct {
+	IDTransfer int64       `json:"id,string"`
+	Credit     AccountPair `json:"credit"`
+	Debit      AccountPair `json:"debit"`
+	ValueDate  string      `json:"valueDate"`
+	Amount     string      `json:"amount"`
+	Currency   string      `json:"currency"`
+}

@@ -12,32 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package fio
+package http
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jancajthaml-openbank/fio-bco-import/http"
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
 )
 
-// Client represents fascade for http client
-type Client struct {
-	underlying http.Client
+// FioClient represents fascade for FIO http interactions
+type FioClient struct {
+	underlying Client
 	gateway    string
 	token      model.Token
 }
 
-// NewClient returns new bondster http client
-func NewClient(gateway string, token model.Token) Client {
-	return Client{
+// NewFioClient returns new fio http client
+func NewFioClient(gateway string, token model.Token) FioClient {
+	return FioClient{
 		gateway:    gateway,
-		underlying: http.NewHTTPClient(),
+		underlying: NewHTTPClient(),
 		token:      token,
 	}
 }
 
-func (client *Client) setLastSyncedID() error {
+func (client *FioClient) setLastSyncedID() error {
 	if client == nil {
 		return fmt.Errorf("nil deference")
 	}
@@ -59,8 +58,8 @@ func (client *Client) setLastSyncedID() error {
 	return nil
 }
 
-// GetTransactions returns transactions since last synced id
-func (client *Client) GetTransactions() (*ImportEnvelope, error) {
+// GetTransactions returns transactions since last synchronized id
+func (client *FioClient) GetTransactions() (*model.ImportEnvelope, error) {
 	if client == nil {
 		return nil, fmt.Errorf("nil deference")
 	}
@@ -78,8 +77,9 @@ func (client *Client) GetTransactions() (*ImportEnvelope, error) {
 		return nil, fmt.Errorf("fio set last synced id error %s", response.String())
 	}
 
-	var envelope = new(ImportEnvelope)
+	var envelope = new(model.ImportEnvelope)
 	err = json.Unmarshal(response.Data, envelope)
+	// FIXME streaming not full envelope
 	if err != nil {
 		return nil, err
 	}

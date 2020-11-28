@@ -16,25 +16,8 @@ package model
 
 import "github.com/jancajthaml-openbank/fio-bco-import/support/iban"
 
-// Transaction entity in ledger-rest format
-type Transaction struct {
-	Tenant        string     `json:"-"`
-	IDTransaction string     `json:"id"`
-	Transfers     []Transfer `json:"transfers"`
-}
-
-// Transfer entity in ledger-rest format
-type Transfer struct {
-	IDTransfer int64       `json:"id,string"`
-	Credit     AccountPair `json:"credit"`
-	Debit      AccountPair `json:"debit"`
-	ValueDate  string      `json:"valueDate"`
-	Amount     string      `json:"amount"`
-	Currency   string      `json:"currency"`
-}
-
 // AccountPair entity in ledger format
-type AccountPair struct {
+type AccountPair struct { // FIXME rename to AccountVault
 	Tenant string `json:"tenant"`
 	Name   string `json:"name"`
 }
@@ -53,18 +36,14 @@ func NormalizeAccountNumber(number string, bankCode string, nostroBankCode strin
 	if len(number) > 2 && (number[0] >= 'A' && number[0] <= 'Z') && (number[1] >= 'A' && number[1] <= 'Z') {
 		return number
 	}
-
 	var calculatedIBAN string
-
 	if bankCode == "" {
 		calculatedIBAN = iban.Calculate(number, nostroBankCode)
 	} else {
 		calculatedIBAN = iban.Calculate(number, bankCode)
 	}
-
 	if calculatedIBAN == "" {
 		return number
 	}
-
 	return calculatedIBAN
 }

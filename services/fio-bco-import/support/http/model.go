@@ -12,8 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package fio
+package http
 
-import "github.com/jancajthaml-openbank/fio-bco-import/support/logging"
+import "fmt"
 
-var log = logging.New("fio")
+// Response http response fascade
+type Response struct {
+	Status int
+	Data   []byte
+	Header map[string]string
+}
+
+func (value *Response) String() string {
+	if value == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("Response{ Status: %d, Data: %s, Header: %+v }", value.Status, string(value.Data), value.Header)
+}

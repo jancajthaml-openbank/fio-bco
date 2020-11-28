@@ -25,6 +25,10 @@ import (
 	"time"
 )
 
+const TLS_HANDSHAKE_TIMEOUT = 10 * time.Second
+const DIAL_TIMEOUT = 30 * time.Second
+const REQUEST_TIMEOUT = 120 * time.Second
+
 // Client represents fascade for http client
 type Client struct {
 	underlying *http.Client
@@ -34,12 +38,12 @@ type Client struct {
 func NewHTTPClient() Client {
 	return Client{
 		underlying: &http.Client{
-			Timeout: 120 * time.Second,
+			Timeout: REQUEST_TIMEOUT,
 			Transport: &http.Transport{
 				DialContext: (&net.Dialer{
-					Timeout: 30 * time.Second,
+					Timeout: DIAL_TIMEOUT,
 				}).DialContext,
-				TLSHandshakeTimeout: 10 * time.Second,
+				TLSHandshakeTimeout: TLS_HANDSHAKE_TIMEOUT,
 				TLSClientConfig: &tls.Config{
 					InsecureSkipVerify:       false,
 					MinVersion:               tls.VersionTLS12,
@@ -57,7 +61,7 @@ func NewHTTPClient() Client {
 	}
 }
 
-// Post performs http POST request for given url with given body
+// Post performs http POST request
 func (client *Client) Post(url string, body []byte, headers map[string]string) (response Response, err error) {
 	response = Response{
 		Status: 0,
@@ -69,10 +73,9 @@ func (client *Client) Post(url string, body []byte, headers map[string]string) (
 		return response, fmt.Errorf("cannot call methods on nil reference")
 	}
 
-	var (
-		req  *http.Request
-		resp *http.Response
-	)
+	var req  *http.Request
+	var resp *http.Response
+
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("runtime error %+v", r)
@@ -109,7 +112,7 @@ func (client *Client) Post(url string, body []byte, headers map[string]string) (
 	return
 }
 
-// Get performs http GET request for given url
+// Get performs http GET request
 func (client *Client) Get(url string, headers map[string]string) (response Response, err error) {
 	response = Response{
 		Status: 0,
@@ -118,13 +121,12 @@ func (client *Client) Get(url string, headers map[string]string) (response Respo
 	}
 
 	if client == nil {
-		return response, fmt.Errorf("cannot call methods on nil reference")
+		err = fmt.Errorf("cannot call methods on nil reference")
+		return
 	}
 
-	var (
-		req  *http.Request
-		resp *http.Response
-	)
+	var req *http.Request
+	var resp *http.Response
 
 	defer func() {
 		if r := recover(); r != nil {

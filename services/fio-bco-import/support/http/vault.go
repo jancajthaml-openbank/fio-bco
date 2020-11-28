@@ -12,33 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package vault
+package http
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jancajthaml-openbank/fio-bco-import/http"
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
 )
 
-// Client represents fascade for http client
-type Client struct {
-	underlying http.Client
+// VaultClient represents fascade for vault http interactions
+type VaultClient struct {
+	underlying Client
 	gateway    string
 	cache      map[model.Account]interface{}
 }
 
-// NewClient returns new vault http client
-func NewClient(gateway string) Client {
-	return Client{
+// NewVaultClient returns new vault http client
+func NewVaultClient(gateway string) VaultClient {
+	return VaultClient{
 		gateway:    gateway,
-		underlying: http.NewHTTPClient(),
+		underlying: NewHTTPClient(),
 		cache:      make(map[model.Account]interface{}),
 	}
 }
 
-// CreateAccount creates account via vault
-func (client Client) CreateAccount(account model.Account) error {
+// CreateAccount creates account in vault
+func (client VaultClient) CreateAccount(account model.Account) error {
 	if _, ok := client.cache[account]; ok {
 		return nil
 	}

@@ -12,14 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package fio
+package model
 
 import (
 	"math"
 	"strconv"
 	"time"
-
-	"github.com/jancajthaml-openbank/fio-bco-import/model"
 )
 
 // ImportEnvelope represents fio gateway import statement entity
@@ -54,7 +52,7 @@ type fioTransaction struct {
 	Amount           *floatNode  `json:"column1"`
 	AccountTo        *stringNode `json:"column2"`
 	AcountToBankCode *stringNode `json:"column3"`
-	//TransferType  *stringNode `json:"column8"`	// FIXME e.g. "Příjem převodem uvnitř banky"
+	//TransferType  *stringNode `json:"column8"`  // FIXME e.g. "Příjem převodem uvnitř banky"
 	Currency      *stringNode `json:"column14"`
 	TransactionID *intNode    `json:"column17"`
 	TransferID    *intNode    `json:"column22"`
@@ -86,15 +84,15 @@ type floatNode struct {
 }
 
 // GetTransactions return generator of fio transactions over given envelope
-func (envelope *ImportEnvelope) GetTransactions(tenant string) <-chan model.Transaction {
-	chnl := make(chan model.Transaction)
+func (envelope *ImportEnvelope) GetTransactions(tenant string) <-chan Transaction {
+	chnl := make(chan Transaction)
 	if envelope == nil {
 		close(chnl)
 		return chnl
 	}
 
 	var previousIDTransaction = ""
-	var buffer = make([]model.Transfer, 0)
+	var buffer = make([]Transfer, 0)
 
 	go func() {
 		defer close(chnl)
@@ -117,11 +115,11 @@ func (envelope *ImportEnvelope) GetTransactions(tenant string) <-chan model.Tran
 					debit = envelope.Statement.Info.BIC
 				} else {
 					if transfer.AcountToBankCode != nil {
-						debit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AcountToBankCode.Value, envelope.Statement.Info.BankID)
+						debit = NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AcountToBankCode.Value, envelope.Statement.Info.BankID)
 					} else if transfer.AccountToBIC != nil {
-						debit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AccountToBIC.Value, envelope.Statement.Info.BankID)
+						debit = NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AccountToBIC.Value, envelope.Statement.Info.BankID)
 					} else {
-						debit = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.Statement.Info.BankID)
+						debit = NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.Statement.Info.BankID)
 					}
 				}
 			} else {
@@ -129,11 +127,11 @@ func (envelope *ImportEnvelope) GetTransactions(tenant string) <-chan model.Tran
 					credit = envelope.Statement.Info.BIC
 				} else {
 					if transfer.AcountToBankCode != nil {
-						credit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AcountToBankCode.Value, envelope.Statement.Info.BankID)
+						credit = NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AcountToBankCode.Value, envelope.Statement.Info.BankID)
 					} else if transfer.AccountToBIC != nil {
-						credit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AccountToBIC.Value, envelope.Statement.Info.BankID)
+						credit = NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AccountToBIC.Value, envelope.Statement.Info.BankID)
 					} else {
-						credit = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.Statement.Info.BankID)
+						credit = NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.Statement.Info.BankID)
 					}
 				}
 				debit = envelope.Statement.Info.IBAN
@@ -158,10 +156,10 @@ func (envelope *ImportEnvelope) GetTransactions(tenant string) <-chan model.Tran
 			if previousIDTransaction == "" {
 				previousIDTransaction = idTransaction
 			} else if previousIDTransaction != idTransaction {
-				transfers := make([]model.Transfer, len(buffer))
+				transfers := make([]Transfer, len(buffer))
 				copy(transfers, buffer)
-				buffer = make([]model.Transfer, 0)
-				chnl <- model.Transaction{
+				buffer = make([]Transfer, 0)
+				chnl <- Transaction{
 					Tenant:        tenant,
 					IDTransaction: previousIDTransaction,
 					Transfers:     transfers,
@@ -169,13 +167,13 @@ func (envelope *ImportEnvelope) GetTransactions(tenant string) <-chan model.Tran
 				previousIDTransaction = idTransaction
 			}
 
-			buffer = append(buffer, model.Transfer{
+			buffer = append(buffer, Transfer{
 				IDTransfer: transfer.TransferID.Value,
-				Credit: model.AccountPair{
+				Credit: AccountPair{
 					Tenant: tenant,
 					Name:   credit,
 				},
-				Debit: model.AccountPair{
+				Debit: AccountPair{
 					Tenant: tenant,
 					Name:   debit,
 				},
@@ -189,10 +187,10 @@ func (envelope *ImportEnvelope) GetTransactions(tenant string) <-chan model.Tran
 			return
 		}
 
-		transfers := make([]model.Transfer, len(buffer))
+		transfers := make([]Transfer, len(buffer))
 		copy(transfers, buffer)
-		buffer = make([]model.Transfer, 0)
-		chnl <- model.Transaction{
+		buffer = make([]Transfer, 0)
+		chnl <- Transaction{
 			Tenant:        tenant,
 			IDTransaction: previousIDTransaction,
 			Transfers:     transfers,
@@ -203,8 +201,8 @@ func (envelope *ImportEnvelope) GetTransactions(tenant string) <-chan model.Tran
 }
 
 // GetAccounts return generator of fio accounts over given envelope
-func (envelope *ImportEnvelope) GetAccounts(tenant string) <-chan model.Account {
-	chnl := make(chan model.Account)
+func (envelope *ImportEnvelope) GetAccounts(tenant string) <-chan Account {
+	chnl := make(chan Account)
 	if envelope == nil {
 		close(chnl)
 		return chnl
@@ -232,9 +230,9 @@ func (envelope *ImportEnvelope) GetAccounts(tenant string) <-chan model.Account 
 
 		for account, transfer := range set {
 			if transfer.AcountToBankCode != nil {
-				normalizedAccount = model.NormalizeAccountNumber(account, transfer.AcountToBankCode.Value, envelope.Statement.Info.BankID)
+				normalizedAccount = NormalizeAccountNumber(account, transfer.AcountToBankCode.Value, envelope.Statement.Info.BankID)
 			} else {
-				normalizedAccount = model.NormalizeAccountNumber(account, "", envelope.Statement.Info.BankID)
+				normalizedAccount = NormalizeAccountNumber(account, "", envelope.Statement.Info.BankID)
 			}
 
 			if normalizedAccount != account {
@@ -250,7 +248,7 @@ func (envelope *ImportEnvelope) GetAccounts(tenant string) <-chan model.Account 
 			}
 
 			if _, ok := visited[normalizedAccount]; !ok {
-				chnl <- model.Account{
+				chnl <- Account{
 					Tenant:         tenant,
 					Name:           normalizedAccount,
 					Format:         accountFormat,
@@ -262,7 +260,7 @@ func (envelope *ImportEnvelope) GetAccounts(tenant string) <-chan model.Account 
 		}
 
 		if _, ok := visited[envelope.Statement.Info.IBAN]; !ok {
-			chnl <- model.Account{
+			chnl <- Account{
 				Tenant:         tenant,
 				Name:           envelope.Statement.Info.IBAN,
 				Format:         "IBAN",

@@ -25,12 +25,9 @@ func init() {
 	for i := 0; i < 10; i++ {
 		checkSumToString[i] = "0" + strconv.Itoa(i)
 	}
-
-	for i := 10; i < 98; i++ {
+	for i := 10; i < 99; i++ {
 		checkSumToString[i] = strconv.Itoa(i)
 	}
-
-	checkSumToString[98] = "98"
 }
 
 // CalculateCzech calculates IBAN for Czech Republic
@@ -58,6 +55,5 @@ func CalculateCzech(number, bankCode string) (result string) {
 	}
 
 	result = countryCode + checkSumToString[checksum] + paddedBankCode + paddedNumber
-
 	return
 }
