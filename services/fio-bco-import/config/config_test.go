@@ -10,7 +10,7 @@ import (
 func TestGetConfig(t *testing.T) {
 	for _, v := range os.Environ() {
 		k := strings.Split(v, "=")[0]
-		if strings.HasPrefix(k, "LEDGER") {
+		if strings.HasPrefix(k, "FIO_BCO") {
 			os.Unsetenv(k)
 		}
 	}
