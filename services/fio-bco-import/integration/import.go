@@ -24,8 +24,8 @@ import (
 
 // FioImport represents fio gateway to ledger-rest import subroutine
 type FioImport struct {
-	callback   func(token string)
-	storage    localfs.Storage
+	callback func(token string)
+	storage  localfs.Storage
 }
 
 // NewFioImport returns fio import fascade
@@ -74,18 +74,22 @@ func (fio FioImport) importRoundtrip() {
 	}
 }
 
+// Setup does nothing
 func (fio FioImport) Setup() error {
 	return nil
 }
 
+// Work performs import roundtrip
 func (fio FioImport) Work() {
 	fio.importRoundtrip()
 }
 
+// Cancel does nothing
 func (fio FioImport) Cancel() {
 
 }
 
+// Done always returns done
 func (fio FioImport) Done() <-chan interface{} {
 	done := make(chan interface{})
 	close(done)
