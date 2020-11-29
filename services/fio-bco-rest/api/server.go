@@ -23,18 +23,20 @@ import (
 	"time"
 
 	"github.com/jancajthaml-openbank/fio-bco-rest/actor"
-	"github.com/jancajthaml-openbank/fio-bco-rest/support/concurrent"
 	"github.com/jancajthaml-openbank/fio-bco-rest/system"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
 	"github.com/labstack/echo/v4"
 )
 
+const READ_TIMEOUT = 5 * time.Second
+const WRITE_TIMEOUT = 5 * time.Second
+
 // Server is a fascade for http-server following handler api of Gin and
 // lifecycle api of http
 type Server struct {
-	concurrent.DaemonSupport
 	underlying *http.Server
+	listener   *net.TCPListener
 }
 
 type tcpKeepAliveListener struct {
@@ -42,8 +44,8 @@ type tcpKeepAliveListener struct {
 }
 
 // NewServer returns new secure server instance
-func NewServer(ctx context.Context, port int, certPath string, keyPath string, rootStorage string, storageKey []byte, actorSystem *actor.System, systemControl system.Control, diskMonitor system.CapacityCheck, memoryMonitor system.CapacityCheck) *Server {
-	storage, err := localfs.NewEncryptedStorage(rootStorage, storageKey)
+func NewServer(port int, certPath string, keyPath string, rootStorage string, actorSystem *actor.System, systemControl system.Control, diskMonitor system.CapacityCheck, memoryMonitor system.CapacityCheck) *Server {
+	storage, err := localfs.NewPlaintextStorage(rootStorage)
 	if err != nil {
 		log.Error().Msgf("Failed to ensure storage %+v", err)
 		return nil
@@ -69,11 +71,10 @@ func NewServer(ctx context.Context, port int, certPath string, keyPath string, r
 	router.GET("/token/:tenant", GetTokens(storage))
 
 	return &Server{
-		DaemonSupport: concurrent.NewDaemonSupport(ctx, "http-server"),
 		underlying: &http.Server{
 			Addr:         fmt.Sprintf("127.0.0.1:%d", port),
-			ReadTimeout:  15 * time.Second,
-			WriteTimeout: 15 * time.Second,
+			ReadTimeout:  READ_TIMEOUT,
+			WriteTimeout: WRITE_TIMEOUT,
 			Handler:      router,
 			TLSConfig: &tls.Config{
 				MinVersion:               tls.VersionTLS12,
@@ -92,49 +93,45 @@ func NewServer(ctx context.Context, port int, certPath string, keyPath string, r
 			},
 			TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 		},
+		listener: nil,
 	}
 }
 
-// Start handles everything needed to start http-server daemon
-func (server *Server) Start() {
+func (server *Server) Setup() error {
 	if server == nil {
-		return
+		return fmt.Errorf("nil pointer")
 	}
 	ln, err := net.Listen("tcp", server.underlying.Addr)
 	if err != nil {
+		return err
+	}
+	server.listener = ln.(*net.TCPListener)
+	return nil
+}
+
+func (server *Server) Done() <-chan interface{} {
+	done := make(chan interface{})
+	close(done)
+	return done
+}
+
+func (server *Server) Cancel() {
+	if server == nil {
 		return
 	}
-	defer ln.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), WRITE_TIMEOUT)
+	defer cancel()
+	server.underlying.Shutdown(ctx)
+}
 
-	server.MarkReady()
-
-	select {
-	case <-server.CanStart:
-		break
-	case <-server.Done():
-		server.MarkDone()
+func (server *Server) Work() {
+	if server == nil {
 		return
 	}
-
-	go func() {
-		defer server.Stop()
-		log.Info().Msgf("Start http-server daemon, listening on %s", server.underlying.Addr)
-		tlsListener := tls.NewListener(tcpKeepAliveListener{ln.(*net.TCPListener)}, server.underlying.TLSConfig)
-		err := server.underlying.Serve(tlsListener)
-		if err != nil && err != http.ErrServerClosed {
-			log.Error().Msgf("http-server error %v", err)
-		}
-	}()
-
-	go func() {
-		<-server.Done()
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		server.underlying.Shutdown(ctx)
-		cancel()
-		server.MarkDone()
-		return
-	}()
-
-	server.WaitStop()
-	log.Info().Msg("Stop http-server daemon")
+	log.Info().Msgf("Server listening on %s", server.underlying.Addr)
+	tlsListener := tls.NewListener(tcpKeepAliveListener{server.listener}, server.underlying.TLSConfig)
+	err := server.underlying.Serve(tlsListener)
+	if err != nil && err != http.ErrServerClosed {
+		log.Error().Msg(err.Error())
+	}
 }

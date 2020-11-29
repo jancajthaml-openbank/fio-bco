@@ -15,81 +15,98 @@
 package boot
 
 import (
-	"context"
 	"os"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/actor"
 	"github.com/jancajthaml-openbank/fio-bco-import/config"
-	"github.com/jancajthaml-openbank/fio-bco-import/integration"
 	"github.com/jancajthaml-openbank/fio-bco-import/metrics"
+	"github.com/jancajthaml-openbank/fio-bco-import/integration"
 	"github.com/jancajthaml-openbank/fio-bco-import/support/concurrent"
 	"github.com/jancajthaml-openbank/fio-bco-import/support/logging"
 
 	system "github.com/jancajthaml-openbank/actor-system"
 )
 
-// Program encapsulate initialized application
+// Program encapsulate program
 type Program struct {
 	interrupt chan os.Signal
 	cfg       config.Configuration
 	daemons   []concurrent.Daemon
-	cancel    context.CancelFunc
+}
+
+// Register daemon into program
+func (prog *Program) Register(daemon concurrent.Daemon) {
+	if prog == nil || daemon == nil {
+		return
+	}
+	prog.daemons = append(prog.daemons, daemon)
 }
 
 // NewProgram returns new program
 func NewProgram() Program {
-	ctx, cancel := context.WithCancel(context.Background())
+	return Program{
+		interrupt: make(chan os.Signal, 1),
+		cfg:       config.LoadConfig(),
+		daemons:   make([]concurrent.Daemon, 0),
+	}
+}
 
-	cfg := config.LoadConfig()
+// Setup setups program
+func (prog *Program) Setup() {
+	if prog == nil {
+		return
+	}
 
-	logging.SetupLogger(cfg.LogLevel)
+	logging.SetupLogger(prog.cfg.LogLevel)
 
-	metricsDaemon := metrics.NewMetrics(
-		ctx,
-		cfg.MetricsOutput,
-		cfg.Tenant,
-		cfg.MetricsRefreshRate,
+	metricsWorker := metrics.NewMetrics(
+		prog.cfg.MetricsOutput,
+		prog.cfg.MetricsContinuous,
+		prog.cfg.Tenant,
 	)
-	actorSystemDaemon := actor.NewActorSystem(
-		ctx,
-		cfg.Tenant,
-		cfg.LakeHostname,
-		cfg.FioGateway,
-		cfg.VaultGateway,
-		cfg.LedgerGateway,
-		cfg.RootStorage,
-		cfg.EncryptionKey,
-		metricsDaemon,
+
+	actorSystem := actor.NewActorSystem(
+		prog.cfg.Tenant,
+		prog.cfg.LakeHostname,
+		prog.cfg.FioGateway,
+		prog.cfg.VaultGateway,
+		prog.cfg.LedgerGateway,
+		prog.cfg.RootStorage,
+		prog.cfg.EncryptionKey,
+		metricsWorker,
 	)
-	fioDaemon := integration.NewFioImport(
-		ctx,
-		cfg.FioGateway,
-		cfg.SyncRate,
-		cfg.RootStorage,
-		cfg.EncryptionKey,
+
+	fioWorker := integration.NewFioImport(
+		prog.cfg.RootStorage,
+		prog.cfg.EncryptionKey,
 		func(token string) {
-			actorSystemDaemon.SendMessage(actor.SynchronizeTokens,
+			actorSystem.SendMessage(actor.SynchronizeTokens,
 				system.Coordinates{
-					Region: actorSystemDaemon.Name,
+					Region: actorSystem.Name,
 					Name:   token,
 				},
 				system.Coordinates{
-					Region: actorSystemDaemon.Name,
+					Region: actorSystem.Name,
 					Name:   "token_import_cron",
 				},
 			)
 		},
 	)
 
-	var daemons = make([]concurrent.Daemon, 0)
-	daemons = append(daemons, metricsDaemon)
-	daemons = append(daemons, actorSystemDaemon)
-	daemons = append(daemons, fioDaemon)
+	prog.Register(concurrent.NewOneShotDaemon(
+		"actor-system",
+		actorSystem,
+	))
 
-	return Program{
-		interrupt: make(chan os.Signal, 1),
-		cfg:       cfg,
-		daemons:   daemons,
-		cancel:    cancel,
-	}
+	prog.Register(concurrent.NewScheduledDaemon(
+		"metrics",
+		metricsWorker,
+		prog.cfg.MetricsRefreshRate,
+	))
+
+	prog.Register(concurrent.NewScheduledDaemon(
+		"fio",
+		fioWorker,
+		prog.cfg.SyncRate,
+	))
 }

@@ -15,20 +15,15 @@
 package metrics
 
 import (
-	"context"
-	"time"
-
-	"github.com/jancajthaml-openbank/fio-bco-import/support/concurrent"
 	localfs "github.com/jancajthaml-openbank/local-fs"
 	metrics "github.com/rcrowley/go-metrics"
 )
 
 // Metrics holds metrics counters
 type Metrics struct {
-	concurrent.DaemonSupport
 	storage              localfs.Storage
 	tenant               string
-	refreshRate          time.Duration
+	continuous           bool
 	createdTokens        metrics.Counter
 	deletedTokens        metrics.Counter
 	syncLatency          metrics.Timer
@@ -37,17 +32,16 @@ type Metrics struct {
 }
 
 // NewMetrics returns blank metrics holder
-func NewMetrics(ctx context.Context, output string, tenant string, refreshRate time.Duration) *Metrics {
+func NewMetrics(output string, continuous bool, tenant string) *Metrics {
 	storage, err := localfs.NewPlaintextStorage(output)
 	if err != nil {
 		log.Error().Msgf("Failed to ensure storage %+v", err)
 		return nil
 	}
 	return &Metrics{
-		DaemonSupport:        concurrent.NewDaemonSupport(ctx, "metrics"),
+		continuous:           continuous,
 		storage:              storage,
 		tenant:               tenant,
-		refreshRate:          refreshRate,
 		createdTokens:        metrics.NewCounter(),
 		deletedTokens:        metrics.NewCounter(),
 		syncLatency:          metrics.NewTimer(),
@@ -96,44 +90,29 @@ func (metrics *Metrics) TransfersImported(num int64) {
 	metrics.importedTransfers.Mark(num)
 }
 
-// Start handles everything needed to start metrics daemon
-func (metrics *Metrics) Start() {
+// Setup hydrates metrics from storage
+func (metrics *Metrics) Setup() error {
 	if metrics == nil {
-		return
+		return nil
 	}
-	ticker := time.NewTicker(metrics.refreshRate)
-	defer ticker.Stop()
-
-	if err := metrics.Hydrate(); err != nil {
-		log.Warn().Msg(err.Error())
+	if metrics.continuous {
+		metrics.Hydrate()
 	}
+	return nil
+}
 
+// Done returns always finished
+func (metrics *Metrics) Done() <-chan interface{} {
+	done := make(chan interface{})
+	close(done)
+	return done
+}
+
+// Cancel does nothing
+func (metrics *Metrics) Cancel() {
+}
+
+// Work represents metrics worker work
+func (metrics *Metrics) Work() {
 	metrics.Persist()
-	metrics.MarkReady()
-
-	select {
-	case <-metrics.CanStart:
-		break
-	case <-metrics.Done():
-		metrics.MarkDone()
-		return
-	}
-
-	log.Info().Msgf("Start metrics daemon, update file each %v", metrics.refreshRate)
-
-	go func() {
-		for {
-			select {
-			case <-metrics.Done():
-				metrics.Persist()
-				metrics.MarkDone()
-				return
-			case <-ticker.C:
-				metrics.Persist()
-			}
-		}
-	}()
-
-	metrics.WaitStop()
-	log.Info().Msg("Stop metrics daemon")
 }

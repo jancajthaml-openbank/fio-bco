@@ -34,7 +34,7 @@ class ZMQHelper(threading.Thread):
     while not self.__cancel.is_set():
       try:
         data = self.__pull.recv(zmq.NOBLOCK)
-        if len(data) and data[-1] != 93:
+        if len(data):
           self.backlog.append(data)
         self.__pub.send(data)
       except Exception as ex:
