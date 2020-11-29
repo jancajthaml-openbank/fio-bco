@@ -18,12 +18,11 @@ import (
 	localfs "github.com/jancajthaml-openbank/local-fs"
 
 	"github.com/jancajthaml-openbank/fio-bco-rest/model"
-	"github.com/jancajthaml-openbank/fio-bco-rest/utils"
 )
 
 // LoadTokens rehydrates token entity state from storage
 func LoadTokens(storage localfs.Storage, tenant string) ([]model.Token, error) {
-	path := utils.TokensPath(tenant)
+	path := "t_" + tenant + "/import/fio/token"
 	ok, err := storage.Exists(path)
 	if err != nil || !ok {
 		return make([]model.Token, 0), nil
@@ -49,7 +48,7 @@ func HydrateToken(storage localfs.Storage, tenant string, entity *model.Token) *
 	if entity == nil {
 		return nil
 	}
-	path := utils.TokenPath(tenant, entity.ID)
+	path := "t_" + tenant + "/import/fio/token/" + entity.ID
 	data, err := storage.ReadFileFully(path)
 	if err != nil {
 		return nil

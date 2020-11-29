@@ -15,37 +15,29 @@
 package integration
 
 import (
-	"context"
 	"time"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/persistence"
-	"github.com/jancajthaml-openbank/fio-bco-import/utils"
 
 	localfs "github.com/jancajthaml-openbank/local-fs"
 )
 
 // FioImport represents fio gateway to ledger-rest import subroutine
 type FioImport struct {
-	utils.DaemonSupport
-	callback   func(token string)
-	fioGateway string
-	storage    localfs.Storage
-	syncRate   time.Duration
+	callback func(token string)
+	storage  localfs.Storage
 }
 
 // NewFioImport returns fio import fascade
-func NewFioImport(ctx context.Context, fioEndpoint string, syncRate time.Duration, rootStorage string, storageKey []byte, callback func(token string)) *FioImport {
+func NewFioImport(rootStorage string, storageKey []byte, callback func(token string)) *FioImport {
 	storage, err := localfs.NewEncryptedStorage(rootStorage, storageKey)
 	if err != nil {
 		log.Error().Msgf("Failed to ensure storage %+v", err)
 		return nil
 	}
 	return &FioImport{
-		DaemonSupport: utils.NewDaemonSupport(ctx, "fio"),
-		callback:      callback,
-		storage:       storage,
-		fioGateway:    fioEndpoint,
-		syncRate:      syncRate,
+		callback: callback,
+		storage:  storage,
 	}
 }
 
@@ -82,34 +74,24 @@ func (fio FioImport) importRoundtrip() {
 	}
 }
 
-// Start handles everything needed to start fio import daemon
-func (fio FioImport) Start() {
-	fio.MarkReady()
+// Setup does nothing
+func (fio FioImport) Setup() error {
+	return nil
+}
 
-	select {
-	case <-fio.CanStart:
-		break
-	case <-fio.Done():
-		fio.MarkDone()
-		return
-	}
-
-	log.Info().Msgf("Start fio-import daemon, sync %v now and then each %v", fio.fioGateway, fio.syncRate)
-
+// Work performs import roundtrip
+func (fio FioImport) Work() {
 	fio.importRoundtrip()
+}
 
-	go func() {
-		for {
-			select {
-			case <-fio.Done():
-				fio.MarkDone()
-				return
-			case <-time.After(fio.syncRate):
-				fio.importRoundtrip()
-			}
-		}
-	}()
+// Cancel does nothing
+func (fio FioImport) Cancel() {
 
-	fio.WaitStop()
-	log.Info().Msg("Stop fio-import daemon")
+}
+
+// Done always returns done
+func (fio FioImport) Done() <-chan interface{} {
+	done := make(chan interface{})
+	close(done)
+	return done
 }

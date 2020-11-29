@@ -15,8 +15,8 @@
 package config
 
 import (
-	"time"
 	"strings"
+	"time"
 )
 
 // Configuration of application
@@ -35,6 +35,8 @@ type Configuration struct {
 	LakeHostname string
 	// LogLevel ignorecase log level
 	LogLevel string
+	// MetricsContinuous determines if metrics should start from last state
+	MetricsContinuous bool
 	// MetricsRefreshRate represents interval in which in memory metrics should be
 	// persisted to disk
 	MetricsRefreshRate time.Duration
@@ -48,8 +50,8 @@ type Configuration struct {
 	MinFreeMemory uint64
 }
 
-// GetConfig loads application configuration
-func GetConfig() Configuration {
+// LoadConfig loads application configuration
+func LoadConfig() Configuration {
 	return Configuration{
 		RootStorage:        envString("FIO_BCO_STORAGE", "/data"),
 		EncryptionKey:      envSecret("FIO_BCO_ENCRYPTION_KEY", nil),
@@ -58,6 +60,7 @@ func GetConfig() Configuration {
 		ServerCert:         envString("FIO_BCO_SERVER_CERT", ""),
 		LakeHostname:       envString("FIO_BCO_LAKE_HOSTNAME", "127.0.0.1"),
 		LogLevel:           strings.ToUpper(envString("FIO_BCO_LOG_LEVEL", "INFO")),
+		MetricsContinuous:  envBoolean("FIO_BCO_METRICS_CONTINUOUS", true),
 		MetricsRefreshRate: envDuration("FIO_BCO_METRICS_REFRESHRATE", time.Second),
 		MetricsOutput:      envFilename("FIO_BCO_METRICS_OUTPUT", "/tmp/fio-bco-rest-metrics"),
 		MinFreeDiskSpace:   uint64(envInteger("VAULT_STORAGE_THRESHOLD", 0)),

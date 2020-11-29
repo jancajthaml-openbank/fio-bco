@@ -15,8 +15,8 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/jancajthaml-openbank/fio-bco-rest/system"
 
@@ -24,65 +24,55 @@ import (
 )
 
 // CreateTenant enables fio-bco-import@{tenant}
-func CreateTenant(systemctl *system.Control) func(c echo.Context) error {
+func CreateTenant(control system.Control) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
-
-		tenant := c.Param("tenant")
+		tenant := strings.TrimSpace(c.Param("tenant"))
 		if tenant == "" {
-			return fmt.Errorf("missing tenant")
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
 		}
-
-		err := systemctl.EnableUnit("fio-bco-import@" + tenant + ".service")
+		err := control.EnableUnit("import@" + tenant + ".service")
 		if err != nil {
 			return err
 		}
-
 		c.Response().WriteHeader(http.StatusOK)
-
 		return nil
 	}
 }
 
 // DeleteTenant disables fio-bco-import@{tenant}
-func DeleteTenant(systemctl *system.Control) func(c echo.Context) error {
+func DeleteTenant(control system.Control) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
-
-		tenant := c.Param("tenant")
+		tenant := strings.TrimSpace(c.Param("tenant"))
 		if tenant == "" {
-			return fmt.Errorf("missing tenant")
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
 		}
-
-		err := systemctl.DisableUnit("fio-bco-import@" + tenant + ".service")
+		err := control.DisableUnit("import@" + tenant + ".service")
 		if err != nil {
 			return err
 		}
-
 		c.Response().WriteHeader(http.StatusOK)
-
 		return nil
 	}
 }
 
 // ListTenants lists fio-bco-import@
-func ListTenants(systemctl *system.Control) func(c echo.Context) error {
+func ListTenants(control system.Control) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
-
-		units, err := systemctl.ListUnits("fio-bco-import@")
+		units, err := control.ListUnits("import@")
 		if err != nil {
 			return err
 		}
-
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlainCharsetUTF8)
 		c.Response().WriteHeader(http.StatusOK)
-
 		for idx, unit := range units {
 			if idx == len(units)-1 {
 				c.Response().Write([]byte(unit))
 			} else {
-				c.Response().Write([]byte(unit + "\n"))
+				c.Response().Write([]byte(unit))
+				c.Response().Write([]byte("\n"))
 			}
 			c.Response().Flush()
 		}

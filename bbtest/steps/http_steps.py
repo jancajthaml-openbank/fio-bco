@@ -4,6 +4,8 @@
 from behave import *
 import ssl
 import urllib.request
+import socket
+import http
 import json
 import time
 from decimal import Decimal
@@ -26,7 +28,10 @@ def token_exists(context, tenant, token):
   request = urllib.request.Request(method='GET', url=uri)
   request.add_header('Accept', 'application/json')
 
-  response = urllib.request.urlopen(request, timeout=10, context=ctx)
+  try:
+    response = urllib.request.urlopen(request, timeout=10, context=ctx)
+  except (http.client.RemoteDisconnected, socket.timeout):
+    raise AssertionError('timeout')
 
   assert response.status == 200
 
@@ -39,8 +44,11 @@ def token_not_exists(context, tenant, token):
   ctx.check_hostname = False
   ctx.verify_mode = ssl.CERT_NONE
 
-  request = urllib.request.Request(method='GET', url=uri)
-  request.add_header('Accept', 'application/json')
+  try:
+    request = urllib.request.Request(method='GET', url=uri)
+    request.add_header('Accept', 'application/json')
+  except (http.client.RemoteDisconnected, socket.timeout):
+    raise AssertionError('timeout')
 
   assert response.status == 200
 
@@ -63,7 +71,10 @@ def create_token(context, tenant, token):
   request.add_header('Content-Type', 'application/json')
   request.data = json.dumps(payload).encode('utf-8')
 
-  response = urllib.request.urlopen(request, timeout=10, context=ctx)
+  try:
+    response = urllib.request.urlopen(request, timeout=10, context=ctx)
+  except (http.client.RemoteDisconnected, socket.timeout):
+    raise AssertionError('timeout')
 
   assert response.status == 200
 
@@ -92,6 +103,10 @@ def perform_http_request(context, uri):
     context.http_response['status'] = str(response.status)
     context.http_response['body'] = response.read().decode('utf-8')
     context.http_response['content-type'] = response.info().get_content_type()
+  except (http.client.RemoteDisconnected, socket.timeout):
+    context.http_response['status'] = '504'
+    context.http_response['body'] = ""
+    context.http_response['content-type'] = 'text-plain'
   except urllib.error.HTTPError as err:
     context.http_response['status'] = str(err.code)
     context.http_response['body'] = err.read().decode('utf-8')

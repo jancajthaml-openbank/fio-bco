@@ -15,9 +15,6 @@
 package actor
 
 import (
-	"context"
-	"time"
-
 	"github.com/jancajthaml-openbank/fio-bco-import/metrics"
 
 	system "github.com/jancajthaml-openbank/actor-system"
@@ -36,13 +33,13 @@ type System struct {
 }
 
 // NewActorSystem returns actor system fascade
-func NewActorSystem(ctx context.Context, tenant string, lakeEndpoint string, fioEndpoint string, vaultEndpoint string, ledgerEndpoint string, rootStorage string, storageKey []byte, metrics *metrics.Metrics) *System {
-	storage, err := localfs.NewEncryptedStorage(rootStorage, storageKey)
+func NewActorSystem(tenant string, lakeEndpoint string, fioEndpoint string, vaultEndpoint string, ledgerEndpoint string, rootStorage string, storageKey []byte, metrics *metrics.Metrics) *System {
+	storage, err := localfs.NewPlaintextStorage(rootStorage)
 	if err != nil {
 		log.Error().Msgf("Failed to ensure storage %+v", err)
 		return nil
 	}
-	sys, err := system.New(ctx, "FioImport/"+tenant, lakeEndpoint)
+	sys, err := system.New("FioImport/"+tenant, lakeEndpoint)
 	if err != nil {
 		log.Error().Msgf("Failed to register actor system %+v", err)
 		return nil
@@ -59,27 +56,30 @@ func NewActorSystem(ctx context.Context, tenant string, lakeEndpoint string, fio
 	return result
 }
 
-// Start daemon noop
-func (system System) Start() {
+// Setup does nothing
+func (system *System) Setup() error {
+	return nil
+}
+
+// Work starts actor system
+func (system *System) Work() {
+	if system == nil {
+		return
+	}
 	system.System.Start()
 }
 
-// Stop daemon noop
-func (system System) Stop() {
+// Cancel does nothing
+func (system *System) Cancel() {
+	if system == nil {
+		return
+	}
 	system.System.Stop()
 }
 
-// WaitStop daemon noop
-func (system System) WaitStop() {
-	system.System.WaitStop()
-}
-
-// GreenLight daemon noop
-func (system System) GreenLight() {
-	system.System.GreenLight()
-}
-
-// WaitReady wait for system to be ready
-func (system System) WaitReady(deadline time.Duration) error {
-	return system.System.WaitReady(deadline)
+// Done always returns done
+func (system *System) Done() <-chan interface{} {
+	done := make(chan interface{})
+	close(done)
+	return done
 }

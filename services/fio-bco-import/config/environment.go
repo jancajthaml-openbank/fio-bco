@@ -15,13 +15,13 @@
 package config
 
 import (
+	"encoding/hex"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
-	"io/ioutil"
-	"encoding/hex"
 )
 
 func envBoolean(key string, fallback bool) bool {

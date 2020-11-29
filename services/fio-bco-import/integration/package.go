@@ -14,8 +14,6 @@
 
 package integration
 
-import (
-	"github.com/jancajthaml-openbank/fio-bco-import/logging"
-)
+import "github.com/jancajthaml-openbank/fio-bco-import/support/logging"
 
 var log = logging.New("integration")

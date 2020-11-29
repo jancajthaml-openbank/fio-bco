@@ -17,12 +17,10 @@ package actor
 import (
 	"sort"
 
-	"github.com/jancajthaml-openbank/fio-bco-import/fio"
-	"github.com/jancajthaml-openbank/fio-bco-import/ledger"
 	"github.com/jancajthaml-openbank/fio-bco-import/metrics"
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
 	"github.com/jancajthaml-openbank/fio-bco-import/persistence"
-	"github.com/jancajthaml-openbank/fio-bco-import/vault"
+	"github.com/jancajthaml-openbank/fio-bco-import/support/http"
 
 	system "github.com/jancajthaml-openbank/actor-system"
 )
@@ -165,9 +163,9 @@ func SynchronizingToken(s *System) func(interface{}, system.Context) {
 	}
 }
 
-func importNewStatements(tenant string, fioClient *fio.Client, vaultClient *vault.Client, ledgerClient *ledger.Client, metrics *metrics.Metrics, token *model.Token) (int64, error) {
+func importNewStatements(tenant string, fioClient *http.FioClient, vaultClient *http.VaultClient, ledgerClient *http.LedgerClient, metrics *metrics.Metrics, token *model.Token) (int64, error) {
 	var (
-		statements *fio.ImportEnvelope
+		statements *model.ImportEnvelope
 		err        error
 		lastID     int64 = token.LastSyncedID
 	)
@@ -225,9 +223,9 @@ func importStatements(s *System, token model.Token, callback func()) {
 
 	log.Debug().Msgf("token %s Importing statements", token.ID)
 
-	fioClient := fio.NewClient(s.FioGateway, token)
-	vaultClient := vault.NewClient(s.VaultGateway)
-	ledgerClient := ledger.NewClient(s.LedgerGateway)
+	fioClient := http.NewFioClient(s.FioGateway, token)
+	vaultClient := http.NewVaultClient(s.VaultGateway)
+	ledgerClient := http.NewLedgerClient(s.LedgerGateway)
 
 	log.Debug().Msgf("token %s Import Begin", token.ID)
 	lastID, err := importNewStatements(s.Tenant, &fioClient, &vaultClient, &ledgerClient, s.Metrics, &token)
