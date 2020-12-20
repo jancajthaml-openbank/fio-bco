@@ -26,14 +26,14 @@ type System struct {
 	system.System
 	Tenant        string
 	Storage       localfs.Storage
-	Metrics       *metrics.Metrics
+	Metrics       metrics.Metrics
 	FioGateway    string
 	LedgerGateway string
 	VaultGateway  string
 }
 
 // NewActorSystem returns actor system fascade
-func NewActorSystem(tenant string, lakeEndpoint string, fioEndpoint string, vaultEndpoint string, ledgerEndpoint string, rootStorage string, storageKey []byte, metrics *metrics.Metrics) *System {
+func NewActorSystem(tenant string, lakeEndpoint string, fioEndpoint string, vaultEndpoint string, ledgerEndpoint string, rootStorage string, storageKey []byte, metrics metrics.Metrics) *System {
 	storage, err := localfs.NewPlaintextStorage(rootStorage)
 	if err != nil {
 		log.Error().Msgf("Failed to ensure storage %+v", err)

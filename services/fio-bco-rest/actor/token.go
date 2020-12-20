@@ -25,102 +25,99 @@ import (
 
 // CreateToken creates new token for target tenant
 func CreateToken(sys *System, tenant string, token model.Token) (result interface{}) {
-	sys.Metrics.TimeCreateToken(func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Error().Msgf("CreateToken recovered in %v", r)
-				result = nil
-			}
-		}()
+	defer func() {
+		if r := recover(); r != nil {
+			log.Error().Msgf("CreateToken recovered in %v", r)
+			result = nil
+		}
+	}()
 
-		ch := make(chan interface{})
-		defer close(ch)
+	ch := make(chan interface{})
+	defer close(ch)
 
-		envelope := system.NewActor("relay/"+xid.New().String(), nil)
-		defer sys.UnregisterActor(envelope.Name)
+	envelope := system.NewActor("relay/"+xid.New().String(), nil)
+	defer sys.UnregisterActor(envelope.Name)
 
-		sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
-			switch msg := context.Data.(type) {
-			case *TokenCreated:
-				ch <- msg
-			default:
-				ch <- nil
-			}
-		})
-
-		sys.SendMessage(
-			CreateTokenMessage(token),
-			system.Coordinates{
-				Region: "FioImport/" + tenant,
-				Name:   token.ID,
-			},
-			system.Coordinates{
-				Region: "FioRest",
-				Name:   envelope.Name,
-			},
-		)
-
-		select {
-
-		case result = <-ch:
-			log.Info().Msgf("Token %s/%s created", tenant, token.ID)
-			return
-
-		case <-time.After(time.Second):
-			result = new(ReplyTimeout)
-			return
+	sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
+		switch msg := context.Data.(type) {
+		case *TokenCreated:
+			ch <- msg
+		default:
+			ch <- nil
 		}
 	})
+
+	sys.SendMessage(
+		CreateTokenMessage(token),
+		system.Coordinates{
+			Region: "FioImport/" + tenant,
+			Name:   token.ID,
+		},
+		system.Coordinates{
+			Region: "FioRest",
+			Name:   envelope.Name,
+		},
+	)
+
+	select {
+
+	case result = <-ch:
+		log.Info().Msgf("Token %s/%s created", tenant, token.ID)
+		return
+
+	case <-time.After(time.Second):
+		result = new(ReplyTimeout)
+		return
+	}
 	return
 }
 
 // DeleteToken deletes existing token for target tenant
 func DeleteToken(sys *System, tenant string, tokenID string) (result interface{}) {
-	sys.Metrics.TimeDeleteToken(func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Error().Msgf("DeleteToken recovered in %v", r)
-				result = nil
-			}
-		}()
+	defer func() {
+		if r := recover(); r != nil {
+			log.Error().Msgf("DeleteToken recovered in %v", r)
+			result = nil
+		}
+	}()
 
-		ch := make(chan interface{})
-		defer close(ch)
+	ch := make(chan interface{})
+	defer close(ch)
 
-		envelope := system.NewActor("relay/"+xid.New().String(), nil)
-		defer sys.UnregisterActor(envelope.Name)
+	envelope := system.NewActor("relay/"+xid.New().String(), nil)
+	defer sys.UnregisterActor(envelope.Name)
 
-		sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
-			switch msg := context.Data.(type) {
-			case *TokenDeleted:
-				log.Info().Msgf("Token %s/%s deleted", tenant, tokenID)
-				ch <- msg
-			default:
-				ch <- nil
-			}
-		})
-
-		sys.SendMessage(
-			DeleteTokenMessage(),
-			system.Coordinates{
-				Region: "FioImport/" + tenant,
-				Name:   tokenID,
-			},
-			system.Coordinates{
-				Region: "FioRest",
-				Name:   envelope.Name,
-			},
-		)
-
-		select {
-
-		case result = <-ch:
-			return
-
-		case <-time.After(time.Second):
-			result = new(ReplyTimeout)
-			return
+	sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
+		switch msg := context.Data.(type) {
+		case *TokenDeleted:
+			log.Info().Msgf("Token %s/%s deleted", tenant, tokenID)
+			ch <- msg
+		default:
+			ch <- nil
 		}
 	})
+
+	sys.SendMessage(
+		DeleteTokenMessage(),
+		system.Coordinates{
+			Region: "FioImport/" + tenant,
+			Name:   tokenID,
+		},
+		system.Coordinates{
+			Region: "FioRest",
+			Name:   envelope.Name,
+		},
+	)
+
+	select {
+
+	case result = <-ch:
+		return
+
+	case <-time.After(time.Second):
+		result = new(ReplyTimeout)
+		return
+	}
+
 	return
 }

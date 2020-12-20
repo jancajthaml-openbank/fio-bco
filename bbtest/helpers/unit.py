@@ -28,8 +28,7 @@ class UnitHelper(object):
       "SERVER_KEY": "/etc/fio-bco/secrets/domain.local.key",
       "SERVER_CERT": "/etc/fio-bco/secrets/domain.local.crt",
       "ENCRYPTION_KEY": "/etc/fio-bco/secrets/fs_encryption.key",
-      "METRICS_OUTPUT": os.path.realpath('{}/../../reports/blackbox-tests/metrics'.format(os.path.dirname(__file__))),
-      "METRICS_REFRESHRATE": "12h",
+      "STATSD_ENDPOINT": "127.0.0.1:8125",
       "STORAGE": "/data"
     }
 

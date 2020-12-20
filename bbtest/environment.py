@@ -6,6 +6,7 @@ from helpers.zmq import ZMQHelper
 from mocks.fio.server import FioMock
 from mocks.vault.server import VaultMock
 from mocks.ledger.server import LedgerMock
+from helpers.statsd import StatsdHelper
 
 
 def after_feature(context, feature):
@@ -18,6 +19,8 @@ def before_all(context):
   context.fio = FioMock(context)
   context.ledger = LedgerMock(context)
   context.vault = VaultMock(context)
+  context.statsd = StatsdHelper()
+  context.statsd.start()
   context.fio.start()
   context.ledger.start()
   context.vault.start()
@@ -32,3 +35,4 @@ def after_all(context):
   context.vault.stop()
   context.unit.teardown()
   context.zmq.stop()
+  context.statsd.stop()
