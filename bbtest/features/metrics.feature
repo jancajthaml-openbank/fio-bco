@@ -1,6 +1,6 @@
 Feature: Metrics test
 
-  Scenario: metrics can remembers previous values after reboot
+  Scenario: metrics measures expected stats
     Given tenant M2 is onboarded
 
     Then metrics reports:
