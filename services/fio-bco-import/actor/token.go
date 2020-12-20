@@ -163,16 +163,14 @@ func SynchronizingToken(s *System) func(interface{}, system.Context) {
 	}
 }
 
-func importNewStatements(tenant string, fioClient *http.FioClient, vaultClient *http.VaultClient, ledgerClient *http.LedgerClient, metrics *metrics.Metrics, token *model.Token) (int64, error) {
+func importNewStatements(tenant string, fioClient *http.FioClient, vaultClient *http.VaultClient, ledgerClient *http.LedgerClient, metrics metrics.Metrics, token *model.Token) (int64, error) {
 	var (
 		statements *model.ImportEnvelope
 		err        error
 		lastID     int64 = token.LastSyncedID
 	)
 
-	metrics.TimeSyncLatency(func() {
-		statements, err = fioClient.GetTransactions()
-	})
+	statements, err = fioClient.GetTransactions()
 	if err != nil {
 		return lastID, err
 	}
@@ -205,8 +203,7 @@ func importNewStatements(tenant string, fioClient *http.FioClient, vaultClient *
 			return lastID, err
 		}
 
-		metrics.TransactionImported()
-		metrics.TransfersImported(int64(len(transaction.Transfers)))
+		metrics.TransactionImported(len(transaction.Transfers))
 
 		for _, transfer := range transaction.Transfers {
 			if transfer.IDTransfer > lastID {
