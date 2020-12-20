@@ -13,5 +13,5 @@ Feature: Metrics test
     When token M2/A is created
 
     Then metrics reports:
-      | key                                   | type  |      tags | value |
-      | openbank.bco.fio.token.created        | count | tenant:M2 |     1 |
+      | key                            | type  |      tags | value |
+      | openbank.bco.fio.token.created | count | tenant:M2 |     1 |
