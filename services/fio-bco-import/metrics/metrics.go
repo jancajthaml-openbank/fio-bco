@@ -37,7 +37,7 @@ type metrics struct {
 
 // NewMetrics returns blank metrics holder
 func NewMetrics(tenant string, endpoint string) *metrics {
-	client, err := statsd.New(endpoint)
+	client, err := statsd.New(endpoint, statsd.WithClientSideAggregation(), statsd.WithoutTelemetry())
 	if err != nil {
 		log.Error().Msgf("Failed to ensure statsd client %+v", err)
 		return nil
@@ -110,8 +110,10 @@ func (instance *metrics) Work() {
 	atomic.AddInt64(&(instance.importedTransactions), -importedTransactions)
 	atomic.AddInt64(&(instance.importedTransfers), -importedTransfers)
 
-	instance.client.Count("openbank.bco.fio."+instance.tenant+".token.created", createdTokens, nil, 1)
-	instance.client.Count("openbank.bco.fio."+instance.tenant+".token.deleted", deletedTokens, nil, 1)
-	instance.client.Count("openbank.bco.fio."+instance.tenant+".transaction.imported", importedTransactions, nil, 1)
-	instance.client.Count("openbank.bco.fio."+instance.tenant+".transfer.imported", importedTransfers, nil, 1)
+	tags := []string{"tenant:" +instance.tenant}
+
+	instance.client.Count("openbank.bco.fio.token.created", createdTokens, tags, 1)
+	instance.client.Count("openbank.bco.fio.token.deleted", deletedTokens, tags, 1)
+	instance.client.Count("openbank.bco.fio.transaction.imported", importedTransactions, tags, 1)
+	instance.client.Count("openbank.bco.fio.transfer.imported", importedTransfers, tags, 1)
 }

@@ -4,14 +4,14 @@ Feature: Metrics test
     Given tenant M2 is onboarded
 
     Then metrics reports:
-      | key                                      | type  | value |
-      | openbank.bco.fio.M2.token.created        | count |     0 |
-      | openbank.bco.fio.M2.token.deleted        | count |     0 |
-      | openbank.bco.fio.M2.transaction.imported | count |     0 |
-      | openbank.bco.fio.M2.transfer.imported    | count |     0 |
+      | key                                   | type  |      tags | value |
+      | openbank.bco.fio.token.created        | count | tenant:M2 |     0 |
+      | openbank.bco.fio.token.deleted        | count | tenant:M2 |     0 |
+      | openbank.bco.fio.transaction.imported | count | tenant:M2 |     0 |
+      | openbank.bco.fio.transfer.imported    | count | tenant:M2 |     0 |
 
     When token M2/A is created
 
     Then metrics reports:
-      | key                                      | type  | value |
-      | openbank.bco.fio.M2.token.created        | count |     1 |
+      | key                                   | type  |      tags | value |
+      | openbank.bco.fio.token.created        | count | tenant:M2 |     1 |
