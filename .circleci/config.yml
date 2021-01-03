@@ -494,8 +494,14 @@ jobs:
             FULL_VERSION=$(cat /mnt/ramdisk/FULL_VERSION)
             SHORT_VERSION=$(cat /mnt/ramdisk/SHORT_VERSION)
 
-            docker build -t docker.io/openbank/fio-bco:${FULL_VERSION} .
-            docker build -t docker.pkg.github.com/jancajthaml-openbank/fio-bco/fio-bco:${SHORT_VERSION} .
+            docker build \
+              -t docker.io/openbank/fio-bco:${FULL_VERSION} \
+              -f packaging/docker/Dockerfile \
+              .
+            docker build \
+              -t docker.pkg.github.com/jancajthaml-openbank/fio-bco/fio-bco:${SHORT_VERSION} \
+              -f packaging/docker/Dockerfile \
+              .
       - run:
           name: Publish to docker.io
           command: |
