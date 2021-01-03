@@ -51,7 +51,10 @@ bundle-debian-%: %
 
 .PHONY: bundle-docker
 bundle-docker:
-	@docker build -t openbank/fio-bco:$(VERSION)-$(META) .
+	@docker build \
+		-t openbank/fio-bco:$(VERSION)-$(META) \
+		-f packaging/docker/Dockerfile \
+		.
 
 .PHONY: bootstrap
 bootstrap:
