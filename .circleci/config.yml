@@ -495,7 +495,7 @@ jobs:
             META=$(cat /mnt/ramdisk/META)
 
             docker build \
-              -t docker.io/openbank/fio-bco:v${VERSION}+${META} \
+              -t docker.io/openbank/fio-bco:v${VERSION}-${META} \
               -f packaging/docker/Dockerfile \
               .
             docker build \
