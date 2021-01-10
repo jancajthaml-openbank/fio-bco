@@ -510,7 +510,7 @@ jobs:
             VERSION=$(cat /mnt/ramdisk/VERSION)
             META=$(cat /mnt/ramdisk/META)
             docker push \
-              docker.io/openbank/fio-bco:v${VERSION}+${META}
+              docker.io/openbank/fio-bco:v${VERSION}-${META}
             rm -f /root/.docker/config.json
       - run:
           name: Publish to docker.pkg.github.com
