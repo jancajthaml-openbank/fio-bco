@@ -97,6 +97,13 @@ sync:
 		--rm sync \
 		--source /go/src/github.com/jancajthaml-openbank/fio-bco-import
 
+.PHONY: scan
+scan:
+	docker scan \
+	  openbank/fio-bco:$(VERSION)-$(META) \
+	  --file ./packaging/docker/Dockerfile \
+	  --exclude-base
+
 .PHONY: test
 test:
 	@docker-compose \
