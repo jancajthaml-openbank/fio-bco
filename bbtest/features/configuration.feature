@@ -1,17 +1,5 @@
 Feature: Service can be configured
 
-  Scenario: configure log level to DEBUG
-    Given fio-bco is configured with
-      | property  | value |
-      | LOG_LEVEL | DEBUG |
-    And tenant CONFIGURATION_DEBUG is onboarded
-
-    Then journalctl of "fio-bco-import@CONFIGURATION_DEBUG.service" contains following
-    """
-      Log level set to DEBUG
-    """
-    And tenant CONFIGURATION_DEBUG is offboarded
-
   Scenario: configure log level to ERROR
     Given fio-bco is configured with
       | property  | value |
@@ -47,3 +35,15 @@ Feature: Service can be configured
       Log level set to INFO
     """
     And tenant CONFIGURATION_INVALID is offboarded
+
+  Scenario: configure log level to DEBUG
+    Given fio-bco is configured with
+      | property  | value |
+      | LOG_LEVEL | DEBUG |
+    And tenant CONFIGURATION_DEBUG is onboarded
+
+    Then journalctl of "fio-bco-import@CONFIGURATION_DEBUG.service" contains following
+    """
+      Log level set to DEBUG
+    """
+    And tenant CONFIGURATION_DEBUG is offboarded
