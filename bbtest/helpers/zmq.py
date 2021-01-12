@@ -45,12 +45,15 @@ class ZMQHelper(threading.Thread):
           continue
         self.backlog.append(data)
         self.__pub.send(data)
+        self.__pub.send(data)
       except Exception as ex:
         if ex.errno != 11:
           return
 
   def send(self, data):
-    self.__pub.send(data.encode())
+    payload = data.encode()
+    self.__pub.send(payload)
+    self.__pub.send(payload)
 
   def ack(self, data):
     self.__mutex.acquire()
