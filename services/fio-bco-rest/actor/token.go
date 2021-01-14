@@ -24,27 +24,14 @@ import (
 )
 
 // CreateToken creates new token for target tenant
-func CreateToken(sys *System, tenant string, token model.Token) (result interface{}) {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Error().Msgf("CreateToken recovered in %v", r)
-			result = nil
-		}
-	}()
-
+func CreateToken(sys *System, tenant string, token model.Token) interface{} {
 	ch := make(chan interface{})
-	defer close(ch)
 
 	envelope := system.NewActor("relay/"+xid.New().String(), nil)
 	defer sys.UnregisterActor(envelope.Name)
 
 	sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
-		switch msg := context.Data.(type) {
-		case *TokenCreated:
-			ch <- msg
-		default:
-			ch <- nil
-		}
+		ch <- context.Data
 	})
 
 	sys.SendMessage(
@@ -60,41 +47,22 @@ func CreateToken(sys *System, tenant string, token model.Token) (result interfac
 	)
 
 	select {
-
-	case result = <-ch:
-		log.Info().Msgf("Token %s/%s created", tenant, token.ID)
-		return
-
-	case <-time.After(time.Second):
-		result = new(ReplyTimeout)
-		return
+	case result := <-ch:
+		return result
+	case <-time.After(5*time.Second):
+		return new(ReplyTimeout)
 	}
-	return
 }
 
 // DeleteToken deletes existing token for target tenant
-func DeleteToken(sys *System, tenant string, tokenID string) (result interface{}) {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Error().Msgf("DeleteToken recovered in %v", r)
-			result = nil
-		}
-	}()
-
+func DeleteToken(sys *System, tenant string, tokenID string) interface{} {
 	ch := make(chan interface{})
-	defer close(ch)
 
 	envelope := system.NewActor("relay/"+xid.New().String(), nil)
 	defer sys.UnregisterActor(envelope.Name)
 
 	sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
-		switch msg := context.Data.(type) {
-		case *TokenDeleted:
-			log.Info().Msgf("Token %s/%s deleted", tenant, tokenID)
-			ch <- msg
-		default:
-			ch <- nil
-		}
+		ch <- context.Data
 	})
 
 	sys.SendMessage(
@@ -110,14 +78,9 @@ func DeleteToken(sys *System, tenant string, tokenID string) (result interface{}
 	)
 
 	select {
-
-	case result = <-ch:
-		return
-
-	case <-time.After(time.Second):
-		result = new(ReplyTimeout)
-		return
+	case result := <-ch:
+		return result
+	case <-time.After(5*time.Second):
+		return new(ReplyTimeout)
 	}
-
-	return
 }

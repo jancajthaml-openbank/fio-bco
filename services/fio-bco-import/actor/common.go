@@ -71,7 +71,7 @@ func parseMessage(msg string, to system.Coordinates) (interface{}, error) {
 	}
 }
 
-// ProcessMessage processing of remote message to this bondster-bco
+// ProcessMessage processing of remote message to this fio-bco
 func ProcessMessage(s *System) system.ProcessMessage {
 	return func(msg string, to system.Coordinates, from system.Coordinates) {
 		message, err := parseMessage(msg, to)

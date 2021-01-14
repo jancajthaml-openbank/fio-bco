@@ -150,8 +150,16 @@ func SynchronizingToken(s *System) func(interface{}, system.Context) {
 			log.Debug().Msgf("token %s (Synchronizing SynchronizeToken)", state.ID)
 
 		case DeleteToken:
-			s.SendMessage(FatalError, context.Sender, context.Receiver)
-			log.Debug().Msgf("token %s (Synchronizing DeleteToken) Error", state.ID)
+			if !persistence.DeleteToken(s.Storage, state.ID) {
+				s.SendMessage(FatalError, context.Sender, context.Receiver)
+				log.Debug().Msgf("token %s (Synchronizing DeleteToken) Error", state.ID)
+				return
+			}
+			log.Info().Msgf("Token %s Deleted", state.ID)
+			log.Debug().Msgf("token %s (Synchronizing DeleteToken) OK", state.ID)
+			s.Metrics.TokenDeleted()
+			s.SendMessage(RespDeleteToken, context.Sender, context.Receiver)
+			context.Self.Become(state, NonExistToken(s))
 
 		default:
 			s.SendMessage(FatalError, context.Sender, context.Receiver)
