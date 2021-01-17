@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2021, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ func CreateToken(sys *System, tenant string, token model.Token) interface{} {
 	select {
 	case result := <-ch:
 		return result
-	case <-time.After(5*time.Second):
+	case <-time.After(5 * time.Second):
 		return new(ReplyTimeout)
 	}
 }
@@ -80,7 +80,7 @@ func DeleteToken(sys *System, tenant string, tokenID string) interface{} {
 	select {
 	case result := <-ch:
 		return result
-	case <-time.After(5*time.Second):
+	case <-time.After(5 * time.Second):
 		return new(ReplyTimeout)
 	}
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2021, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ type FioClient struct {
 }
 
 // NewFioClient returns new fio http client
-func NewFioClient(gateway string, token model.Token) FioClient {
-	return FioClient{
+func NewFioClient(gateway string, token model.Token) *FioClient {
+	return &FioClient{
 		gateway:    gateway,
 		underlying: NewHTTPClient(),
 		token:      token,

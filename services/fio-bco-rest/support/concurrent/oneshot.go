@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2021, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import (
 // OneShotDaemon represent work happening only once
 type OneShotDaemon struct {
 	Worker
-	name string
+	name       string
 	cancelOnce sync.Once
-	done 			 chan interface{}
+	done       chan interface{}
 }
 
 // NewOneShotDaemon returns new daemon with given name for single work
@@ -33,7 +33,7 @@ func NewOneShotDaemon(name string, worker Worker) Daemon {
 		Worker:     worker,
 		name:       name,
 		cancelOnce: sync.Once{},
-		done: 		  make(chan interface{}),
+		done:       make(chan interface{}),
 	}
 }
 
