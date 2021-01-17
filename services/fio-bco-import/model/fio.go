@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2021, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -44,10 +44,10 @@ type accountInfo struct {
 }
 
 type transactionList struct {
-	Transactions []fioTransaction `json:"transaction"`
+	Transactions []FioStatement `json:"transaction"`
 }
 
-type fioTransaction struct {
+type FioStatement struct {
 	TransferDate     *stringNode `json:"column0"`
 	Amount           *floatNode  `json:"column1"`
 	AccountTo        *stringNode `json:"column2"`
@@ -213,7 +213,7 @@ func (envelope *ImportEnvelope) GetAccounts(tenant string) <-chan Account {
 	go func() {
 		defer close(chnl)
 
-		var set = make(map[string]fioTransaction)
+		var set = make(map[string]FioStatement)
 
 		for _, transfer := range envelope.Statement.TransactionList.Transactions {
 			if transfer.AccountTo == nil {

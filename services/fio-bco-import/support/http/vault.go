@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2021, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,22 +24,20 @@ import (
 type VaultClient struct {
 	underlying Client
 	gateway    string
-	cache      map[model.Account]interface{}
 }
 
 // NewVaultClient returns new vault http client
-func NewVaultClient(gateway string) VaultClient {
-	return VaultClient{
+func NewVaultClient(gateway string) *VaultClient {
+	return &VaultClient{
 		gateway:    gateway,
 		underlying: NewHTTPClient(),
-		cache:      make(map[model.Account]interface{}),
 	}
 }
 
 // CreateAccount creates account in vault
-func (client VaultClient) CreateAccount(account model.Account) error {
-	if _, ok := client.cache[account]; ok {
-		return nil
+func (client *VaultClient) CreateAccount(account model.Account) error {
+	if client == nil {
+		return fmt.Errorf("nil deference")
 	}
 	request, err := json.Marshal(account)
 	if err != nil {
@@ -55,7 +53,6 @@ func (client VaultClient) CreateAccount(account model.Account) error {
 	if response.Status == 504 {
 		return fmt.Errorf("create account timeout")
 	}
-	client.cache[account] = nil
 	if response.Status != 200 && response.Status != 409 {
 		return fmt.Errorf("create account error %s", response.String())
 	}

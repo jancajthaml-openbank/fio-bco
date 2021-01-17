@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2021, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -110,7 +110,7 @@ func (instance *metrics) Work() {
 	atomic.AddInt64(&(instance.importedTransactions), -importedTransactions)
 	atomic.AddInt64(&(instance.importedTransfers), -importedTransfers)
 
-	tags := []string{"tenant:" +instance.tenant}
+	tags := []string{"tenant:" + instance.tenant}
 
 	instance.client.Count("openbank.bco.fio.token.created", createdTokens, tags, 1)
 	instance.client.Count("openbank.bco.fio.token.deleted", deletedTokens, tags, 1)

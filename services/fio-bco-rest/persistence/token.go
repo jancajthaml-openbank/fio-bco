@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2021, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ func HydrateToken(storage localfs.Storage, tenant string, entity *model.Token) *
 	if entity == nil {
 		return nil
 	}
-	path := "t_" + tenant + "/import/fio/token/" + entity.ID
+	path := "t_" + tenant + "/import/fio/token/" + entity.ID + "/value"
 	data, err := storage.ReadFileFully(path)
 	if err != nil {
 		return nil

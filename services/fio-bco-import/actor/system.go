@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2021, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,19 +24,35 @@ import (
 // System represents actor system subroutine
 type System struct {
 	system.System
-	Tenant        string
-	Storage       localfs.Storage
-	Metrics       metrics.Metrics
-	FioGateway    string
-	LedgerGateway string
-	VaultGateway  string
+	Tenant           string
+	EncryptedStorage localfs.Storage
+	PlaintextStorage localfs.Storage
+	Metrics          metrics.Metrics
+	FioGateway       string
+	LedgerGateway    string
+	VaultGateway     string
 }
 
 // NewActorSystem returns actor system fascade
-func NewActorSystem(tenant string, lakeEndpoint string, fioEndpoint string, vaultEndpoint string, ledgerEndpoint string, rootStorage string, storageKey []byte, metrics metrics.Metrics) *System {
-	storage, err := localfs.NewPlaintextStorage(rootStorage)
+func NewActorSystem(
+	tenant string,
+	lakeEndpoint string,
+	fioEndpoint string,
+	vaultEndpoint string,
+	ledgerEndpoint string,
+	rootStorage string,
+	storageKey []byte,
+	metrics metrics.Metrics,
+) *System {
+
+	encryptedStorage, err := localfs.NewEncryptedStorage(rootStorage, storageKey)
 	if err != nil {
-		log.Error().Msgf("Failed to ensure storage %+v", err)
+		log.Error().Msgf("Failed to ensure encrypted storage %+v", err)
+		return nil
+	}
+	plaintextStorage, err := localfs.NewPlaintextStorage(rootStorage)
+	if err != nil {
+		log.Error().Msgf("Failed to ensure plaintext storage %+v", err)
 		return nil
 	}
 	sys, err := system.New("FioImport/"+tenant, lakeEndpoint)
@@ -46,7 +62,8 @@ func NewActorSystem(tenant string, lakeEndpoint string, fioEndpoint string, vaul
 	}
 	result := new(System)
 	result.System = sys
-	result.Storage = storage
+	result.EncryptedStorage = encryptedStorage
+	result.PlaintextStorage = plaintextStorage
 	result.Metrics = metrics
 	result.Tenant = tenant
 	result.FioGateway = fioEndpoint

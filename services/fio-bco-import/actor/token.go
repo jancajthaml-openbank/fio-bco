@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020, Jan Cajthaml <jan.cajthaml@gmail.com>
+// Copyright (c) 2016-2021, Jan Cajthaml <jan.cajthaml@gmail.com>
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,12 +15,9 @@
 package actor
 
 import (
-	"sort"
-
-	"github.com/jancajthaml-openbank/fio-bco-import/metrics"
+	"github.com/jancajthaml-openbank/fio-bco-import/integration"
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
 	"github.com/jancajthaml-openbank/fio-bco-import/persistence"
-	"github.com/jancajthaml-openbank/fio-bco-import/support/http"
 
 	system "github.com/jancajthaml-openbank/actor-system"
 )
@@ -30,7 +27,7 @@ func NilToken(s *System) func(interface{}, system.Context) {
 	return func(t_state interface{}, context system.Context) {
 		state := t_state.(model.Token)
 
-		tokenHydration := persistence.LoadToken(s.Storage, state.ID)
+		tokenHydration := persistence.LoadToken(s.EncryptedStorage, state.ID)
 
 		if tokenHydration == nil {
 			context.Self.Become(state, NonExistToken(s))
@@ -55,7 +52,7 @@ func NonExistToken(s *System) func(interface{}, system.Context) {
 			break
 
 		case CreateToken:
-			tokenResult := persistence.CreateToken(s.Storage, state.ID, msg.Value)
+			tokenResult := persistence.CreateToken(s.EncryptedStorage, state.ID, msg.Value)
 
 			if tokenResult == nil {
 				s.SendMessage(FatalError, context.Sender, context.Receiver)
@@ -104,13 +101,32 @@ func ExistToken(s *System) func(interface{}, system.Context) {
 		case SynchronizeToken:
 			log.Debug().Msgf("token %s (Exist SynchronizeToken)", state.ID)
 			context.Self.Become(t_state, SynchronizingToken(s))
-			go importStatements(s, state, func() {
-				context.Self.Become(t_state, NilToken(s))
-				context.Self.Tell(ProbeMessage{}, context.Receiver, context.Receiver)
-			})
+
+			go func() {
+				log.Debug().Msgf("token %s Importing statements Start", state.ID)
+
+				defer func() {
+					log.Debug().Msgf("token %s Importing statements End", state.ID)
+					context.Self.Become(t_state, NilToken(s))
+					context.Self.Tell(ProbeMessage{}, context.Receiver, context.Receiver)
+				}()
+
+				workflow := integration.NewWorkflow(
+					&state,
+					s.Tenant,
+					s.FioGateway,
+					s.VaultGateway,
+					s.LedgerGateway,
+					s.EncryptedStorage,
+					s.PlaintextStorage,
+					s.Metrics,
+				)
+
+				workflow.SynchronizeStatements()
+			}()
 
 		case DeleteToken:
-			if !persistence.DeleteToken(s.Storage, state.ID) {
+			if !persistence.DeleteToken(s.EncryptedStorage, state.ID) {
 				s.SendMessage(FatalError, context.Sender, context.Receiver)
 				log.Debug().Msgf("token %s (Exist DeleteToken) Error", state.ID)
 				return
@@ -150,7 +166,7 @@ func SynchronizingToken(s *System) func(interface{}, system.Context) {
 			log.Debug().Msgf("token %s (Synchronizing SynchronizeToken)", state.ID)
 
 		case DeleteToken:
-			if !persistence.DeleteToken(s.Storage, state.ID) {
+			if !persistence.DeleteToken(s.EncryptedStorage, state.ID) {
 				s.SendMessage(FatalError, context.Sender, context.Receiver)
 				log.Debug().Msgf("token %s (Synchronizing DeleteToken) Error", state.ID)
 				return
@@ -169,79 +185,4 @@ func SynchronizingToken(s *System) func(interface{}, system.Context) {
 
 		return
 	}
-}
-
-func importNewStatements(tenant string, fioClient *http.FioClient, vaultClient *http.VaultClient, ledgerClient *http.LedgerClient, metrics metrics.Metrics, token *model.Token) (int64, error) {
-	var (
-		statements *model.ImportEnvelope
-		err        error
-		lastID     int64 = token.LastSyncedID
-	)
-
-	statements, err = fioClient.GetTransactions()
-	if err != nil {
-		return lastID, err
-	}
-	if len(statements.Statement.TransactionList.Transactions) == 0 {
-		return lastID, nil
-	}
-
-	// FIXME getStatements end here
-
-	log.Debug().Msgf("token %s sorting statements", token.ID)
-
-	sort.SliceStable(statements.Statement.TransactionList.Transactions, func(i, j int) bool {
-		return statements.Statement.TransactionList.Transactions[i].TransactionID.Value == statements.Statement.TransactionList.Transactions[j].TransactionID.Value
-	})
-
-	log.Debug().Msgf("token %s importing accounts", token.ID)
-
-	for account := range statements.GetAccounts(tenant) {
-		err = vaultClient.CreateAccount(account)
-		if err != nil {
-			return lastID, err
-		}
-	}
-
-	log.Debug().Msgf("token %s importing transactions", token.ID)
-
-	for transaction := range statements.GetTransactions(tenant) {
-		err = ledgerClient.CreateTransaction(transaction)
-		if err != nil {
-			return lastID, err
-		}
-
-		metrics.TransactionImported(len(transaction.Transfers))
-
-		for _, transfer := range transaction.Transfers {
-			if transfer.IDTransfer > lastID {
-				lastID = transfer.IDTransfer
-			}
-		}
-	}
-
-	return lastID, nil
-}
-
-func importStatements(s *System, token model.Token, callback func()) {
-	defer callback()
-
-	log.Debug().Msgf("token %s Importing statements", token.ID)
-
-	fioClient := http.NewFioClient(s.FioGateway, token)
-	vaultClient := http.NewVaultClient(s.VaultGateway)
-	ledgerClient := http.NewLedgerClient(s.LedgerGateway)
-
-	log.Debug().Msgf("token %s Import Begin", token.ID)
-	lastID, err := importNewStatements(s.Tenant, &fioClient, &vaultClient, &ledgerClient, s.Metrics, &token)
-	if err != nil {
-		log.Error().Msgf("token %s Import statements failed with %+v", token.ID, err)
-	}
-	if lastID > token.LastSyncedID {
-		token.LastSyncedID = lastID
-		if !persistence.UpdateToken(s.Storage, &token) {
-			log.Warn().Msgf("token %s Unable to update token", token.ID)
-		}
-	}
-	log.Debug().Msgf("token %s Import End", token.ID)
 }
