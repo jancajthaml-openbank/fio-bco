@@ -31,7 +31,7 @@ func envBoolean(key string, fallback bool) bool {
 	}
 	cast, err := strconv.ParseBool(value)
 	if err != nil {
-		log.Error().Msgf("invalid value of variable %s", key)
+		log.Warn().Msgf("invalid value in %s, using fallback", key)
 		return fallback
 	}
 	return cast
@@ -44,7 +44,7 @@ func envFilename(key string, fallback string) string {
 	}
 	value = filepath.Clean(value)
 	if os.MkdirAll(value, os.ModePerm) != nil {
-		log.Error().Msgf("invalid value of variable %s", key)
+		log.Warn().Msgf("invalid value in %s, using fallback", key)
 		return fallback
 	}
 	return value
@@ -57,10 +57,12 @@ func envSecret(key string, fallback []byte) []byte {
 	}
 	data, err := ioutil.ReadFile(filepath.Clean(value))
 	if err != nil {
+		log.Warn().Msgf("invalid value in %s, using fallback", key)
 		return fallback
 	}
 	decoded, err := hex.DecodeString(string(data))
 	if err != nil {
+		log.Warn().Msgf("invalid value in %s, using fallback", key)
 		return fallback
 	}
 	return []byte(decoded)
@@ -81,7 +83,7 @@ func envInteger(key string, fallback int) int {
 	}
 	cast, err := strconv.Atoi(value)
 	if err != nil {
-		log.Error().Msgf("invalid value of variable %s", key)
+		log.Warn().Msgf("invalid value in %s, using fallback", key)
 		return fallback
 	}
 	return cast
@@ -94,7 +96,7 @@ func envDuration(key string, fallback time.Duration) time.Duration {
 	}
 	cast, err := time.ParseDuration(value)
 	if err != nil {
-		log.Error().Msgf("invalid value of variable %s", key)
+		log.Warn().Msgf("invalid value in %s, using fallback", key)
 		return fallback
 	}
 	return cast

@@ -39,7 +39,7 @@ type metrics struct {
 func NewMetrics(tenant string, endpoint string) *metrics {
 	client, err := statsd.New(endpoint, statsd.WithClientSideAggregation(), statsd.WithoutTelemetry())
 	if err != nil {
-		log.Error().Msgf("Failed to ensure statsd client %+v", err)
+		log.Error().Err(err).Msg("Failed to ensure statsd client")
 		return nil
 	}
 	return &metrics{
