@@ -90,7 +90,7 @@ func synchronizeNewStatements(
 	for account := range statements.GetAccounts(tenant) {
 		err = vaultClient.CreateAccount(account)
 		if err != nil {
-			log.Warn().Msgf("Unable to create account %s/%s with %+v", tenant, account.Name, err)
+			log.Warn().Err(err).Msgf("Unable to create account %s/%s", tenant, account.Name)
 			return
 		}
 	}
@@ -100,7 +100,7 @@ func synchronizeNewStatements(
 	for transaction := range statements.GetTransactions(tenant) {
 		err = ledgerClient.CreateTransaction(transaction)
 		if err != nil {
-			log.Warn().Msgf("Unable to create transaction %s/%s with %+v", tenant, transaction.IDTransaction, err)
+			log.Warn().Err(err).Msgf("Unable to create transaction %s/%s", tenant, transaction.IDTransaction)
 			return
 		}
 

@@ -47,17 +47,17 @@ func NewActorSystem(
 
 	encryptedStorage, err := localfs.NewEncryptedStorage(rootStorage, storageKey)
 	if err != nil {
-		log.Error().Msgf("Failed to ensure encrypted storage %+v", err)
+		log.Error().Err(err).Msg("Failed to ensure encrypted storage")
 		return nil
 	}
 	plaintextStorage, err := localfs.NewPlaintextStorage(rootStorage)
 	if err != nil {
-		log.Error().Msgf("Failed to ensure plaintext storage %+v", err)
+		log.Error().Err(err).Msg("Failed to ensure plaintext storage")
 		return nil
 	}
 	sys, err := system.New("FioImport/"+tenant, lakeEndpoint)
 	if err != nil {
-		log.Error().Msgf("Failed to register actor system %+v", err)
+		log.Error().Err(err).Msg("Failed to register actor system")
 		return nil
 	}
 	result := new(System)

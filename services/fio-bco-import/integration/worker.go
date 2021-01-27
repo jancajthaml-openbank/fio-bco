@@ -32,7 +32,7 @@ type FioImport struct {
 func NewFioImport(rootStorage string, storageKey []byte, callback func(token string)) *FioImport {
 	storage, err := localfs.NewEncryptedStorage(rootStorage, storageKey)
 	if err != nil {
-		log.Error().Msgf("Failed to ensure storage %+v", err)
+		log.Error().Err(err).Msg("Failed to ensure storage")
 		return nil
 	}
 	return &FioImport{
@@ -64,7 +64,7 @@ func (fio FioImport) getActiveTokens() ([]string, error) {
 func (fio FioImport) importRoundtrip() {
 	tokens, err := fio.getActiveTokens()
 	if err != nil {
-		log.Error().Msgf("unable to get active tokens %+v", err)
+		log.Error().Err(err).Msg("unable to get active tokens")
 		return
 	}
 
