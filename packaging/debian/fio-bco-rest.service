@@ -1,8 +1,8 @@
 [Unit]
-Description=openbank FIO Bank Connection REST service
+Description=openbank FIO Bank connection REST service
 PartOf=fio-bco.service
 After=fio-bco.service
-ConditionPathExists=/etc/fio-bco/conf.d/init.conf
+Requires=fio-bco.service
 
 [Service]
 Type=notify
@@ -22,4 +22,4 @@ KillMode=process
 KillSignal=SIGTERM
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=fio-bco.service

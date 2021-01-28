@@ -1,13 +1,15 @@
 [Unit]
-Description=openbank FIO Bank Connection services namespace
+Description=openbank FIO Bank connection control group
 After=inetd.service
 ConditionPathExists=/etc/fio-bco/conf.d/init.conf
 
 [Service]
 Type=oneshot
-ExecStart=/bin/echo start fio-bco namespace
+ExecStart=/bin/true
 RemainAfterExit=yes
 KillMode=control-group
+StartLimitBurst=0
+StartLimitInterval=0
 
 [Install]
 WantedBy=multi-user.target

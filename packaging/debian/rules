@@ -10,14 +10,16 @@ SUBSTVARS = -Vshlibs:Depends="libc6"
 	+dh $@ -P debian/target/${DEB_HOST_ARCH_OS}-${DEB_HOST_ARCH_CPU} --with=systemd
 
 override_dh_systemd_enable:
-	dh_systemd_enable -pfio-bco --name=fio-bco fio-bco.path
 	dh_systemd_enable -pfio-bco --name=fio-bco fio-bco.service
+	dh_systemd_enable -pfio-bco --name=fio-bco-watcher fio-bco-watcher.path
+	dh_systemd_enable -pfio-bco --name=fio-bco-watcher fio-bco-watcher.service
 	dh_systemd_enable -pfio-bco --name=fio-bco-rest fio-bco-rest.service
 	dh_systemd_enable -pfio-bco --name=fio-bco-import@ fio-bco-import@.service
 
 override_dh_systemd_start:
-	dh_systemd_start -pfio-bco --name=fio-bco fio-bco.path
 	dh_systemd_start -pfio-bco --name=fio-bco fio-bco.service
+	dh_systemd_start -pfio-bco --name=fio-bco-watcher fio-bco-watcher.path
+	dh_systemd_start -pfio-bco --name=fio-bco-watcher fio-bco-watcher.service
 	dh_systemd_start -pfio-bco --name=fio-bco-rest fio-bco-rest.service
 
 override_dh_installinit:
