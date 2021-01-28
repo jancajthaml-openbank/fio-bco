@@ -1,0 +1,12 @@
+[Unit]
+Description=openbank FIO Bank Connection configuration watcher
+StartLimitBurst=5
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'echo reloading fio-bco.service'
+ExecStart=/bin/sh -c 'systemctl restart fio-bco.service'
+ExecStart=/bin/sh -c 'echo reloaded fio-bco.service'
+
+[Install]
+WantedBy=multi-user.target 
