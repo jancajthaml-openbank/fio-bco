@@ -1,5 +1,5 @@
 [Unit]
-Description=openbank FIO Bank Connection configuration watcher
+Description=openbank FIO Bank connection configuration watcher
 
 [Path]
 PathChanged=/etc/fio-bco/conf.d/init.conf

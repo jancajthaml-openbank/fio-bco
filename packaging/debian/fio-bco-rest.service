@@ -1,5 +1,5 @@
 [Unit]
-Description=openbank FIO Bank Connection REST service
+Description=openbank FIO Bank connection REST service
 PartOf=fio-bco.service
 After=fio-bco.service
 Requires=fio-bco.service

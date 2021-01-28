@@ -1,5 +1,5 @@
 [Unit]
-Description=openbank FIO Bank Connection services control group
+Description=openbank FIO Bank connection control group
 After=inetd.service
 ConditionPathExists=/etc/fio-bco/conf.d/init.conf
 

@@ -1,5 +1,5 @@
 [Unit]
-Description=openbank FIO Bank Connection tenant %i
+Description=openbank FIO Bank connection tenant %i
 PartOf=fio-bco.service
 After=fio-bco.service
 Requires=fio-bco.service

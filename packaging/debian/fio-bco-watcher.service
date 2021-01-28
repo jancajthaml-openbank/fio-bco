@@ -1,5 +1,5 @@
 [Unit]
-Description=openbank FIO Bank Connection configuration watcher
+Description=openbank FIO Bank connection configuration watcher
 StartLimitBurst=5
 
 [Service]

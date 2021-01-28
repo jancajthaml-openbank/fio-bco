@@ -23,7 +23,7 @@ def step_impl(context, unit):
     idx = len(actual_lines_merged) - 1
 
     while True:
-      if idx < 0 or actual_lines_merged[idx].startswith("Starting openbank FIO Bank Connection"):
+      if idx < 0 or actual_lines_merged[idx].startswith("Starting openbank FIO Bank connection"):
         break
       actual_lines.append(actual_lines_merged[idx])
       idx -= 1
