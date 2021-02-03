@@ -22,3 +22,9 @@ type TokenCreated struct{}
 
 // TokenDeleted message
 type TokenDeleted struct{}
+
+// TokenSynchonizeAccepted message
+type TokenSynchonizeAccepted struct{}
+
+// TokenMissing message
+type TokenMissing struct{}

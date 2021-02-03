@@ -31,6 +31,7 @@ def after_feature(context, feature):
 
 
 def before_all(context):
+  context.tokens = dict()
   context.log = logger()
   context.unit = UnitHelper(context)
   context.zmq = ZMQHelper(context)

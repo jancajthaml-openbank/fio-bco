@@ -31,6 +31,12 @@ const (
 	ReqDeleteToken = "DT"
 	// RespDeleteToken fio message response code for "Delete Token"
 	RespDeleteToken = "TD"
+	// ReqSynchronizeToken fio message request code for "Synchronize Token"
+	ReqSynchronizeToken = "ST"
+	// RespSynchronizeToken fio message response code for "Synchronize Token"
+	RespSynchronizeToken = "TS"
+	// RespTokenDoesNotExist fio message response code for "Token does not Exist"
+	RespTokenDoesNotExist = "EM"
 	// FatalError fio message response code for "Error"
 	FatalError = "EE"
 )
@@ -38,6 +44,11 @@ const (
 // CreateTokenMessage is message for creation of new token
 func CreateTokenMessage(token model.Token) string {
 	return ReqCreateToken + " " + token.Value
+}
+
+// SynchronizeTokenMessage is message for immediate synchronization of existing token
+func SynchronizeTokenMessage() string {
+	return ReqSynchronizeToken
 }
 
 // DeleteTokenMessage is message for deletion of new token

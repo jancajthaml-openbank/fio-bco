@@ -66,14 +66,15 @@ func NonExistToken(s *System) func(interface{}, system.Context) {
 			s.Metrics.TokenCreated()
 
 			context.Self.Become(*tokenResult, ExistToken(s))
-			context.Self.Tell(SynchronizeToken{}, context.Receiver, context.Sender)
+			//context.Self.Tell(SynchronizeToken{}, context.Receiver, context.Sender)
 
 		case DeleteToken:
-			s.SendMessage(FatalError, context.Sender, context.Receiver)
+			s.SendMessage(RespTokenDoesNotExist, context.Sender, context.Receiver)
 			log.Debug().Msgf("token %s (NonExist DeleteToken) Error", state.ID)
 
 		case SynchronizeToken:
-			break
+			s.SendMessage(RespTokenDoesNotExist, context.Sender, context.Receiver)
+			log.Debug().Msgf("token %s (NonExist SynchronizeToken) Error", state.ID)
 
 		default:
 			s.SendMessage(FatalError, context.Sender, context.Receiver)
@@ -100,6 +101,8 @@ func ExistToken(s *System) func(interface{}, system.Context) {
 
 		case SynchronizeToken:
 			log.Debug().Msgf("token %s (Exist SynchronizeToken)", state.ID)
+			log.Info().Msgf("Synchronizing %s", state.ID)
+			s.SendMessage(RespSynchronizeToken, context.Sender, context.Receiver)
 			context.Self.Become(t_state, SynchronizingToken(s))
 
 			go func() {
@@ -163,6 +166,7 @@ func SynchronizingToken(s *System) func(interface{}, system.Context) {
 			log.Debug().Msgf("token %s (Synchronizing CreateToken) Error", state.ID)
 
 		case SynchronizeToken:
+			s.SendMessage(RespSynchronizeToken, context.Sender, context.Receiver)
 			log.Debug().Msgf("token %s (Synchronizing SynchronizeToken)", state.ID)
 
 		case DeleteToken:

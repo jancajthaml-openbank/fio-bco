@@ -19,6 +19,9 @@ def setup_fio_mock(context):
 
 @then('token {tenant}/{token} should exist')
 def token_exists(context, tenant, token):
+  key = '{}/{}'.format(tenant, token)
+  assert key in context.tokens, 'token does not exist'
+
   uri = "https://127.0.0.1/token/{}".format(tenant)
 
   ctx = ssl.create_default_context()
@@ -30,27 +33,50 @@ def token_exists(context, tenant, token):
 
   try:
     response = urllib.request.urlopen(request, timeout=10, context=ctx)
+    assert response.status == 200, str(response.status)
+
+    actual = list()
+    for line in response.read().decode('utf-8').split('\n'):
+      if not line:
+        continue
+      actual.append(json.loads(line)['id'])
+
+    assert context.tokens[key] in actual, 'token {} not found in known tokens {}'.format(context.tokens[key], actual)
+
   except (http.client.RemoteDisconnected, socket.timeout):
     raise AssertionError('timeout')
-
-  assert response.status == 200
 
 
 @then('token {tenant}/{token} should not exist')
 def token_not_exists(context, tenant, token):
+  key = '{}/{}'.format(tenant, token)
+  if key not in context.tokens:
+    return
+
   uri = "https://127.0.0.1/token/{}".format(tenant)
 
   ctx = ssl.create_default_context()
   ctx.check_hostname = False
   ctx.verify_mode = ssl.CERT_NONE
 
+
+  request = urllib.request.Request(method='GET', url=uri)
+  request.add_header('Accept', 'application/json')
+
   try:
-    request = urllib.request.Request(method='GET', url=uri)
-    request.add_header('Accept', 'application/json')
+    response = urllib.request.urlopen(request, timeout=10, context=ctx)
+    assert response.status == 200, str(response.status)
+
+    actual = list()
+    for line in response.read().decode('utf-8').split('\n'):
+      if not line:
+        continue
+      actual.append(json.loads(line)['id'])
+
+    assert context.tokens[key] not in actual, 'token {} found in known tokens {}'.format(context.tokens[key], actual)
+
   except (http.client.RemoteDisconnected, socket.timeout):
     raise AssertionError('timeout')
-
-  assert response.status == 200
 
 
 @given('token {tenant}/{token} is created')
@@ -73,10 +99,55 @@ def create_token(context, tenant, token):
 
   try:
     response = urllib.request.urlopen(request, timeout=10, context=ctx)
+    assert response.status == 200
   except (http.client.RemoteDisconnected, socket.timeout):
     raise AssertionError('timeout')
 
-  assert response.status == 200
+  key = '{}/{}'.format(tenant, token)
+
+  context.tokens[key] = response.read().decode('utf-8')
+
+
+@given('token {tenant}/{token} is deleted')
+@when('token {tenant}/{token} is deleted')
+def create_token(context, tenant, token):
+  key = '{}/{}'.format(tenant, token)
+  assert key in context.tokens, 'token does not exist'
+
+  uri = "https://127.0.0.1/token/{}/{}".format(tenant, context.tokens[key])
+
+  ctx = ssl.create_default_context()
+  ctx.check_hostname = False
+  ctx.verify_mode = ssl.CERT_NONE
+
+  request = urllib.request.Request(method='DELETE', url=uri)
+
+  try:
+    response = urllib.request.urlopen(request, timeout=10, context=ctx)
+    assert response.status == 200, str(response.status)
+  except (http.client.RemoteDisconnected, socket.timeout):
+    raise AssertionError('timeout')
+
+
+@given('token {tenant}/{token} is ordered to synchronize')
+@when('token {tenant}/{token} is ordered to synchronize')
+def create_token(context, tenant, token):
+  key = '{}/{}'.format(tenant, token)
+  assert key in context.tokens, 'token does not exist'
+
+  uri = "https://127.0.0.1/token/{}/{}/sync".format(tenant, context.tokens[key])
+
+  ctx = ssl.create_default_context()
+  ctx.check_hostname = False
+  ctx.verify_mode = ssl.CERT_NONE
+
+  request = urllib.request.Request(method='GET', url=uri)
+
+  try:
+    response = urllib.request.urlopen(request, timeout=10, context=ctx)
+    assert response.status == 200, str(response.status)
+  except (http.client.RemoteDisconnected, socket.timeout):
+    raise AssertionError('timeout')
 
 
 @when('I request HTTP {uri}')
@@ -148,6 +219,8 @@ def check_http_response(context):
     if response['content-type'].startswith('text/plain'):
       actual = list()
       for line in response['body'].split('\n'):
+        if not line:
+          continue
         if line.startswith('{'):
           actual.append(json.loads(line))
         else:

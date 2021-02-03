@@ -65,7 +65,8 @@ func NewServer(port int, certPath string, keyPath string, rootStorage string, ac
 	router.GET("/tenant", ListTenants(systemControl))
 	router.POST("/tenant/:tenant", CreateTenant(systemControl))
 	router.DELETE("/tenant/:tenant", DeleteTenant(systemControl))
-
+	
+	router.GET("/token/:tenant/:id/sync", SynchronizeToken(actorSystem))
 	router.DELETE("/token/:tenant/:id", DeleteToken(actorSystem))
 	router.POST("/token/:tenant", CreateToken(actorSystem))
 	router.GET("/token/:tenant", GetTokens(storage))
