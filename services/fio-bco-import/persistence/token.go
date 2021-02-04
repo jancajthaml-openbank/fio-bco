@@ -15,8 +15,6 @@
 package persistence
 
 import (
-	"time"
-
 	localfs "github.com/jancajthaml-openbank/local-fs"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
