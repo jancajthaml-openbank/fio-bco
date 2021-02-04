@@ -44,8 +44,8 @@ type tcpKeepAliveListener struct {
 }
 
 // NewServer returns new secure server instance
-func NewServer(port int, certPath string, keyPath string, rootStorage string, actorSystem *actor.System, systemControl system.Control, diskMonitor system.CapacityCheck, memoryMonitor system.CapacityCheck) *Server {
-	storage, err := localfs.NewPlaintextStorage(rootStorage)
+func NewServer(port int, certPath string, keyPath string, rootStorage string, storageKey []byte, actorSystem *actor.System, systemControl system.Control, diskMonitor system.CapacityCheck, memoryMonitor system.CapacityCheck) *Server {
+	storage, err := localfs.NewEncryptedStorage(rootStorage, storageKey)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to ensure storage")
 		return nil

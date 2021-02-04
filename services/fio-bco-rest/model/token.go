@@ -71,10 +71,11 @@ func (entity *Token) Deserialize(data []byte) error {
 	if len(lines) < 1 {
 		return fmt.Errorf("malformed data")
 	}
-
-	if cast, err := time.Parse(time.RFC3339, lines[0]); err == nil {
-		entity.CreatedAt = cast
+	cast, err := time.Parse(time.RFC3339, lines[0])
+	if err != nil {
+		return fmt.Errorf("failed to parse createdAt")
 	}
+	entity.CreatedAt = cast
 
 	return nil
 }

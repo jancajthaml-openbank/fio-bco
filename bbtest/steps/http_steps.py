@@ -59,7 +59,6 @@ def token_not_exists(context, tenant, token):
   ctx.check_hostname = False
   ctx.verify_mode = ssl.CERT_NONE
 
-
   request = urllib.request.Request(method='GET', url=uri)
   request.add_header('Accept', 'application/json')
 
@@ -100,12 +99,10 @@ def create_token(context, tenant, token):
   try:
     response = urllib.request.urlopen(request, timeout=10, context=ctx)
     assert response.status == 200
+    key = '{}/{}'.format(tenant, token)
+    context.tokens[key] = response.read().decode('utf-8')
   except (http.client.RemoteDisconnected, socket.timeout):
     raise AssertionError('timeout')
-
-  key = '{}/{}'.format(tenant, token)
-
-  context.tokens[key] = response.read().decode('utf-8')
 
 
 @given('token {tenant}/{token} is deleted')
