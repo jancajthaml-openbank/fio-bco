@@ -54,12 +54,9 @@ func LoadToken(storage localfs.Storage, id string) *model.Token {
 
 // CreateToken persist token entity state to storage
 func CreateToken(storage localfs.Storage, id string, value string) *model.Token {
-	return PersistToken(storage, &model.Token{
-		ID:           id,
-		Value:        value,
-		CreatedAt:    time.Now().UTC(),
-		LastSyncedID: 0,
-	})
+	token := model.NewToken(id)
+	token.Value = value
+	return PersistToken(storage, &token)
 }
 
 // DeleteToken deletes existing token entity
