@@ -54,8 +54,40 @@ func CreateToken(sys *System, tenant string, token model.Token) interface{} {
 	}
 }
 
+// SynchronizeToken request immediate synchronization oftoken for target tenant
+func SynchronizeToken(sys *System, tenant string, token string) interface{} {
+	ch := make(chan interface{})
+
+	envelope := system.NewActor("relay/"+xid.New().String(), nil)
+	defer sys.UnregisterActor(envelope.Name)
+
+	sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
+		ch <- context.Data
+	})
+
+	sys.SendMessage(
+		SynchronizeTokenMessage(),
+		system.Coordinates{
+			Region: "FioImport/" + tenant,
+			Name:   token,
+		},
+		system.Coordinates{
+			Region: "FioRest",
+			Name:   envelope.Name,
+		},
+	)
+
+	select {
+	case result := <-ch:
+		return result
+	case <-time.After(5 * time.Second):
+		return new(ReplyTimeout)
+	}
+}
+
+
 // DeleteToken deletes existing token for target tenant
-func DeleteToken(sys *System, tenant string, tokenID string) interface{} {
+func DeleteToken(sys *System, tenant string, token string) interface{} {
 	ch := make(chan interface{})
 
 	envelope := system.NewActor("relay/"+xid.New().String(), nil)
@@ -69,7 +101,7 @@ func DeleteToken(sys *System, tenant string, tokenID string) interface{} {
 		DeleteTokenMessage(),
 		system.Coordinates{
 			Region: "FioImport/" + tenant,
-			Name:   tokenID,
+			Name:   token,
 		},
 		system.Coordinates{
 			Region: "FioRest",

@@ -15,8 +15,10 @@
 package actor
 
 const (
-	// SynchronizeTokens fio message request code for "Synchronize Tokens Now"
-	SynchronizeTokens = "ST"
+	// ReqSynchronizeToken fio message request code for "Synchronize Token"
+	ReqSynchronizeToken = "ST"
+	// RespSynchronizeToken fio message response code for "Synchronize Token"
+	RespSynchronizeToken = "TS"
 	// ReqCreateToken fio message request code for "New Token"
 	ReqCreateToken = "NT"
 	// RespCreateToken fio message response code for "New Token"
@@ -25,6 +27,8 @@ const (
 	ReqDeleteToken = "DT"
 	// RespDeleteToken fio message response code for "Delete Token"
 	RespDeleteToken = "TD"
+	// RespTokenDoesNotExist fio message response code for "Token does not Exist"
+	RespTokenDoesNotExist = "EM"
 	// FatalError fio message response code for "Error"
 	FatalError = "EE"
 )

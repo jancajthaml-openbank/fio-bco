@@ -15,8 +15,6 @@
 package persistence
 
 import (
-	"time"
-
 	localfs "github.com/jancajthaml-openbank/local-fs"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
@@ -33,13 +31,13 @@ func LoadTokens(storage localfs.Storage) ([]model.Token, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := make([]model.Token, len(tokens))
-	for i, id := range tokens {
+	result := make([]model.Token, 0)
+	for _, id := range tokens {
 		token := model.Token{
 			ID: id,
 		}
 		if HydrateToken(storage, &token) != nil {
-			result[i] = token
+			result = append(result, token)
 		}
 	}
 	return result, nil
@@ -54,12 +52,9 @@ func LoadToken(storage localfs.Storage, id string) *model.Token {
 
 // CreateToken persist token entity state to storage
 func CreateToken(storage localfs.Storage, id string, value string) *model.Token {
-	return PersistToken(storage, &model.Token{
-		ID:           id,
-		Value:        value,
-		CreatedAt:    time.Now().UTC(),
-		LastSyncedID: 0,
-	})
+	token := model.NewToken(id)
+	token.Value = value
+	return PersistToken(storage, &token)
 }
 
 // DeleteToken deletes existing token entity

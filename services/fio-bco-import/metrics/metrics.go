@@ -20,13 +20,15 @@ import (
 	"github.com/DataDog/datadog-go/statsd"
 )
 
+// Metrics provides helper function for metrics
 type Metrics interface {
 	TokenCreated()
 	TokenDeleted()
 	TransactionImported(transfers int)
 }
 
-type metrics struct {
+// StatsdMetrics provides metrics helper with statsd client
+type StatsdMetrics struct {
 	client               *statsd.Client
 	tenant               string
 	createdTokens        int64
@@ -36,13 +38,13 @@ type metrics struct {
 }
 
 // NewMetrics returns blank metrics holder
-func NewMetrics(tenant string, endpoint string) *metrics {
+func NewMetrics(tenant string, endpoint string) *StatsdMetrics {
 	client, err := statsd.New(endpoint, statsd.WithClientSideAggregation(), statsd.WithoutTelemetry())
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to ensure statsd client")
 		return nil
 	}
-	return &metrics{
+	return &StatsdMetrics{
 		client:               client,
 		tenant:               tenant,
 		createdTokens:        int64(0),
@@ -53,7 +55,7 @@ func NewMetrics(tenant string, endpoint string) *metrics {
 }
 
 // TokenCreated increments token created by one
-func (instance *metrics) TokenCreated() {
+func (instance *StatsdMetrics) TokenCreated() {
 	if instance == nil {
 		return
 	}
@@ -61,7 +63,7 @@ func (instance *metrics) TokenCreated() {
 }
 
 // TokenDeleted increments token deleted by one
-func (instance *metrics) TokenDeleted() {
+func (instance *StatsdMetrics) TokenDeleted() {
 	if instance == nil {
 		return
 	}
@@ -70,7 +72,7 @@ func (instance *metrics) TokenDeleted() {
 }
 
 // TransactionImported increments transactions importer by one
-func (instance *metrics) TransactionImported(transfers int) {
+func (instance *StatsdMetrics) TransactionImported(transfers int) {
 	if instance == nil {
 		return
 	}
@@ -79,23 +81,23 @@ func (instance *metrics) TransactionImported(transfers int) {
 }
 
 // Setup does nothing
-func (_ *metrics) Setup() error {
+func (*StatsdMetrics) Setup() error {
 	return nil
 }
 
 // Done returns always finished
-func (_ *metrics) Done() <-chan interface{} {
+func (*StatsdMetrics) Done() <-chan interface{} {
 	done := make(chan interface{})
 	close(done)
 	return done
 }
 
 // Cancel does nothing
-func (_ *metrics) Cancel() {
+func (*StatsdMetrics) Cancel() {
 }
 
 // Work represents metrics worker work
-func (instance *metrics) Work() {
+func (instance *StatsdMetrics) Work() {
 	if instance == nil {
 		return
 	}

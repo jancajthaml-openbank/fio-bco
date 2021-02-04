@@ -49,7 +49,7 @@ func parseMessage(msg string, to system.Coordinates) (interface{}, error) {
 
 	switch parts[0] {
 
-	case SynchronizeTokens:
+	case ReqSynchronizeToken:
 		return SynchronizeToken{}, nil
 
 	case ReqCreateToken:
@@ -76,8 +76,10 @@ func ProcessMessage(s *System) system.ProcessMessage {
 	return func(msg string, to system.Coordinates, from system.Coordinates) {
 		message, err := parseMessage(msg, to)
 		if err != nil {
-			log.Warn().Err(err).Msgf("Failed to parse message [remote %v -> local %v]", from, to)
-			s.SendMessage(FatalError, from, to)
+			if from != to && to.Name != "" {
+				log.Warn().Err(err).Msgf("Failed to parse message [remote %v -> local %v]", from, to)
+				s.SendMessage(FatalError, from, to)
+			}
 			return
 		}
 		ref, err := s.ActorOf(to.Name)
@@ -85,8 +87,10 @@ func ProcessMessage(s *System) system.ProcessMessage {
 			ref, err = spawnTokenActor(s, to.Name)
 		}
 		if err != nil {
-			log.Warn().Msgf("Actor not found [remote %v -> local %v]", from, to)
-			s.SendMessage(FatalError, to, from)
+			if from != to && to.Name != "" {
+				log.Warn().Err(err).Msgf("Deadletter [remote %v -> local %v] %s", from, to, msg)
+				s.SendMessage(FatalError, to, from)
+			}
 			return
 		}
 		ref.Tell(message, to, from)

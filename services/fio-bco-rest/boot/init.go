@@ -70,6 +70,7 @@ func (prog *Program) Setup() {
 		prog.cfg.ServerCert,
 		prog.cfg.ServerKey,
 		prog.cfg.RootStorage,
+		prog.cfg.EncryptionKey,
 		actorSystem,
 		systemControl,
 		diskMonitorWorker,

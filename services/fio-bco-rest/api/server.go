@@ -44,8 +44,8 @@ type tcpKeepAliveListener struct {
 }
 
 // NewServer returns new secure server instance
-func NewServer(port int, certPath string, keyPath string, rootStorage string, actorSystem *actor.System, systemControl system.Control, diskMonitor system.CapacityCheck, memoryMonitor system.CapacityCheck) *Server {
-	storage, err := localfs.NewPlaintextStorage(rootStorage)
+func NewServer(port int, certPath string, keyPath string, rootStorage string, storageKey []byte, actorSystem *actor.System, systemControl system.Control, diskMonitor system.CapacityCheck, memoryMonitor system.CapacityCheck) *Server {
+	storage, err := localfs.NewEncryptedStorage(rootStorage, storageKey)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to ensure storage")
 		return nil
@@ -65,7 +65,8 @@ func NewServer(port int, certPath string, keyPath string, rootStorage string, ac
 	router.GET("/tenant", ListTenants(systemControl))
 	router.POST("/tenant/:tenant", CreateTenant(systemControl))
 	router.DELETE("/tenant/:tenant", DeleteTenant(systemControl))
-
+	
+	router.GET("/token/:tenant/:id/sync", SynchronizeToken(actorSystem))
 	router.DELETE("/token/:tenant/:id", DeleteToken(actorSystem))
 	router.POST("/token/:tenant", CreateToken(actorSystem))
 	router.GET("/token/:tenant", GetTokens(storage))
