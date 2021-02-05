@@ -24,28 +24,26 @@ import (
 type FioClient struct {
 	underlying Client
 	gateway    string
-	token      model.Token
 }
 
 // NewFioClient returns new fio http client
-func NewFioClient(gateway string, token model.Token) *FioClient {
+func NewFioClient(gateway string) *FioClient {
 	return &FioClient{
 		gateway:    gateway,
 		underlying: NewHTTPClient(),
-		token:      token,
 	}
 }
 
-func (client *FioClient) setLastSyncedID() error {
+func (client *FioClient) setLastSyncedID(token model.Token) error {
 	if client == nil {
 		return fmt.Errorf("nil deference")
 	}
 
 	var uri string
-	if client.token.LastSyncedID != 0 {
-		uri = fmt.Sprintf("/ib_api/rest/set-last-id/%s/%d/", client.token.Value, client.token.LastSyncedID)
+	if token.LastSyncedID != 0 {
+		uri = fmt.Sprintf("/ib_api/rest/set-last-id/%s/%d/", token.Value, token.LastSyncedID)
 	} else {
-		uri = fmt.Sprintf("/ib_api/rest/set-last-date/%s/2012-07-27/", client.token.Value)
+		uri = fmt.Sprintf("/ib_api/rest/set-last-date/%s/2012-07-27/", token.Value)
 	}
 
 	response, err := client.underlying.Get(client.gateway+uri, nil)
@@ -59,17 +57,17 @@ func (client *FioClient) setLastSyncedID() error {
 }
 
 // GetTransactions returns transactions since last synchronized id
-func (client *FioClient) GetTransactions() (*model.ImportEnvelope, error) {
+func (client *FioClient) GetTransactions(token model.Token) (*model.ImportEnvelope, error) {
 	if client == nil {
 		return nil, fmt.Errorf("nil deference")
 	}
 
-	err := client.setLastSyncedID()
+	err := client.setLastSyncedID(token)
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := client.underlying.Get(client.gateway+"/ib_api/rest/last/"+client.token.Value+"/transactions.json", nil)
+	response, err := client.underlying.Get(client.gateway+"/ib_api/rest/last/"+token.Value+"/transactions.json", nil)
 	if err != nil {
 		return nil, err
 	}

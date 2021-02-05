@@ -16,6 +16,7 @@ package integration
 
 import (
 	"sort"
+	"fmt"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/metrics"
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
@@ -51,13 +52,88 @@ func NewWorkflow(
 	return Workflow{
 		Token:            token,
 		Tenant:           tenant,
-		FioClient:        http.NewFioClient(fioGateway, *token),
+		FioClient:        http.NewFioClient(fioGateway),
 		VaultClient:      http.NewVaultClient(vaultGateway),
 		LedgerClient:     http.NewLedgerClient(ledgerGateway),
 		EncryptedStorage: encryptedStorage,
 		PlaintextStorage: plaintextStorage,
 		Metrics:          metrics,
 	}
+}
+
+func createAccountsFromStatements(
+	tenant string,
+	vaultClient *http.VaultClient,
+	envelope *model.ImportEnvelope,
+) error {
+	if envelope == nil {
+		return fmt.Errorf("nil statements")
+	}
+
+	accounts := make(map[string]model.Account)
+
+	var set = make(map[string]model.FioStatement)
+
+	for _, transfer := range envelope.Statement.TransactionList.Transactions {
+		if transfer.AccountTo == nil {
+			// INFO fee and taxes and maybe card payments
+			set[envelope.Statement.Info.BIC] = transfer
+		} else {
+			set[transfer.AccountTo.Value] = transfer
+		}
+	}
+
+	var normalizedAccount string
+	var accountFormat string
+	var currency string
+
+	for account, transfer := range set {
+		if transfer.AcountToBankCode != nil {
+			normalizedAccount = model.NormalizeAccountNumber(account, transfer.AcountToBankCode.Value, envelope.Statement.Info.BankID)
+		} else {
+			normalizedAccount = model.NormalizeAccountNumber(account, "", envelope.Statement.Info.BankID)
+		}
+
+		if normalizedAccount != account {
+			accountFormat = "IBAN"
+		} else {
+			accountFormat = "FIO_UNKNOWN"
+		}
+
+		if transfer.Currency == nil {
+			currency = envelope.Statement.Info.Currency
+		} else {
+			currency = transfer.Currency.Value
+		}
+
+		accounts[normalizedAccount] = model.Account{
+			Tenant:         tenant,
+			Name:           normalizedAccount,
+			Format:         accountFormat,
+			Currency:       currency,
+			IsBalanceCheck: false,
+		}
+
+	}
+
+	accounts[envelope.Statement.Info.IBAN] = model.Account{
+		Tenant:         tenant,
+		Name:           envelope.Statement.Info.IBAN,
+		Format:         "IBAN",
+		Currency:       envelope.Statement.Info.Currency,
+		IsBalanceCheck: false,
+	}
+
+	for _, account := range accounts {
+		log.Info().Msgf("Creating account %s/%s", account.Tenant, account.Name)
+
+		err := vaultClient.CreateAccount(account)
+		if err != nil {
+			return fmt.Errorf("unable to create account %s/%s", account.Tenant, account.Name)
+		}
+	}
+
+	return nil
 }
 
 func synchronizeNewStatements(
@@ -70,12 +146,23 @@ func synchronizeNewStatements(
 	ledgerClient *http.LedgerClient,
 	metrics metrics.Metrics,
 ) {
+	if token == nil {
+		return
+	}
 
-	statements, err := fioClient.GetTransactions()
+	statements, err := fioClient.GetTransactions(*token)
 	if err != nil {
 		return
 	}
 	if len(statements.Statement.TransactionList.Transactions) == 0 {
+		return
+	}
+
+	log.Debug().Msgf("token %s importing accounts", token.ID)
+
+	err = createAccountsFromStatements(tenant, vaultClient, statements)
+	if err != nil {
+		log.Warn().Err(err).Msgf("Unable to create accounts from statements")
 		return
 	}
 
@@ -84,16 +171,6 @@ func synchronizeNewStatements(
 	sort.SliceStable(statements.Statement.TransactionList.Transactions, func(i, j int) bool {
 		return statements.Statement.TransactionList.Transactions[i].TransactionID.Value < statements.Statement.TransactionList.Transactions[j].TransactionID.Value
 	})
-
-	log.Debug().Msgf("token %s importing accounts", token.ID)
-
-	for account := range statements.GetAccounts(tenant) {
-		err = vaultClient.CreateAccount(account)
-		if err != nil {
-			log.Warn().Err(err).Msgf("Unable to create account %s/%s", tenant, account.Name)
-			return
-		}
-	}
 
 	log.Debug().Msgf("token %s importing transactions", token.ID)
 
