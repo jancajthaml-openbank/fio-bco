@@ -125,11 +125,11 @@ func createAccountsFromStatements(
 	}
 
 	for _, account := range accounts {
-		log.Info().Msgf("Creating account %s/%s", account.Tenant, account.Name)
+		log.Info().Msgf("Creating account %s", account.Name)
 
 		err := vaultClient.CreateAccount(account)
 		if err != nil {
-			return fmt.Errorf("unable to create account %s/%s", account.Tenant, account.Name)
+			return fmt.Errorf("unable to create account %s", account.Name)
 		}
 	}
 
