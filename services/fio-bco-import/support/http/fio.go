@@ -34,9 +34,11 @@ func NewFioClient(gateway string) *FioClient {
 	}
 }
 
-func (client *FioClient) setLastSyncedID(token model.Token) error {
+// GetStatementsEnvelope returns envelope since last synchronized id and sets that
+// id as pivot for next calls
+func (client *FioClient) GetStatementsEnvelope(token model.Token) (*model.FioEnvelope, error) {
 	if client == nil {
-		return fmt.Errorf("nil deference")
+		return nil, fmt.Errorf("nil deference")
 	}
 
 	var uri string
@@ -48,39 +50,39 @@ func (client *FioClient) setLastSyncedID(token model.Token) error {
 
 	response, err := client.underlying.Get(client.gateway+uri, nil)
 	if err != nil {
-		return err
-	}
-	if response.Status != 200 {
-		return fmt.Errorf("fio set last synced id error %s", response.String())
-	}
-	return nil
-}
-
-// GetTransactions returns transactions since last synchronized id
-func (client *FioClient) GetTransactions(token model.Token) (*model.ImportEnvelope, error) {
-	if client == nil {
-		return nil, fmt.Errorf("nil deference")
-	}
-
-	err := client.setLastSyncedID(token)
-	if err != nil {
-		return nil, err
-	}
-
-	response, err := client.underlying.Get(client.gateway+"/ib_api/rest/last/"+token.Value+"/transactions.json", nil)
-	if err != nil {
 		return nil, err
 	}
 	if response.Status != 200 {
 		return nil, fmt.Errorf("fio set last synced id error %s", response.String())
 	}
 
-	var envelope = new(model.ImportEnvelope)
-	err = json.Unmarshal(response.Data, envelope)
-	// FIXME streaming not full envelope
+	uri = "/ib_api/rest/last/" + token.Value + "/transactions.json"
+
+	response, err = client.underlying.Get(client.gateway+uri, nil)
+	if err != nil {
+		return nil, err
+	}
+	if response.Status != 200 {
+		return nil, fmt.Errorf("fio get transactions.json error %s", response.String())
+	}
+
+	all := struct {
+		Statement struct {
+			Info            model.FioAccountInfo `json:"info"`
+			TransactionList struct {
+				Transactions []model.FioStatement `json:"transaction"`
+			} `json:"transactionList"`
+		} `json:"accountStatement"`
+	}{}
+
+	err = json.Unmarshal(response.Data, &all)
 	if err != nil {
 		return nil, err
 	}
 
-	return envelope, nil
+	result := new(model.FioEnvelope)
+	result.Info = all.Statement.Info
+	result.Transactions = all.Statement.TransactionList.Transactions
+
+	return result, nil
 }

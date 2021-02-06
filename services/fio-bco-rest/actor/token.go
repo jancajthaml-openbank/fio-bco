@@ -85,7 +85,6 @@ func SynchronizeToken(sys *System, tenant string, token string) interface{} {
 	}
 }
 
-
 // DeleteToken deletes existing token for target tenant
 func DeleteToken(sys *System, tenant string, token string) interface{} {
 	ch := make(chan interface{})

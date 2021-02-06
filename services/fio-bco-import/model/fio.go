@@ -14,23 +14,14 @@
 
 package model
 
-import (
-	"math"
-	"strconv"
-	"time"
-)
-
-// ImportEnvelope represents fio gateway import statement entity
-type ImportEnvelope struct {
-	Statement accountStatement `json:"accountStatement"`
+// FioEnvelope represents fio gateway import statement envelope
+type FioEnvelope struct {
+	Info         FioAccountInfo
+	Transactions []FioStatement
 }
 
-type accountStatement struct {
-	Info            accountInfo     `json:"info"`
-	TransactionList transactionList `json:"transactionList"`
-}
-
-type accountInfo struct {
+// FioAccountInfo represent chunk at accountStatement/info from transactions.json response
+type FioAccountInfo struct {
 	AccountID      string  `json:"accountId"`
 	BankID         string  `json:"bankId"`
 	Currency       string  `json:"currency"`
@@ -43,10 +34,7 @@ type accountInfo struct {
 	IDLastDownload int     `json:"idLastDownload"`
 }
 
-type transactionList struct {
-	Transactions []FioStatement `json:"transaction"`
-}
-
+// FioStatement represent chunk of accountStatement/transactionList/transaction from transactions.json response
 type FioStatement struct {
 	TransferDate     *stringNode `json:"column0"`
 	Amount           *floatNode  `json:"column1"`
@@ -65,12 +53,6 @@ type stringNode struct {
 	ID    int    `json:"id"`
 }
 
-type dateNode struct {
-	Value string `json:"value"`
-	Name  string `json:"name"`
-	ID    int    `json:"id"`
-}
-
 type intNode struct {
 	Value int64  `json:"value"`
 	Name  string `json:"name"`
@@ -82,121 +64,3 @@ type floatNode struct {
 	Name  string  `json:"name"`
 	ID    int     `json:"id"`
 }
-
-// GetTransactions return generator of fio transactions over given envelope
-func (envelope *ImportEnvelope) GetTransactions(tenant string) <-chan Transaction {
-	chnl := make(chan Transaction)
-	if envelope == nil {
-		close(chnl)
-		return chnl
-	}
-
-	var previousIDTransaction = ""
-	var buffer = make([]Transfer, 0)
-
-	go func() {
-		defer close(chnl)
-
-		now := time.Now()
-
-		var credit string
-		var debit string
-		var currency string
-		var valueDate time.Time
-
-		for _, transfer := range envelope.Statement.TransactionList.Transactions {
-			if transfer.TransferID == nil || transfer.Amount == nil {
-				continue
-			}
-
-			if transfer.Amount.Value > 0 {
-				credit = envelope.Statement.Info.IBAN
-				if transfer.AccountTo == nil {
-					debit = envelope.Statement.Info.BIC
-				} else {
-					if transfer.AcountToBankCode != nil {
-						debit = NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AcountToBankCode.Value, envelope.Statement.Info.BankID)
-					} else if transfer.AccountToBIC != nil {
-						debit = NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AccountToBIC.Value, envelope.Statement.Info.BankID)
-					} else {
-						debit = NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.Statement.Info.BankID)
-					}
-				}
-			} else {
-				if transfer.AccountTo == nil {
-					credit = envelope.Statement.Info.BIC
-				} else {
-					if transfer.AcountToBankCode != nil {
-						credit = NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AcountToBankCode.Value, envelope.Statement.Info.BankID)
-					} else if transfer.AccountToBIC != nil {
-						credit = NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AccountToBIC.Value, envelope.Statement.Info.BankID)
-					} else {
-						credit = NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.Statement.Info.BankID)
-					}
-				}
-				debit = envelope.Statement.Info.IBAN
-			}
-
-			if transfer.TransferDate == nil {
-				valueDate = now
-			} else if date, err := time.Parse("2006-01-02-0700", transfer.TransferDate.Value); err == nil {
-				valueDate = date.UTC()
-			} else {
-				valueDate = now
-			}
-
-			if transfer.Currency == nil {
-				currency = envelope.Statement.Info.Currency
-			} else {
-				currency = transfer.Currency.Value
-			}
-
-			idTransaction := envelope.Statement.Info.IBAN + strconv.FormatInt(transfer.TransactionID.Value, 10)
-
-			if previousIDTransaction == "" {
-				previousIDTransaction = idTransaction
-			} else if previousIDTransaction != idTransaction {
-				transfers := make([]Transfer, len(buffer))
-				copy(transfers, buffer)
-				buffer = make([]Transfer, 0)
-				chnl <- Transaction{
-					Tenant:        tenant,
-					IDTransaction: previousIDTransaction,
-					Transfers:     transfers,
-				}
-				previousIDTransaction = idTransaction
-			}
-
-			buffer = append(buffer, Transfer{
-				IDTransfer: transfer.TransferID.Value,
-				Credit: AccountPair{
-					Tenant: tenant,
-					Name:   credit,
-				},
-				Debit: AccountPair{
-					Tenant: tenant,
-					Name:   debit,
-				},
-				ValueDate: valueDate.Format("2006-01-02T15:04:05Z0700"),
-				Amount:    strconv.FormatFloat(math.Abs(transfer.Amount.Value), 'f', -1, 64),
-				Currency:  currency,
-			})
-		}
-
-		if len(buffer) == 0 {
-			return
-		}
-
-		transfers := make([]Transfer, len(buffer))
-		copy(transfers, buffer)
-		buffer = make([]Transfer, 0)
-		chnl <- Transaction{
-			Tenant:        tenant,
-			IDTransaction: previousIDTransaction,
-			Transfers:     transfers,
-		}
-	}()
-
-	return chnl
-}
-
