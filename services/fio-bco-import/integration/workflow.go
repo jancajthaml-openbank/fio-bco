@@ -15,7 +15,11 @@
 package integration
 
 import (
+	"fmt"
+	"math"
 	"sort"
+	"strconv"
+	"time"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/metrics"
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
@@ -51,13 +55,232 @@ func NewWorkflow(
 	return Workflow{
 		Token:            token,
 		Tenant:           tenant,
-		FioClient:        http.NewFioClient(fioGateway, *token),
+		FioClient:        http.NewFioClient(fioGateway),
 		VaultClient:      http.NewVaultClient(vaultGateway),
 		LedgerClient:     http.NewLedgerClient(ledgerGateway),
 		EncryptedStorage: encryptedStorage,
 		PlaintextStorage: plaintextStorage,
 		Metrics:          metrics,
 	}
+}
+
+func createAccountsFromStatements(
+	tenant string,
+	vaultClient *http.VaultClient,
+	envelope *model.FioEnvelope,
+) error {
+	if envelope == nil {
+		return fmt.Errorf("nil statements")
+	}
+
+	accounts := make(map[string]model.Account)
+
+	var set = make(map[string]model.FioStatement)
+
+	for _, transfer := range envelope.Transactions {
+		if transfer.AccountTo == nil {
+			// INFO fee and taxes and maybe card payments
+			set[envelope.Info.BIC] = transfer
+		} else {
+			set[transfer.AccountTo.Value] = transfer
+		}
+	}
+
+	var normalizedAccount string
+	var accountFormat string
+	var currency string
+
+	for account, transfer := range set {
+		if transfer.AcountToBankCode != nil {
+			normalizedAccount = model.NormalizeAccountNumber(account, transfer.AcountToBankCode.Value, envelope.Info.BankID)
+		} else {
+			normalizedAccount = model.NormalizeAccountNumber(account, "", envelope.Info.BankID)
+		}
+
+		if normalizedAccount != account {
+			accountFormat = "IBAN"
+		} else {
+			accountFormat = "FIO_UNKNOWN"
+		}
+
+		if transfer.Currency == nil {
+			currency = envelope.Info.Currency
+		} else {
+			currency = transfer.Currency.Value
+		}
+
+		accounts[normalizedAccount] = model.Account{
+			Tenant:         tenant,
+			Name:           normalizedAccount,
+			Format:         accountFormat,
+			Currency:       currency,
+			IsBalanceCheck: false,
+		}
+
+	}
+
+	accounts[envelope.Info.IBAN] = model.Account{
+		Tenant:         tenant,
+		Name:           envelope.Info.IBAN,
+		Format:         "IBAN",
+		Currency:       envelope.Info.Currency,
+		IsBalanceCheck: false,
+	}
+
+	for _, account := range accounts {
+		log.Info().Msgf("Creating account %s", account.Name)
+
+		err := vaultClient.CreateAccount(account)
+		if err != nil {
+			return fmt.Errorf("unable to create account %s", account.Name)
+		}
+	}
+
+	return nil
+}
+
+func createTransactionsFromStatements(
+	tenant string,
+	ledgerClient *http.LedgerClient,
+	encryptedStorage localfs.Storage,
+	metrics metrics.Metrics,
+	token *model.Token,
+	envelope *model.FioEnvelope,
+) error {
+	if envelope == nil {
+		return fmt.Errorf("nil statements")
+	}
+
+	sort.SliceStable(envelope.Transactions, func(i, j int) bool {
+		return envelope.Transactions[i].TransactionID.Value < envelope.Transactions[j].TransactionID.Value
+	})
+
+	previousIDTransaction := ""
+	transfers := make([]model.Transfer, 0)
+
+	now := time.Now()
+
+	var credit string
+	var debit string
+	var currency string
+	var valueDate time.Time
+
+	for _, transfer := range envelope.Transactions {
+		if transfer.TransferID == nil || transfer.Amount == nil {
+			continue
+		}
+
+		if transfer.Amount.Value > 0 {
+			credit = envelope.Info.IBAN
+			if transfer.AccountTo == nil {
+				debit = envelope.Info.BIC
+			} else {
+				if transfer.AcountToBankCode != nil {
+					debit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AcountToBankCode.Value, envelope.Info.BankID)
+				} else if transfer.AccountToBIC != nil {
+					debit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AccountToBIC.Value, envelope.Info.BankID)
+				} else {
+					debit = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.Info.BankID)
+				}
+			}
+		} else {
+			if transfer.AccountTo == nil {
+				credit = envelope.Info.BIC
+			} else {
+				if transfer.AcountToBankCode != nil {
+					credit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AcountToBankCode.Value, envelope.Info.BankID)
+				} else if transfer.AccountToBIC != nil {
+					credit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AccountToBIC.Value, envelope.Info.BankID)
+				} else {
+					credit = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.Info.BankID)
+				}
+			}
+			debit = envelope.Info.IBAN
+		}
+
+		if transfer.TransferDate == nil {
+			valueDate = now
+		} else if date, err := time.Parse("2006-01-02-0700", transfer.TransferDate.Value); err == nil {
+			valueDate = date.UTC()
+		} else {
+			valueDate = now
+		}
+
+		if transfer.Currency == nil {
+			currency = envelope.Info.Currency
+		} else {
+			currency = transfer.Currency.Value
+		}
+
+		idTransaction := envelope.Info.IBAN + strconv.FormatInt(transfer.TransactionID.Value, 10)
+
+		if previousIDTransaction == "" {
+			previousIDTransaction = idTransaction
+		} else if previousIDTransaction != idTransaction {
+			log.Info().Msgf("Creating transaction %s", previousIDTransaction)
+			err := ledgerClient.CreateTransaction(model.Transaction{
+				Tenant:        tenant,
+				IDTransaction: previousIDTransaction,
+				Transfers:     transfers,
+			})
+			if err != nil {
+				return fmt.Errorf("unable to create transaction %s/%s", tenant, previousIDTransaction)
+			}
+			metrics.TransactionImported(len(transfers))
+			for _, transfer := range transfers {
+				if token.LastSyncedID > transfer.IDTransfer {
+					continue
+				}
+				token.LastSyncedID = transfer.IDTransfer
+				if !persistence.UpdateToken(encryptedStorage, token) {
+					log.Warn().Msgf("unable to update token %s", token.ID)
+				}
+			}
+			previousIDTransaction = idTransaction
+			transfers = make([]model.Transfer, 0)
+		}
+
+		transfers = append(transfers, model.Transfer{
+			IDTransfer: transfer.TransferID.Value,
+			Credit: model.AccountPair{
+				Tenant: tenant,
+				Name:   credit,
+			},
+			Debit: model.AccountPair{
+				Tenant: tenant,
+				Name:   debit,
+			},
+			ValueDate: valueDate.Format("2006-01-02T15:04:05Z0700"),
+			Amount:    strconv.FormatFloat(math.Abs(transfer.Amount.Value), 'f', -1, 64),
+			Currency:  currency,
+		})
+	}
+
+	if len(transfers) == 0 {
+		return nil
+	}
+
+	log.Info().Msgf("Creating transaction %s", previousIDTransaction)
+	err := ledgerClient.CreateTransaction(model.Transaction{
+		Tenant:        tenant,
+		IDTransaction: previousIDTransaction,
+		Transfers:     transfers,
+	})
+	if err != nil {
+		return fmt.Errorf("unable to create transaction %s/%s", tenant, previousIDTransaction)
+	}
+	metrics.TransactionImported(len(transfers))
+	for _, transfer := range transfers {
+		if token.LastSyncedID > transfer.IDTransfer {
+			continue
+		}
+		token.LastSyncedID = transfer.IDTransfer
+		if !persistence.UpdateToken(encryptedStorage, token) {
+			log.Warn().Msgf("unable to update token %s", token.ID)
+		}
+	}
+
+	return nil
 }
 
 func synchronizeNewStatements(
@@ -70,55 +293,35 @@ func synchronizeNewStatements(
 	ledgerClient *http.LedgerClient,
 	metrics metrics.Metrics,
 ) {
+	if token == nil {
+		return
+	}
 
-	statements, err := fioClient.GetTransactions()
+	envelope, err := fioClient.GetStatementsEnvelope(*token)
 	if err != nil {
+		log.Warn().Err(err).Msgf("Unable to get envelope")
 		return
 	}
-	if len(statements.Statement.TransactionList.Transactions) == 0 {
+	if len(envelope.Transactions) == 0 {
 		return
 	}
-
-	log.Debug().Msgf("token %s sorting statements", token.ID)
-
-	sort.SliceStable(statements.Statement.TransactionList.Transactions, func(i, j int) bool {
-		return statements.Statement.TransactionList.Transactions[i].TransactionID.Value < statements.Statement.TransactionList.Transactions[j].TransactionID.Value
-	})
 
 	log.Debug().Msgf("token %s importing accounts", token.ID)
-
-	for account := range statements.GetAccounts(tenant) {
-		err = vaultClient.CreateAccount(account)
-		if err != nil {
-			log.Warn().Err(err).Msgf("Unable to create account %s/%s", tenant, account.Name)
-			return
-		}
+	err = createAccountsFromStatements(tenant, vaultClient, envelope)
+	if err != nil {
+		log.Warn().Err(err).Msgf("Unable to create accounts from envelope")
+		return
 	}
 
 	log.Debug().Msgf("token %s importing transactions", token.ID)
-
-	for transaction := range statements.GetTransactions(tenant) {
-		err = ledgerClient.CreateTransaction(transaction)
-		if err != nil {
-			log.Warn().Err(err).Msgf("Unable to create transaction %s/%s", tenant, transaction.IDTransaction)
-			return
-		}
-
-		metrics.TransactionImported(len(transaction.Transfers))
-
-		for _, transfer := range transaction.Transfers {
-			if token.LastSyncedID > transfer.IDTransfer {
-				continue
-			}
-			token.LastSyncedID = transfer.IDTransfer
-			if !persistence.UpdateToken(encryptedStorage, token) {
-				log.Warn().Msgf("unable to update token %s", token.ID)
-			}
-		}
+	err = createTransactionsFromStatements(tenant, ledgerClient, encryptedStorage, metrics, token, envelope)
+	if err != nil {
+		log.Warn().Err(err).Msgf("Unable to create transactions from envelope")
+		return
 	}
-
 }
 
+// SynchronizeStatements downloads new statements from fio gateway and creates accounts and transactions in core
 func (workflow Workflow) SynchronizeStatements() {
 	synchronizeNewStatements(
 		workflow.EncryptedStorage,

@@ -137,7 +137,7 @@ func (client *Client) Get(url string, headers map[string]string) (response Respo
 			_, err = io.Copy(ioutil.Discard, resp.Body)
 			resp.Body.Close()
 		} else if resp == nil && err != nil {
-			err = fmt.Errorf("runtime error, no response %+v", err)
+			err = fmt.Errorf("runtime error, no response %w", err)
 		}
 
 		if err == nil {

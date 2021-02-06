@@ -45,7 +45,7 @@ func (client *VaultClient) CreateAccount(account model.Account) error {
 	}
 	response, err := client.underlying.Post(client.gateway+"/account/"+account.Tenant, request, nil)
 	if err != nil {
-		return fmt.Errorf("create account error %+v", err)
+		return fmt.Errorf("create account error %w", err)
 	}
 	if response.Status == 400 {
 		return fmt.Errorf("create account malformed request %s", string(request))
