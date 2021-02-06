@@ -46,7 +46,7 @@ func (client *LedgerClient) CreateTransaction(transaction model.Transaction) err
 	}
 	response, err := client.underlying.Post(client.gateway+"/transaction/"+transaction.Tenant, request, nil)
 	if err != nil {
-		return fmt.Errorf("create transaction %s error %+v", transaction.IDTransaction, err)
+		return fmt.Errorf("create transaction %s error %w", transaction.IDTransaction, err)
 	}
 	if response.Status == 409 {
 		return fmt.Errorf("create transaction %s duplicate %+v", transaction.IDTransaction, transaction)

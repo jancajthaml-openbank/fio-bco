@@ -40,7 +40,7 @@ type DbusControl struct {
 func NewSystemControl() Control {
 	connection, err := dbus.New()
 	if err != nil {
-		log.Error().Msgf("Unable to obtain dbus connection because %+v", err)
+		log.Error().Err(err).Msgf("Unable to obtain dbus connection")
 		return nil
 	}
 	return &DbusControl{
@@ -123,7 +123,7 @@ func (sys *DbusControl) DisableUnit(name string) error {
 	fullName := "fio-bco-" + name
 
 	if _, err := sys.underlying.StopUnit(fullName, "replace", ch); err != nil {
-		return fmt.Errorf("unable to stop unit %s because %+v", fullName, err)
+		return fmt.Errorf("unable to stop unit %s because %w", fullName, err)
 	}
 
 	select {
@@ -135,7 +135,7 @@ func (sys *DbusControl) DisableUnit(name string) error {
 		log.Info().Msgf("Stopped unit %s", fullName)
 
 		if _, err := sys.underlying.DisableUnitFiles([]string{fullName}, false); err != nil {
-			return fmt.Errorf("unable to disable unit %s because %+v", fullName, err)
+			return fmt.Errorf("unable to disable unit %s because %w", fullName, err)
 		}
 
 		log.Info().Msgf("Disabled unit %s", fullName)
@@ -157,13 +157,13 @@ func (sys *DbusControl) EnableUnit(name string) error {
 	fullName := "fio-bco-" + name
 
 	if _, _, err := sys.underlying.EnableUnitFiles([]string{fullName}, false, false); err != nil {
-		return fmt.Errorf("unable to enable unit %s because %+v", fullName, err)
+		return fmt.Errorf("unable to enable unit %s because %w", fullName, err)
 	}
 
 	ch := make(chan string)
 
 	if _, err := sys.underlying.StartUnit(fullName, "replace", ch); err != nil {
-		return fmt.Errorf("unable to start unit %s because %+v", fullName, err)
+		return fmt.Errorf("unable to start unit %s because %w", fullName, err)
 	}
 
 	select {
