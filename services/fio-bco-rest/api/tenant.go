@@ -16,6 +16,7 @@ package api
 
 import (
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/jancajthaml-openbank/fio-bco-rest/system"
@@ -26,12 +27,17 @@ import (
 // CreateTenant enables fio-bco-import@{tenant}
 func CreateTenant(control system.Control) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		tenant := strings.TrimSpace(c.Param("tenant"))
+		unescapedTenant, err := url.PathUnescape(c.Param("tenant"))
+		if err != nil {
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
+		}
+		tenant := strings.TrimSpace(unescapedTenant)
 		if tenant == "" {
 			c.Response().WriteHeader(http.StatusNotFound)
 			return nil
 		}
-		err := control.EnableUnit("import@" + tenant + ".service")
+		err = control.EnableUnit("import@" + tenant + ".service")
 		if err != nil {
 			return err
 		}
@@ -43,12 +49,17 @@ func CreateTenant(control system.Control) func(c echo.Context) error {
 // DeleteTenant disables fio-bco-import@{tenant}
 func DeleteTenant(control system.Control) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		tenant := strings.TrimSpace(c.Param("tenant"))
+		unescapedTenant, err := url.PathUnescape(c.Param("tenant"))
+		if err != nil {
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
+		}
+		tenant := strings.TrimSpace(unescapedTenant)
 		if tenant == "" {
 			c.Response().WriteHeader(http.StatusNotFound)
 			return nil
 		}
-		err := control.DisableUnit("import@" + tenant + ".service")
+		err = control.DisableUnit("import@" + tenant + ".service")
 		if err != nil {
 			return err
 		}
