@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/jancajthaml-openbank/fio-bco-rest/actor"
 	"github.com/jancajthaml-openbank/fio-bco-rest/model"
@@ -33,13 +35,25 @@ func DeleteToken(system *actor.System) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 
-		tenant := c.Param("tenant")
-		if tenant == "" {
-			return fmt.Errorf("missing tenant")
+		unescapedTenant, err := url.PathUnescape(c.Param("tenant"))
+		if err != nil {
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
 		}
-		id := c.Param("id")
+		tenant := strings.TrimSpace(unescapedTenant)
+		if tenant == "" {
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
+		}
+		unescapedId, err := url.PathUnescape(c.Param("id"))
+		if err != nil {
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
+		}
+		id := strings.TrimSpace(unescapedId)
 		if id == "" {
-			return fmt.Errorf("missing id")
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
 		}
 
 		switch actor.DeleteToken(system, tenant, id).(type) {
@@ -72,9 +86,15 @@ func CreateToken(system *actor.System) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 
-		tenant := c.Param("tenant")
+		unescapedTenant, err := url.PathUnescape(c.Param("tenant"))
+		if err != nil {
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
+		}
+		tenant := strings.TrimSpace(unescapedTenant)
 		if tenant == "" {
-			return fmt.Errorf("missing tenant")
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
 		}
 
 		b, err := ioutil.ReadAll(c.Request().Body)
@@ -117,14 +137,25 @@ func SynchronizeToken(system *actor.System) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 
-		tenant := c.Param("tenant")
-		if tenant == "" {
-			return fmt.Errorf("missing tenant")
+		unescapedTenant, err := url.PathUnescape(c.Param("tenant"))
+		if err != nil {
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
 		}
-
-		id := c.Param("id")
+		tenant := strings.TrimSpace(unescapedTenant)
+		if tenant == "" {
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
+		}
+		unescapedId, err := url.PathUnescape(c.Param("id"))
+		if err != nil {
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
+		}
+		id := strings.TrimSpace(unescapedId)
 		if id == "" {
-			return fmt.Errorf("missing id")
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
 		}
 
 		switch actor.SynchronizeToken(system, tenant, id).(type) {
@@ -156,9 +187,15 @@ func GetTokens(storage localfs.Storage) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 
-		tenant := c.Param("tenant")
+		unescapedTenant, err := url.PathUnescape(c.Param("tenant"))
+		if err != nil {
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
+		}
+		tenant := strings.TrimSpace(unescapedTenant)
 		if tenant == "" {
-			return fmt.Errorf("missing tenant")
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
 		}
 
 		tokens, err := persistence.LoadTokens(storage, tenant)
