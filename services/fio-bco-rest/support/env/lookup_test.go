@@ -1,8 +1,8 @@
 package env
 
 import (
-	"os"
 	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -99,12 +99,12 @@ func TestEnvHexadecimalFile(t *testing.T) {
 	{
 		file, err := ioutil.TempFile(os.TempDir(), "hexfile")
 		if err != nil {
-		    t.Fatalf(err.Error())
+			t.Fatalf(err.Error())
 		}
 		defer os.Remove(file.Name())
 		_, err = file.WriteString("61626364")
 		if err != nil {
-		    t.Fatalf(err.Error())
+			t.Fatalf(err.Error())
 		}
 
 		os.Setenv("TEST_HEX", file.Name())
@@ -116,7 +116,7 @@ func TestEnvHexadecimalFile(t *testing.T) {
 	}
 
 	t.Log("TEST_HEX present and invalid")
-	{	
+	{
 		os.Setenv("TEST_HEX", "/dev/null")
 		defer os.Unsetenv("TEST_HEX")
 

@@ -15,11 +15,11 @@
 package env
 
 import (
-	"io/ioutil"
 	"encoding/hex"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"time"
-	"os"
 )
 
 // Get retrieves the string value of the environment variable named by the key
