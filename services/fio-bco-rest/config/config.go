@@ -14,7 +14,10 @@
 
 package config
 
-import "strings"
+import (
+	"github.com/jancajthaml-openbank/fio-bco-rest/support/env"
+	"strings"
+)
 
 // Configuration of application
 type Configuration struct {
@@ -43,14 +46,14 @@ type Configuration struct {
 // LoadConfig loads application configuration
 func LoadConfig() Configuration {
 	return Configuration{
-		RootStorage:      envString("FIO_BCO_STORAGE", "/data"),
-		EncryptionKey:    envSecret("FIO_BCO_ENCRYPTION_KEY", nil),
-		ServerPort:       envInteger("FIO_BCO_HTTP_PORT", 4000),
-		ServerKey:        envString("FIO_BCO_SERVER_KEY", ""),
-		ServerCert:       envString("FIO_BCO_SERVER_CERT", ""),
-		LakeHostname:     envString("FIO_BCO_LAKE_HOSTNAME", "127.0.0.1"),
-		LogLevel:         strings.ToUpper(envString("FIO_BCO_LOG_LEVEL", "INFO")),
-		MinFreeDiskSpace: uint64(envInteger("VAULT_STORAGE_THRESHOLD", 0)),
-		MinFreeMemory:    uint64(envInteger("VAULT_MEMORY_THRESHOLD", 0)),
+		RootStorage:      env.String("FIO_BCO_STORAGE", "/data"),
+		EncryptionKey:    env.HexFile("FIO_BCO_ENCRYPTION_KEY", nil),
+		ServerPort:       env.Int("FIO_BCO_HTTP_PORT", 4000),
+		ServerKey:        env.String("FIO_BCO_SERVER_KEY", ""),
+		ServerCert:       env.String("FIO_BCO_SERVER_CERT", ""),
+		LakeHostname:     env.String("FIO_BCO_LAKE_HOSTNAME", "127.0.0.1"),
+		LogLevel:         strings.ToUpper(env.String("FIO_BCO_LOG_LEVEL", "INFO")),
+		MinFreeDiskSpace: env.Uint64("VAULT_STORAGE_THRESHOLD", 0),
+		MinFreeMemory:    env.Uint64("VAULT_MEMORY_THRESHOLD", 0),
 	}
 }

@@ -45,12 +45,12 @@ func DeleteToken(system *actor.System) func(c echo.Context) error {
 			c.Response().WriteHeader(http.StatusNotFound)
 			return nil
 		}
-		unescapedId, err := url.PathUnescape(c.Param("id"))
+		unescapedID, err := url.PathUnescape(c.Param("id"))
 		if err != nil {
 			c.Response().WriteHeader(http.StatusNotFound)
 			return nil
 		}
-		id := strings.TrimSpace(unescapedId)
+		id := strings.TrimSpace(unescapedID)
 		if id == "" {
 			c.Response().WriteHeader(http.StatusNotFound)
 			return nil
@@ -147,12 +147,12 @@ func SynchronizeToken(system *actor.System) func(c echo.Context) error {
 			c.Response().WriteHeader(http.StatusNotFound)
 			return nil
 		}
-		unescapedId, err := url.PathUnescape(c.Param("id"))
+		unescapedID, err := url.PathUnescape(c.Param("id"))
 		if err != nil {
 			c.Response().WriteHeader(http.StatusNotFound)
 			return nil
 		}
-		id := strings.TrimSpace(unescapedId)
+		id := strings.TrimSpace(unescapedID)
 		if id == "" {
 			c.Response().WriteHeader(http.StatusNotFound)
 			return nil
