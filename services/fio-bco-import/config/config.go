@@ -17,6 +17,7 @@ package config
 import (
 	"strings"
 	"time"
+	"github.com/jancajthaml-openbank/fio-bco-import/support/env"
 )
 
 // Configuration of application
@@ -46,15 +47,15 @@ type Configuration struct {
 // LoadConfig loads application configuration
 func LoadConfig() Configuration {
 	return Configuration{
-		Tenant:                envString("FIO_BCO_TENANT", ""),
-		RootStorage:           envString("FIO_BCO_STORAGE", "/data") + "/t_" + envString("FIO_BCO_TENANT", "") + "/import/fio",
-		EncryptionKey:         envSecret("FIO_BCO_ENCRYPTION_KEY", nil),
-		FioGateway:            envString("FIO_BCO_FIO_GATEWAY", "https://www.fio.cz/ib_api/rest"),
-		LedgerGateway:         envString("FIO_BCO_LEDGER_GATEWAY", "https://127.0.0.1:4401"),
-		VaultGateway:          envString("FIO_BCO_VAULT_GATEWAY", "https://127.0.0.1:4400"),
-		LakeHostname:          envString("FIO_BCO_LAKE_HOSTNAME", "127.0.0.1"),
-		SyncRate:              envDuration("FIO_BCO_SYNC_RATE", 22*time.Second),
-		LogLevel:              strings.ToUpper(envString("FIO_BCO_LOG_LEVEL", "INFO")),
-		MetricsStastdEndpoint: envString("FIO_BCO_STATSD_ENDPOINT", "127.0.0.1:8125"),
+		Tenant:                env.String("FIO_BCO_TENANT", ""),
+		RootStorage:           env.String("FIO_BCO_STORAGE", "/data") + "/t_" + env.String("FIO_BCO_TENANT", "") + "/import/fio",
+		EncryptionKey:         env.HexFile("FIO_BCO_ENCRYPTION_KEY", nil),
+		FioGateway:            env.String("FIO_BCO_FIO_GATEWAY", "https://www.fio.cz/ib_api/rest"),
+		LedgerGateway:         env.String("FIO_BCO_LEDGER_GATEWAY", "https://127.0.0.1:4401"),
+		VaultGateway:          env.String("FIO_BCO_VAULT_GATEWAY", "https://127.0.0.1:4400"),
+		LakeHostname:          env.String("FIO_BCO_LAKE_HOSTNAME", "127.0.0.1"),
+		SyncRate:              env.Duration("FIO_BCO_SYNC_RATE", 22 * time.Second),
+		LogLevel:              strings.ToUpper(env.String("FIO_BCO_LOG_LEVEL", "INFO")),
+		MetricsStastdEndpoint: env.String("FIO_BCO_STATSD_ENDPOINT", "127.0.0.1:8125"),
 	}
 }
