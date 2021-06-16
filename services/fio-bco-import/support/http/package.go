@@ -16,4 +16,4 @@ package http
 
 import "github.com/jancajthaml-openbank/fio-bco-import/support/logging"
 
-var log = logging.New("http")
+var log = logging.New("support/http")
