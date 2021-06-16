@@ -16,4 +16,4 @@ package concurrent
 
 import "github.com/jancajthaml-openbank/fio-bco-rest/support/logging"
 
-var log = logging.New("concurrent")
+var log = logging.New("support/concurrent")
