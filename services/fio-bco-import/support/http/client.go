@@ -15,35 +15,26 @@
 package http
 
 import (
-	"bytes"
 	"crypto/tls"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net"
-	"net/http"
+	_http "net/http"
 	"time"
 )
 
-const handshakeTimeout = 10 * time.Second
-const dialTimeout = 30 * time.Second
-const requestTimeout = 120 * time.Second
-
 // Client represents fascade for http client
 type Client struct {
-	underlying *http.Client
+	underlying *_http.Client
+	checkRetry CheckRetry
+	backoff    Backoff
 }
 
-// NewHTTPClient returns new http client
-func NewHTTPClient() Client {
+// NewClient returns new http client
+func NewClient() Client {
 	return Client{
-		underlying: &http.Client{
-			Timeout: requestTimeout,
-			Transport: &http.Transport{
-				DialContext: (&net.Dialer{
-					Timeout: dialTimeout,
-				}).DialContext,
-				TLSHandshakeTimeout: handshakeTimeout,
+		underlying: &_http.Client{
+			Transport: &_http.Transport{
 				TLSClientConfig: &tls.Config{
 					InsecureSkipVerify:       false,
 					MinVersion:               tls.VersionTLS12,
@@ -54,113 +45,110 @@ func NewHTTPClient() Client {
 						tls.CurveP384,
 						tls.CurveP256,
 					},
-					CipherSuites: CipherSuites,
+					CipherSuites: []uint16{
+						tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+						tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+						tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,
+						tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+						tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+						tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
+						tls.TLS_RSA_WITH_AES_128_GCM_SHA256,
+						tls.TLS_RSA_WITH_AES_128_CBC_SHA256,
+						tls.TLS_RSA_WITH_AES_128_CBC_SHA,
+						tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+						tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+						tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,
+						tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
+						tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
+					},
 				},
 			},
 		},
+		checkRetry: DefaultRetryPolicy,
+		backoff:    DefaultBackoff,
 	}
 }
 
-// Post performs http POST request
-func (client *Client) Post(url string, body []byte, headers map[string]string) (response Response, err error) {
-	response = Response{
-		Status: 0,
-		Data:   nil,
-		Header: make(map[string]string),
-	}
-
+// Do perform http.Request
+func (client *Client) Do(req *Request) (*_http.Response, error) {
 	if client == nil {
-		return response, fmt.Errorf("cannot call methods on nil reference")
+		return nil, fmt.Errorf("nil deference")
 	}
+	log.Debug().Str("url", req.URL.String()).Str("method", req.Method).Msg("performing request")
+	var resp *_http.Response
+	var attempt int
+	var shouldRetry bool
+	var doErr error
+	var checkErr error
 
-	var req *http.Request
-	var resp *http.Response
-
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("runtime error %+v", r)
+	for i := 0; ; i++ {
+		attempt++
+		var code int
+		if req.body != nil {
+			body, err := req.body()
+			if err != nil {
+				client.underlying.CloseIdleConnections()
+				return resp, err
+			}
+			if c, ok := body.(io.ReadCloser); ok {
+				req.Body = c
+			} else {
+				req.Body = ioutil.NopCloser(body)
+			}
 		}
-		if err != nil && resp != nil {
-			_, err = io.Copy(ioutil.Discard, resp.Body)
-			resp.Body.Close()
-		} else if resp == nil && err != nil {
-			err = fmt.Errorf("runtime error, no response")
+		resp, doErr = client.underlying.Do(req.Request)
+		if resp != nil {
+			code = resp.StatusCode
 		}
-
-		if err == nil {
-			response.Data, err = ioutil.ReadAll(resp.Body)
-			resp.Body.Close()
+		shouldRetry, checkErr = client.checkRetry(req.Context(), resp, doErr)
+		if doErr != nil {
+			log.Error().Err(doErr).Str("method", req.Method).Str("url", req.URL.String()).Msgf("request failed")
 		}
-	}()
-	req, err = http.NewRequest("POST", url, bytes.NewBuffer(body))
-	if err != nil {
-		return
+		if !shouldRetry {
+			break
+		}
+		if doErr == nil {
+			client.drainBody(resp.Body)
+		}
+		wait := client.backoff(time.Millisecond, time.Second, i, resp)
+		desc := fmt.Sprintf("%s %s", req.Method, req.URL)
+		if code > 0 {
+			desc = fmt.Sprintf("%s (status: %d)", desc, code)
+		}
+		log.Debug().Str("request", desc).Str("timeout", wait.String()).Msgf("retrying request")
+		select {
+		case <-req.Context().Done():
+			client.underlying.CloseIdleConnections()
+			return nil, req.Context().Err()
+		case <-time.After(wait):
+		}
+		httpreq := *req.Request
+		req.Request = &httpreq
 	}
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("accept", "application/json")
-	for k, v := range headers {
-		req.Header.Set(k, v)
+	if doErr == nil && checkErr == nil && !shouldRetry {
+		return resp, nil
 	}
-	resp, err = client.underlying.Do(req)
-	if err != nil {
-		return
+	defer client.underlying.CloseIdleConnections()
+	err := doErr
+	if checkErr != nil {
+		err = checkErr
 	}
-	for k, v := range resp.Header {
-		response.Header[k] = v[len(v)-1]
+	if resp != nil {
+		client.drainBody(resp.Body)
 	}
-	response.Status = resp.StatusCode
-	return
+	if err == nil {
+		return nil, fmt.Errorf("%s %s giving up after %d attempt(s)", req.Method, req.URL, attempt)
+	}
+	return nil, fmt.Errorf("%s %s giving up after %d attempt(s): %w", req.Method, req.URL, attempt, err)
 }
 
-// Get performs http GET request
-func (client *Client) Get(url string, headers map[string]string) (response Response, err error) {
-	response = Response{
-		Status: 0,
-		Data:   nil,
-		Header: make(map[string]string),
-	}
-
+func (client *Client) drainBody(body io.ReadCloser) {
 	if client == nil {
-		err = fmt.Errorf("cannot call methods on nil reference")
 		return
 	}
-
-	var req *http.Request
-	var resp *http.Response
-
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("runtime error %+v", r)
-		}
-
-		if err != nil && resp != nil {
-			_, err = io.Copy(ioutil.Discard, resp.Body)
-			resp.Body.Close()
-		} else if resp == nil && err != nil {
-			err = fmt.Errorf("runtime error, no response %w", err)
-		}
-
-		if err == nil {
-			response.Data, err = ioutil.ReadAll(resp.Body)
-			resp.Body.Close()
-		}
-	}()
-
-	req, err = http.NewRequest("GET", url, nil)
+	defer body.Close()
+	_, err := io.Copy(ioutil.Discard, io.LimitReader(body, int64(4096)))
 	if err != nil {
-		return
+		log.Error().Err(err).Msg("error reading response body")
 	}
-	req.Header.Set("accept", "application/json")
-	for k, v := range headers {
-		req.Header.Set(k, v)
-	}
-	resp, err = client.underlying.Do(req)
-	if err != nil {
-		return
-	}
-	for k, v := range resp.Header {
-		response.Header[k] = v[len(v)-1]
-	}
-	response.Status = resp.StatusCode
-	return
 }

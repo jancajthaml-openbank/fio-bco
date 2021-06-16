@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package concurrent
+package fio
 
 import "github.com/jancajthaml-openbank/fio-bco-import/support/logging"
 
-var log = logging.New("support/concurrent")
+var log = logging.New("integration/fio")

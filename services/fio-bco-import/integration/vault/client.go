@@ -12,49 +12,59 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package http
+package vault
 
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
+	"github.com/jancajthaml-openbank/fio-bco-import/support/http"
 )
 
-// VaultClient represents fascade for vault http interactions
-type VaultClient struct {
-	underlying Client
+// Client represents fascade for vault http interactions
+type Client struct {
+	httpClient http.Client
 	gateway    string
 }
 
-// NewVaultClient returns new vault http client
-func NewVaultClient(gateway string) *VaultClient {
-	return &VaultClient{
+// NewClient returns new vault http client
+func NewClient(gateway string) *Client {
+	return &Client{
 		gateway:    gateway,
-		underlying: NewHTTPClient(),
+		httpClient: http.NewClient(),
 	}
 }
 
 // CreateAccount creates account in vault
-func (client *VaultClient) CreateAccount(account model.Account) error {
+func (client *Client) CreateAccount(account model.Account) error {
 	if client == nil {
 		return fmt.Errorf("nil deference")
 	}
-	request, err := json.Marshal(account)
-	if err != nil {
-		return err
-	}
-	response, err := client.underlying.Post(client.gateway+"/account/"+account.Tenant, request, nil)
+	payload, err := json.Marshal(account)
 	if err != nil {
 		return fmt.Errorf("create account error %w", err)
 	}
-	if response.Status == 400 {
-		return fmt.Errorf("create account malformed request %s", string(request))
+
+	req, err := http.NewRequest("POST", client.gateway+"/account/"+account.Tenant, payload)
+	if err != nil {
+		return fmt.Errorf("create account error %w", err)
 	}
-	if response.Status == 504 {
+
+	resp, err := client.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("create account error %w", err)
+	}
+
+	if resp.StatusCode == 400 {
+		return fmt.Errorf("create account malformed request %s", string(payload))
+	}
+	if resp.StatusCode == 504 {
 		return fmt.Errorf("create account timeout")
 	}
-	if response.Status != 200 && response.Status != 409 {
-		return fmt.Errorf("create account error %s", response.String())
+	if resp.StatusCode != 200 && resp.StatusCode != 409 {
+		return fmt.Errorf("create account invalid http status %s", resp.Status)
 	}
+
 	return nil
 }

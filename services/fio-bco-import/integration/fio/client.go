@@ -12,31 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package http
+package fio
 
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
+	"github.com/jancajthaml-openbank/fio-bco-import/support/http"
 )
 
-// FioClient represents fascade for FIO http interactions
-type FioClient struct {
-	underlying Client
+// Client represents fascade for FIO http interactions
+type Client struct {
 	gateway    string
+	httpClient http.Client
 }
 
-// NewFioClient returns new fio http client
-func NewFioClient(gateway string) *FioClient {
-	return &FioClient{
+// NewClient returns new fio http client
+func NewClient(gateway string) *Client {
+	return &Client{
 		gateway:    gateway,
-		underlying: NewHTTPClient(),
+		httpClient: http.NewClient(),
 	}
 }
 
 // GetStatementsEnvelope returns envelope since last synchronized id and sets that
 // id as pivot for next calls
-func (client *FioClient) GetStatementsEnvelope(token model.Token) (*model.FioEnvelope, error) {
+func (client *Client) GetStatementsEnvelope(token model.Token) (*Envelope, error) {
 	if client == nil {
 		return nil, fmt.Errorf("nil deference")
 	}
@@ -48,41 +50,40 @@ func (client *FioClient) GetStatementsEnvelope(token model.Token) (*model.FioEnv
 		uri = fmt.Sprintf("/ib_api/rest/set-last-date/%s/2012-07-27/", token.Value)
 	}
 
-	response, err := client.underlying.Get(client.gateway+uri, nil)
+	req, err := http.NewRequest("GET", client.gateway+uri, nil)
 	if err != nil {
 		return nil, err
 	}
-	if response.Status != 200 {
-		return nil, fmt.Errorf("fio set last synced id error %s", response.String())
+
+	resp, err := client.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	} else if err == nil && resp.StatusCode != 200 {
+		return nil, fmt.Errorf("fio set last synced id invalid http status %s", resp.Status)
 	}
 
 	uri = "/ib_api/rest/last/" + token.Value + "/transactions.json"
 
-	response, err = client.underlying.Get(client.gateway+uri, nil)
-	if err != nil {
-		return nil, err
-	}
-	if response.Status != 200 {
-		return nil, fmt.Errorf("fio get transactions.json error %s", response.String())
-	}
-
-	all := struct {
-		Statement struct {
-			Info            model.FioAccountInfo `json:"info"`
-			TransactionList struct {
-				Transactions []model.FioStatement `json:"transaction"`
-			} `json:"transactionList"`
-		} `json:"accountStatement"`
-	}{}
-
-	err = json.Unmarshal(response.Data, &all)
+	req, err = http.NewRequest("GET", client.gateway+uri, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	result := new(model.FioEnvelope)
-	result.Info = all.Statement.Info
-	result.Transactions = all.Statement.TransactionList.Transactions
+	resp, err = client.httpClient.Do(req)
 
-	return result, nil
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("fio get transactions.json error invalid http status %s", resp.Status)
+	}
+
+	response := new(envelope)
+	err = json.NewDecoder(resp.Body).Decode(response)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewEnvelope(*response), nil
 }
