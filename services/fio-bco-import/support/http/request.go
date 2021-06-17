@@ -36,6 +36,8 @@ func NewRequest(method string, url string, data []byte) (*Request, error) {
 		return bytes.NewReader(data), nil
 	}
 	httpReq.ContentLength = int64(len(data))
+	httpReq.Host = url
+	httpReq.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0")
 	return &Request{bodyReader, httpReq}, nil
 }
 
@@ -44,5 +46,6 @@ func (request *Request) SetHeader(key string, value string) {
 	if request == nil {
 		return
 	}
-	request.Header.Set(key, value)
+	request.Header[key] = []string{value}
 }
+

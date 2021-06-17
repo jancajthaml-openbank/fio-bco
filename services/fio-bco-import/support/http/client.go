@@ -17,7 +17,6 @@ package http
 import (
 	"crypto/tls"
 	"fmt"
-	"strings"
 	"io"
 	"io/ioutil"
 	_http "net/http"
@@ -97,14 +96,6 @@ func (client *Client) Do(req *Request) (*_http.Response, error) {
 				req.Body = ioutil.NopCloser(body)
 			}
 		}
-		lowerCaseHeader := make(_http.Header)
-		for key, value := range req.Request.Header {
-		    lowerCaseHeader[strings.ToLower(key)] = value
-		}
-		req.Request.Header = lowerCaseHeader
-		req.Request.Header.Set("User-Agent", "")
-		req.Request.Header["user-agent"] = []string{"Mozilla/5.0 (Windows NT 6.1; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0"}
-
 		resp, doErr = client.underlying.Do(req.Request)
 		if resp != nil {
 			code = resp.StatusCode
