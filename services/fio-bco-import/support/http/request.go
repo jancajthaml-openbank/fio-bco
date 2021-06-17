@@ -35,8 +35,7 @@ func NewRequest(method string, url string, data []byte) (*Request, error) {
 	bodyReader := func() (io.Reader, error) {
 		return bytes.NewReader(data), nil
 	}
-	httpReq.ContentLength = int64(len(data))	
-	httpReq.Header.Set("user-agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0")
+	httpReq.ContentLength = int64(len(data))
 	return &Request{bodyReader, httpReq}, nil
 }
 
