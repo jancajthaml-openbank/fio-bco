@@ -51,6 +51,7 @@ func (client *Client) CreateTransaction(transaction model.Transaction) error {
 	if err != nil {
 		return fmt.Errorf("create transaction error %w", err)
 	}
+	req.SetHeader("Content-Type", "application/json")
 
 	resp, err := client.httpClient.Do(req)
 	if err != nil {

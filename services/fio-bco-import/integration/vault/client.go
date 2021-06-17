@@ -50,6 +50,7 @@ func (client *Client) CreateAccount(account model.Account) error {
 	if err != nil {
 		return fmt.Errorf("create account error %w", err)
 	}
+	req.SetHeader("Content-Type", "application/json")
 
 	resp, err := client.httpClient.Do(req)
 	if err != nil {

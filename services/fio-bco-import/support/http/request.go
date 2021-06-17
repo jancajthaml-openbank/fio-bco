@@ -16,7 +16,6 @@ package http
 
 import (
 	"bytes"
-	"encoding/json"
 	"io"
 	_http "net/http"
 )
@@ -28,11 +27,7 @@ type Request struct {
 }
 
 // NewRequest creates new http.Request
-func NewRequest(method string, url string, body interface{}) (*Request, error) {
-	data, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
+func NewRequest(method string, url string, data []byte) (*Request, error) {
 	httpReq, err := _http.NewRequest(method, url, nil)
 	if err != nil {
 		return nil, err
@@ -41,7 +36,7 @@ func NewRequest(method string, url string, body interface{}) (*Request, error) {
 		return bytes.NewReader(data), nil
 	}
 	httpReq.ContentLength = int64(len(data))
-	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0")
 	return &Request{bodyReader, httpReq}, nil
 }
 
@@ -50,5 +45,5 @@ func (request *Request) SetHeader(key string, value string) {
 	if request == nil {
 		return
 	}
-	request.Header.Set(key, value)
+	request.Header[key] = []string{value}
 }
