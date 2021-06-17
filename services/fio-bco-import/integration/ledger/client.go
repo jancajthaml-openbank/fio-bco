@@ -15,7 +15,6 @@
 package ledger
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
@@ -42,12 +41,7 @@ func (client *Client) CreateTransaction(transaction model.Transaction) error {
 		return fmt.Errorf("nil deference")
 	}
 
-	payload, err := json.Marshal(transaction)
-	if err != nil {
-		return fmt.Errorf("create transaction error %w", err)
-	}
-
-	req, err := http.NewRequest("POST", client.gateway+"/transaction/"+transaction.Tenant, payload)
+	req, err := http.NewRequest("POST", client.gateway+"/transaction/"+transaction.Tenant, transaction)
 	if err != nil {
 		return fmt.Errorf("create transaction error %w", err)
 	}
@@ -61,7 +55,7 @@ func (client *Client) CreateTransaction(transaction model.Transaction) error {
 		return fmt.Errorf("create transaction %s duplicate %+v", transaction.IDTransaction, transaction)
 	}
 	if resp.StatusCode == 400 {
-		return fmt.Errorf("create transaction %s malformed request %s", transaction.IDTransaction, string(payload))
+		return fmt.Errorf("create transaction %s malformed request", transaction.IDTransaction)
 	}
 	if resp.StatusCode == 504 {
 		return fmt.Errorf("create transaction %s timeout", transaction.IDTransaction)

@@ -15,7 +15,6 @@
 package vault
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
@@ -41,12 +40,8 @@ func (client *Client) CreateAccount(account model.Account) error {
 	if client == nil {
 		return fmt.Errorf("nil deference")
 	}
-	payload, err := json.Marshal(account)
-	if err != nil {
-		return fmt.Errorf("create account error %w", err)
-	}
 
-	req, err := http.NewRequest("POST", client.gateway+"/account/"+account.Tenant, payload)
+	req, err := http.NewRequest("POST", client.gateway+"/account/"+account.Tenant, account)
 	if err != nil {
 		return fmt.Errorf("create account error %w", err)
 	}
@@ -57,7 +52,7 @@ func (client *Client) CreateAccount(account model.Account) error {
 	}
 
 	if resp.StatusCode == 400 {
-		return fmt.Errorf("create account malformed request %s", string(payload))
+		return fmt.Errorf("create account malformed request")
 	}
 	if resp.StatusCode == 504 {
 		return fmt.Errorf("create account timeout")
