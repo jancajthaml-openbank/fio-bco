@@ -16,4 +16,4 @@ package env
 
 import "github.com/jancajthaml-openbank/fio-bco-rest/support/logging"
 
-var log = logging.New("support/env")
+var log = logging.New("env")
