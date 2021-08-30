@@ -7,6 +7,6 @@ require (
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/jancajthaml-openbank/actor-system v1.4.7
 	github.com/jancajthaml-openbank/local-fs v1.2.2
-	github.com/rs/zerolog v1.23.0
+	github.com/rs/zerolog v1.24.0
 	github.com/stretchr/testify v1.6.1 // indirect
 )
