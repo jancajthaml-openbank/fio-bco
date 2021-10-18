@@ -5,7 +5,7 @@ FIO Bank Connector
 ![Health Check](https://github.com/jancajthaml-openbank/fio-bco/workflows/Health%20Check/badge.svg)
 [![CircleCI](https://circleci.com/gh/jancajthaml-openbank/fio-bco/tree/main.svg?style=shield)](https://circleci.com/gh/jancajthaml-openbank/fio-bco/tree/main)
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/jancajthaml-openbank/fio-bco)](https://goreportcard.com/report/github.com/jancajthaml-openbank/fio-bco) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c3185b6c5940475c8773c98d754bd17c)](https://www.codacy.com/app/jancajthaml-openbank/fio-bco?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=jancajthaml-openbank/fio-bco&amp;utm_campaign=Badge_Grade) [![codebeat badge](https://codebeat.co/badges/2baf283e-9f92-4e61-af1c-d8d37a688b87)](https://codebeat.co/projects/github-com-jancajthaml-openbank-fio-bco-main)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jancajthaml-openbank/fio-bco)](https://goreportcard.com/report/github.com/jancajthaml-openbank/fio-bco) [![codebeat badge](https://codebeat.co/badges/60edf19f-531d-49d9-8821-7a18d678f2f4)](https://codebeat.co/projects/github-com-jancajthaml-openbank-fio-bco-main)
 
 ## License
 
