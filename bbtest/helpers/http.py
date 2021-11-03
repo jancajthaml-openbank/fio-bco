@@ -69,6 +69,9 @@ class Request(object):
       except urllib.error.URLError as err:
         last_exception = err
         time.sleep(0.5)
+      except ssl.SSLError as err:
+        last_exception = err
+        time.sleep(0.5)
 
     if last_exception:
       raise last_exception
