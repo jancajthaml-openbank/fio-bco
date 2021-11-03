@@ -2,14 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from behave import *
-import ssl
-import urllib.request
-import socket
-import http
 import json
 import time
 from decimal import Decimal
 import os
+from helpers.http import Request
 
 
 @given('fio gateway contains following statements')
@@ -24,27 +21,18 @@ def token_exists(context, tenant, token):
 
   uri = "https://127.0.0.1/token/{}".format(tenant)
 
-  ctx = ssl.create_default_context()
-  ctx.check_hostname = False
-  ctx.verify_mode = ssl.CERT_NONE
-
-  request = urllib.request.Request(method='GET', url=uri)
+  request = Request(method='GET', url=uri)
   request.add_header('Accept', 'application/json')
 
-  try:
-    response = urllib.request.urlopen(request, timeout=10, context=ctx)
-    assert response.status == 200, str(response.status)
+  response = request.do()
+  assert response.status == 200, str(response.status)
 
-    actual = list()
-    for line in response.read().decode('utf-8').split('\n'):
-      if not line:
-        continue
+  actual = list()
+  for line in response.read().decode('utf-8').split('\n'):
+    if line:
       actual.append(json.loads(line)['id'])
 
-    assert context.tokens[key] in actual, 'token {} not found in known tokens {}'.format(context.tokens[key], actual)
-
-  except (http.client.RemoteDisconnected, socket.timeout):
-    raise AssertionError('timeout')
+  assert context.tokens[key] in actual, 'token {} not found in known tokens {}'.format(context.tokens[key], actual)
 
 
 @then('token {tenant}/{token} should not exist')
@@ -55,27 +43,18 @@ def token_not_exists(context, tenant, token):
 
   uri = "https://127.0.0.1/token/{}".format(tenant)
 
-  ctx = ssl.create_default_context()
-  ctx.check_hostname = False
-  ctx.verify_mode = ssl.CERT_NONE
-
-  request = urllib.request.Request(method='GET', url=uri)
+  request = Request(method='GET', url=uri)
   request.add_header('Accept', 'application/json')
 
-  try:
-    response = urllib.request.urlopen(request, timeout=10, context=ctx)
-    assert response.status == 200, str(response.status)
+  response = request.do()
+  assert response.status == 200, str(response.status)
 
-    actual = list()
-    for line in response.read().decode('utf-8').split('\n'):
-      if not line:
-        continue
+  actual = list()
+  for line in response.read().decode('utf-8').split('\n'):
+    if line:
       actual.append(json.loads(line)['id'])
 
-    assert context.tokens[key] not in actual, 'token {} found in known tokens {}'.format(context.tokens[key], actual)
-
-  except (http.client.RemoteDisconnected, socket.timeout):
-    raise AssertionError('timeout')
+  assert context.tokens[key] not in actual, 'token {} found in known tokens {}'.format(context.tokens[key], actual)
 
 
 @given('token {tenant}/{token} is created')
@@ -87,22 +66,15 @@ def create_token(context, tenant, token):
 
   uri = "https://127.0.0.1/token/{}".format(tenant)
 
-  ctx = ssl.create_default_context()
-  ctx.check_hostname = False
-  ctx.verify_mode = ssl.CERT_NONE
-
-  request = urllib.request.Request(method='POST', url=uri)
+  request = Request(method='POST', url=uri)
   request.add_header('Accept', 'application/json')
   request.add_header('Content-Type', 'application/json')
   request.data = json.dumps(payload).encode('utf-8')
 
-  try:
-    response = urllib.request.urlopen(request, timeout=10, context=ctx)
-    assert response.status == 200
-    key = '{}/{}'.format(tenant, token)
-    context.tokens[key] = response.read().decode('utf-8')
-  except (http.client.RemoteDisconnected, socket.timeout):
-    raise AssertionError('timeout')
+  response = request.do()
+  assert response.status == 200, str(response.status)
+  key = '{}/{}'.format(tenant, token)
+  context.tokens[key] = response.read().decode('utf-8')
 
 
 @given('token {tenant}/{token} is deleted')
@@ -113,17 +85,10 @@ def create_token(context, tenant, token):
 
   uri = "https://127.0.0.1/token/{}/{}".format(tenant, context.tokens[key])
 
-  ctx = ssl.create_default_context()
-  ctx.check_hostname = False
-  ctx.verify_mode = ssl.CERT_NONE
+  request = Request(method='DELETE', url=uri)
 
-  request = urllib.request.Request(method='DELETE', url=uri)
-
-  try:
-    response = urllib.request.urlopen(request, timeout=10, context=ctx)
-    assert response.status == 200, str(response.status)
-  except (http.client.RemoteDisconnected, socket.timeout):
-    raise AssertionError('timeout')
+  response = request.do()
+  assert response.status == 200, str(response.status)
 
 
 @given('token {tenant}/{token} is ordered to synchronize')
@@ -134,17 +99,10 @@ def create_token(context, tenant, token):
 
   uri = "https://127.0.0.1/token/{}/{}/sync".format(tenant, context.tokens[key])
 
-  ctx = ssl.create_default_context()
-  ctx.check_hostname = False
-  ctx.verify_mode = ssl.CERT_NONE
+  request = Request(method='GET', url=uri)
 
-  request = urllib.request.Request(method='GET', url=uri)
-
-  try:
-    response = urllib.request.urlopen(request, timeout=10, context=ctx)
-    assert response.status == 200, str(response.status)
-  except (http.client.RemoteDisconnected, socket.timeout):
-    raise AssertionError('timeout')
+  response = request.do()
+  assert response.status == 200, str(response.status)
 
 
 @when('I request HTTP {uri}')
@@ -154,31 +112,19 @@ def perform_http_request(context, uri):
     for row in context.table:
       options[row['key']] = row['value']
 
-  ctx = ssl.create_default_context()
-  ctx.check_hostname = False
-  ctx.verify_mode = ssl.CERT_NONE
-
-  request = urllib.request.Request(method=options['method'], url=uri)
+  request = Request(method=options['method'], url=uri)
   request.add_header('Accept', 'application/json')
   if context.text:
     request.add_header('Content-Type', 'application/json')
     request.data = context.text.encode('utf-8')
 
-  context.http_response = dict()
+  response = request.do()
 
-  try:
-    response = urllib.request.urlopen(request, timeout=10, context=ctx)
-    context.http_response['status'] = str(response.status)
-    context.http_response['body'] = response.read().decode('utf-8')
-    context.http_response['content-type'] = response.info().get_content_type()
-  except (http.client.RemoteDisconnected, socket.timeout):
-    context.http_response['status'] = '504'
-    context.http_response['body'] = ""
-    context.http_response['content-type'] = 'text-plain'
-  except urllib.error.HTTPError as err:
-    context.http_response['status'] = str(err.code)
-    context.http_response['body'] = err.read().decode('utf-8')
-    context.http_response['content-type'] = 'text-plain'
+  context.http_response = {
+    'status': str(response.status),
+    'body': response.read().decode('utf-8'),
+    'content-type': response.info().get_content_type()
+  }
 
 
 @then('HTTP response is')
@@ -230,6 +176,6 @@ def check_http_response(context):
     try:
       expected = json.loads(context.text)
       diff('', expected, actual)
-    except AssertionError as ex:
-      raise AssertionError('{} with response {}'.format(ex, response['body']))
+    except AssertionError as err:
+      raise AssertionError('{} with response {}'.format(err, response['body']))
 
