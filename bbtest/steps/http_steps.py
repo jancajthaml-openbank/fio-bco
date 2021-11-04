@@ -69,7 +69,7 @@ def create_token(context, tenant, token):
   request = Request(method='POST', url=uri)
   request.add_header('Accept', 'application/json')
   request.add_header('Content-Type', 'application/json')
-  request.data = json.dumps(payload).encode('utf-8')
+  request.data = json.dumps(payload)
 
   response = request.do()
   assert response.status == 200, str(response.status)
@@ -116,7 +116,7 @@ def perform_http_request(context, uri):
   request.add_header('Accept', 'application/json')
   if context.text:
     request.add_header('Content-Type', 'application/json')
-    request.data = context.text.encode('utf-8')
+    request.data = context.text
 
   response = request.do()
 
