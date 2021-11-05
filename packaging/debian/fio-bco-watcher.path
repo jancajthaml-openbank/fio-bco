@@ -1,9 +1,10 @@
 [Unit]
 Description=openbank FIO Bank connection configuration watcher
+After=fio-bco.service
 
 [Path]
-PathChanged=/etc/fio-bco/conf.d/init.conf
+PathChanged=/etc/fio-bco/conf.d
 Unit=fio-bco-watcher.service
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=paths.target
