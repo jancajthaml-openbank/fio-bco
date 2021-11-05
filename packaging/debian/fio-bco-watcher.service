@@ -3,8 +3,9 @@ Description=openbank FIO Bank connection configuration watcher
 StartLimitBurst=5
 
 [Service]
-Type=oneshot
+Type=simple
+ExecStartPre=echo 'restarting fio-bco (configuration has changed)'
 ExecStart=/bin/sh -c 'systemctl restart fio-bco.service'
 
 [Install]
-WantedBy=multi-user.target 
+WantedBy=fio-bco.service
