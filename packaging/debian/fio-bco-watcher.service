@@ -8,4 +8,4 @@ ExecStartPre=echo 'restarting fio-bco (configuration has changed)'
 ExecStart=/bin/sh -c 'systemctl restart fio-bco.service'
 
 [Install]
-WantedBy=ledger.service
+WantedBy=fio-bco.service
