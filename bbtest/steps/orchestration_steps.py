@@ -64,7 +64,7 @@ def unit_running(context, unit):
 
   wait_for_unit_state_change()
 
-  if 'ledger-rest' in unit:
+  if 'fio-bco-rest' in unit:
     request = Request(method='GET', url="https://127.0.0.1/health")
 
     @eventually(5)
