@@ -45,10 +45,9 @@ bundle-debian-%: %
 		--pkg fio-bco \
 		--source /project/packaging
 
-
 .PHONY: bundle-docker-%
 bundle-docker-%: %
-	@ARCH=$(ARCH) META=$(META) VERSION=$(VERSION) docker build \
+	@docker build \
 		-t openbank/fio-bco:$^-$(VERSION).$(META) \
 		-f packaging/docker/$^/Dockerfile \
 		.
@@ -93,7 +92,6 @@ sync:
 		run \
 		--rm sync \
 		--source /go/src/github.com/jancajthaml-openbank/fio-bco-import
-
 
 .PHONY: scan-%
 scan-%: %
