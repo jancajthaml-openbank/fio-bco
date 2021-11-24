@@ -15,7 +15,7 @@
 # ---------------------------------------------------------------------------- #
 # stage 0 bootstrap dependencies
 
-FROM amd64/debian:sid-slim
+FROM --platform=linux/arm64/v8 arm64v8/debian:sid-slim
 
 COPY packaging/bin/* /opt/artifacts/
 
@@ -23,19 +23,19 @@ USER root
 
 RUN apt-get update
 
-RUN find /opt/artifacts -name fio-bco_*_amd64.deb | xargs -I{} -tx apt-get install -y -f {}
+RUN find /opt/artifacts -name fio-bco_*_arm64.deb | xargs -I{} -tx apt-get install -y -f {}
 
 # ---------------------------------------------------------------------------- #
 # stage 1 link files
 
-FROM amd64/debian:sid-slim
+FROM --platform=linux/arm64/v8 arm64v8/debian:sid-slim
 
 COPY --from=0 /opt/artifacts /opt/artifacts
 
-COPY --from=0 /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu
-COPY --from=0 /lib/x86_64-linux-gnu /lib/x86_64-linux-gnu
+COPY --from=0 /usr/lib/aarch64-linux-gnu /usr/lib/aarch64-linux-gnu
+COPY --from=0 /lib/aarch64-linux-gnu /lib/aarch64-linux-gnu
 
-RUN ln -s /opt/artifacts/fio-bco-rest-linux-amd64 /usr/bin/fio-bco-rest && \
-    ln -s /opt/artifacts/fio-bco-import-linux-amd64 /usr/bin/fio-bco-import
+RUN ln -s /opt/artifacts/fio-bco-rest-linux-arm64 /usr/bin/fio-bco-rest && \
+    ln -s /opt/artifacts/fio-bco-import-linux-arm64 /usr/bin/fio-bco-import
 
 ENTRYPOINT [ "fio-bco-rest" ]

@@ -96,7 +96,13 @@ lifecycle::debian::generate_changelog() {
   fi
 }
 
+lifecycle::clean() {
+  echo "[info] ${SOURCE}/bin cleaned"
+  find "${SOURCE}/bin" -name "${TARGET_PACKAGE}_*_${TARGET_ARCHITECTURE}*" -exec rm -f {} \;
+}
+
 lifecycle::debian::package() {
+
   echo "[info] (${TARGET_PACKAGE}_${TARGET_ARCHITECTURE}) running dpkg-buildpackage"
 
   local CC=gcc
@@ -125,6 +131,7 @@ lifecycle::lintian() {
 
 ################################################################################
 
+lifecycle::clean
 lifecycle::debian::generate_changelog
 lifecycle::debian::package
 lifecycle::lintian
