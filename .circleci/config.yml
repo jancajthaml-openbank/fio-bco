@@ -192,23 +192,23 @@ jobs:
 
   checkout:
     executor: git
-    working_directory: /mnt/ramdisk
+    working_directory: /home/circleci/project
     steps:
       - checkout
       - save_cache:
           key: code-{{ .Environment.CIRCLE_TAG }}-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Environment.CIRCLE_SHA1 }}
           paths:
-            - /mnt/ramdisk/.git
-            - /mnt/ramdisk/dev
-            - /mnt/ramdisk/services
-            - /mnt/ramdisk/packaging
-            - /mnt/ramdisk/Dockerfile
+            - /home/circleci/project/.git
+            - /home/circleci/project/dev
+            - /home/circleci/project/services
+            - /home/circleci/project/packaging
+            - /home/circleci/project/Dockerfile
 
   # -------------------------------------------------------------------------- #
 
   versions:
     executor: git
-    working_directory: /mnt/ramdisk
+    working_directory: /home/circleci/project
     steps:
       - checkout
       - run:
@@ -222,47 +222,47 @@ jobs:
                 VERSION=${tags}
               fi
               META=$(echo -e ${CIRCLE_BRANCH} | sed 's:.*/::')
-              echo -e "${VERSION#v}" > /mnt/ramdisk/VERSION
-              echo -e "${META}" > /mnt/ramdisk/META
+              echo -e "${VERSION#v}" > /home/circleci/project/VERSION
+              echo -e "${META}" > /home/circleci/project/META
             else
-              echo -e "${CIRCLE_TAG#v}" > /mnt/ramdisk/VERSION
-              echo -e "main" > /mnt/ramdisk/META
+              echo -e "${CIRCLE_TAG#v}" > /home/circleci/project/VERSION
+              echo -e "main" > /home/circleci/project/META
             fi
       - save_cache:
           key: versions-{{ .Environment.CIRCLE_TAG }}-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Environment.CIRCLE_SHA1 }}
           paths:
-            - /mnt/ramdisk/VERSION
-            - /mnt/ramdisk/META
+            - /home/circleci/project/VERSION
+            - /home/circleci/project/META
 
   # -------------------------------------------------------------------------- #
 
   deps:
     executor: go
-    working_directory: /mnt/ramdisk
+    working_directory: /home/circleci/project
     steps:
       - restore_cache:
           key: code-{{ .Environment.CIRCLE_TAG }}-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: Sync fio-bco-import dependencies
           command: |
-            /mnt/ramdisk/dev/lifecycle/sync \
-              --source /mnt/ramdisk/services/fio-bco-import
+            /home/circleci/project/dev/lifecycle/sync \
+              --source /home/circleci/project/services/fio-bco-import
       - run:
           name: Sync fio-bco-rest dependencies
           command: |
-            /mnt/ramdisk/dev/lifecycle/sync \
-              --source /mnt/ramdisk/services/fio-bco-rest
+            /home/circleci/project/dev/lifecycle/sync \
+              --source /home/circleci/project/services/fio-bco-rest
       - save_cache:
           key: dependencies-{{ .Environment.CIRCLE_TAG }}-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Environment.CIRCLE_SHA1 }}
           paths:
-            - /mnt/ramdisk/services/fio-bco-import/vendor
-            - /mnt/ramdisk/services/fio-bco-rest/vendor
+            - /home/circleci/project/services/fio-bco-import/vendor
+            - /home/circleci/project/services/fio-bco-rest/vendor
 
   # -------------------------------------------------------------------------- #
 
   unit-test:
     executor: go
-    working_directory: /mnt/ramdisk
+    working_directory: /home/circleci/project
     steps:
       - restore_cache:
           key: code-{{ .Environment.CIRCLE_TAG }}-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Environment.CIRCLE_SHA1 }}
@@ -271,25 +271,25 @@ jobs:
       - run:
           name: Unit test fio-bco-import
           command: |
-            /mnt/ramdisk/dev/lifecycle/test \
-              --source /mnt/ramdisk/services/fio-bco-import \
-              --output /mnt/ramdisk/reports
+            /home/circleci/project/dev/lifecycle/test \
+              --source /home/circleci/project/services/fio-bco-import \
+              --output /home/circleci/project/reports
           no_output_timeout: 5m
       - run:
           name: Unit test fio-bco-rest
           command: |
-            /mnt/ramdisk/dev/lifecycle/test \
-              --source /mnt/ramdisk/services/fio-bco-rest \
-              --output /mnt/ramdisk/reports
+            /home/circleci/project/dev/lifecycle/test \
+              --source /home/circleci/project/services/fio-bco-rest \
+              --output /home/circleci/project/reports
           no_output_timeout: 5m
       - store_test_results:
-          path: /mnt/ramdisk/reports/unit-tests
+          path: /home/circleci/project/reports/unit-tests
 
   # -------------------------------------------------------------------------- #
 
   compile-amd64:
     executor: go
-    working_directory: /mnt/ramdisk
+    working_directory: /home/circleci/project
     steps:
       - restore_cache:
           key: code-{{ .Environment.CIRCLE_TAG }}-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Environment.CIRCLE_SHA1 }}
@@ -298,23 +298,23 @@ jobs:
       - run:
           name: Compile fio-bco-import binary
           command: |
-            /mnt/ramdisk/dev/lifecycle/package \
+            /home/circleci/project/dev/lifecycle/package \
               --arch linux/amd64 \
-              --source /mnt/ramdisk/services/fio-bco-import \
-              --output /mnt/ramdisk/packaging/bin
+              --source /home/circleci/project/services/fio-bco-import \
+              --output /home/circleci/project/packaging/bin
           no_output_timeout: 5m
       - run:
           name: Compile fio-bco-rest binary
           command: |
-            /mnt/ramdisk/dev/lifecycle/package \
+            /home/circleci/project/dev/lifecycle/package \
               --arch linux/amd64 \
-              --source /mnt/ramdisk/services/fio-bco-rest \
-              --output /mnt/ramdisk/packaging/bin
+              --source /home/circleci/project/services/fio-bco-rest \
+              --output /home/circleci/project/packaging/bin
           no_output_timeout: 5m
       - save_cache:
           key: binaries-amd64-{{ .Environment.CIRCLE_TAG }}-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Environment.CIRCLE_SHA1 }}
           paths:
-            - /mnt/ramdisk/packaging/bin
+            - /home/circleci/project/packaging/bin
 
   # -------------------------------------------------------------------------- #
 
@@ -329,29 +329,29 @@ jobs:
       - run:
           name: Compile fio-bco-import binary
           command: |
-            /mnt/ramdisk/dev/lifecycle/package \
+            /home/circleci/project/dev/lifecycle/package \
               --arch linux/arm64 \
-              --source /mnt/ramdisk/services/fio-bco-import \
-              --output /mnt/ramdisk/packaging/bin
+              --source /home/circleci/project/services/fio-bco-import \
+              --output /home/circleci/project/packaging/bin
           no_output_timeout: 5m
       - run:
           name: Compile fio-bco-rest binary
           command: |
-            /mnt/ramdisk/dev/lifecycle/package \
+            /home/circleci/project/dev/lifecycle/package \
               --arch linux/arm64 \
-              --source /mnt/ramdisk/services/fio-bco-rest \
-              --output /mnt/ramdisk/packaging/bin
+              --source /home/circleci/project/services/fio-bco-rest \
+              --output /home/circleci/project/packaging/bin
           no_output_timeout: 5m
       - save_cache:
           key: binaries-arm64-{{ .Environment.CIRCLE_TAG }}-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Environment.CIRCLE_SHA1 }}
           paths:
-            - /mnt/ramdisk/packaging/bin
+            - /home/circleci/project/packaging/bin
 
   # -------------------------------------------------------------------------- #
 
   package-debian-amd64:
     executor: debian
-    working_directory: /mnt/ramdisk
+    working_directory: /home/circleci/project
     steps:
       - restore_cache:
           key: code-{{ .Environment.CIRCLE_TAG }}-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Environment.CIRCLE_SHA1 }}
@@ -362,23 +362,23 @@ jobs:
       - run:
           name: Package for debian
           command: |
-            VERSION=$(cat /mnt/ramdisk/VERSION)
-            /mnt/ramdisk/dev/lifecycle/debian \
+            VERSION=$(cat /home/circleci/project/VERSION)
+            /home/circleci/project/dev/lifecycle/debian \
               --arch amd64 \
               --pkg fio-bco \
               --version ${VERSION} \
-              --source /mnt/ramdisk/packaging
+              --source /home/circleci/project/packaging
           no_output_timeout: 5m
       - save_cache:
           key: debian-amd64-{{ .Environment.CIRCLE_TAG }}-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Environment.CIRCLE_SHA1 }}
           paths:
-            - /mnt/ramdisk/packaging/bin
+            - /home/circleci/project/packaging/bin
 
   # -------------------------------------------------------------------------- #
 
   package-debian-arm64:
     executor: debian
-    working_directory: /mnt/ramdisk
+    working_directory: /home/circleci/project
     steps:
       - restore_cache:
           key: code-{{ .Environment.CIRCLE_TAG }}-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Environment.CIRCLE_SHA1 }}
@@ -389,17 +389,17 @@ jobs:
       - run:
           name: Package for debian
           command: |
-            VERSION=$(cat /mnt/ramdisk/VERSION)
-            /mnt/ramdisk/dev/lifecycle/debian \
+            VERSION=$(cat /home/circleci/project/VERSION)
+            /home/circleci/project/dev/lifecycle/debian \
               --arch arm64 \
               --pkg fio-bco \
               --version ${VERSION} \
-              --source /mnt/ramdisk/packaging
+              --source /home/circleci/project/packaging
           no_output_timeout: 5m
       - save_cache:
           key: debian-arm64-{{ .Environment.CIRCLE_TAG }}-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Environment.CIRCLE_SHA1 }}
           paths:
-            - /mnt/ramdisk/packaging/bin
+            - /home/circleci/project/packaging/bin
 
   # -------------------------------------------------------------------------- #
 
@@ -503,7 +503,7 @@ jobs:
 
   release:
     executor: debian
-    working_directory: /mnt/ramdisk
+    working_directory: /home/circleci/project
     steps:
       - restore_cache:
           key: code-{{ .Environment.CIRCLE_TAG }}-{{ .Environment.CIRCLE_PROJECT_REPONAME }}-{{ .Environment.CIRCLE_SHA1 }}
@@ -518,7 +518,7 @@ jobs:
       - deploy:
           name: Release artifacts to github
           command: |
-            /mnt/ramdisk/dev/lifecycle/release \
+            /home/circleci/project/dev/lifecycle/release \
               --version ${CIRCLE_TAG} \
               --token ${GITHUB_RELEASE_TOKEN}
 
