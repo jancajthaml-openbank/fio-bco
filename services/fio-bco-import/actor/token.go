@@ -42,6 +42,7 @@ func NonExistToken(s *System, id string) system.ReceiverFunction {
 		switch msg := context.Data.(type) {
 
 		case SynchornizationDone:
+			log.Debug().Msgf("token %s (NonExist CreateToken)", id)
 			return NonExistToken(s, id)
 
 		case CreateToken:
@@ -84,6 +85,7 @@ func ExistToken(s *System, id string) system.ReceiverFunction {
 		switch context.Data.(type) {
 
 		case SynchornizationDone:
+			log.Debug().Msgf("token %s (Synchronizing CreateToken)", id)
 			return ExistToken(s, id)
 
 		case CreateToken:
@@ -104,8 +106,13 @@ func ExistToken(s *System, id string) system.ReceiverFunction {
 					context.Self.Tell(SynchornizationDone{}, context.Receiver, context.Receiver)
 				}()
 
+				token := persistence.LoadToken(s.EncryptedStorage, id)
+				if token == nil {
+					return
+				}
+
 				workflow := integration.NewWorkflow(
-					id,
+					token,
 					s.Tenant,
 					s.FioGateway,
 					s.VaultGateway,
@@ -150,6 +157,7 @@ func SynchronizingToken(s *System, id string) system.ReceiverFunction {
 		switch context.Data.(type) {
 
 		case SynchornizationDone:
+			log.Debug().Msgf("token %s (Synchronizing SynchornizationDone)", id)
 			return ExistToken(s, id)
 
 		case CreateToken:

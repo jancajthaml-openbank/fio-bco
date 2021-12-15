@@ -29,7 +29,7 @@ import (
 
 // Workflow represents import integration workflow
 type Workflow struct {
-	TokenID          string
+	Token 		     *model.Token
 	Tenant           string
 	FioClient        *fio.Client
 	VaultClient      *vault.Client
@@ -40,7 +40,7 @@ type Workflow struct {
 
 // NewWorkflow returns fascade for integration workflow
 func NewWorkflow(
-	tokenID string,
+	token *model.Token,
 	tenant string,
 	fioGateway string,
 	vaultGateway string,
@@ -49,7 +49,7 @@ func NewWorkflow(
 	metrics metrics.Metrics,
 ) Workflow {
 	return Workflow{
-		TokenID:          tokenID,
+		Token: token,
 		Tenant:           tenant,
 		FioClient:        fio.NewClient(fioGateway),
 		VaultClient:      vault.NewClient(vaultGateway),
@@ -111,27 +111,25 @@ func createTransactionsFromStatements(
 
 // SynchronizeStatements downloads new statements from fio gateway and creates accounts and transactions and normalizes them into value transfers
 func (workflow Workflow) SynchronizeStatements() {
-	token := persistence.LoadToken(workflow.EncryptedStorage, workflow.TokenID)
-
-	if token == nil {
+	if workflow.Token == nil {
 		return
 	}
 
-	envelope, err := workflow.FioClient.GetStatementsEnvelope(*token)
+	envelope, err := workflow.FioClient.GetStatementsEnvelope(*workflow.Token)
 	if err != nil {
 		log.Warn().Err(err).Msgf("Unable to get envelope")
 		return
 	}
 
-	log.Debug().Msgf("token %s importing accounts", token.ID)
+	log.Debug().Msgf("token %s importing accounts", workflow.Token.ID)
 	err = createAccountsFromStatements(workflow.Tenant, workflow.VaultClient, envelope)
 	if err != nil {
 		log.Warn().Err(err).Msgf("Unable to create accounts from envelope")
 		return
 	}
 
-	log.Debug().Msgf("token %s importing transactions", token.ID)
-	err = createTransactionsFromStatements(workflow.Tenant, workflow.LedgerClient, workflow.EncryptedStorage, workflow.Metrics, token, envelope)
+	log.Debug().Msgf("token %s importing transactions", workflow.Token.ID)
+	err = createTransactionsFromStatements(workflow.Tenant, workflow.LedgerClient, workflow.EncryptedStorage, workflow.Metrics, workflow.Token, envelope)
 	if err != nil {
 		log.Warn().Err(err).Msgf("Unable to create transactions from envelope")
 		return
