@@ -23,16 +23,21 @@ import (
 	system "github.com/jancajthaml-openbank/actor-system"
 )
 
+func receive(sys *System, channel chan<- interface{}) system.ReceiverFunction {
+	return func(context system.Context) system.ReceiverFunction {
+		channel <- context.Data
+		return receive(sys, channel)
+	}
+}
+
 // CreateToken creates new token for target tenant
 func CreateToken(sys *System, tenant string, token model.Token) interface{} {
 	ch := make(chan interface{})
 
-	envelope := system.NewActor("relay/"+xid.New().String(), nil)
-	defer sys.UnregisterActor(envelope.Name)
+	envelope := system.NewActor("relay/"+xid.New().String(), receive(sys, ch))
 
-	sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
-		ch <- context.Data
-	})
+	sys.RegisterActor(envelope)
+	defer sys.UnregisterActor(envelope.Name)
 
 	sys.SendMessage(
 		CreateTokenMessage(token),
@@ -58,12 +63,10 @@ func CreateToken(sys *System, tenant string, token model.Token) interface{} {
 func SynchronizeToken(sys *System, tenant string, token string) interface{} {
 	ch := make(chan interface{})
 
-	envelope := system.NewActor("relay/"+xid.New().String(), nil)
-	defer sys.UnregisterActor(envelope.Name)
+	envelope := system.NewActor("relay/"+xid.New().String(), receive(sys, ch))
 
-	sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
-		ch <- context.Data
-	})
+	sys.RegisterActor(envelope)
+	defer sys.UnregisterActor(envelope.Name)
 
 	sys.SendMessage(
 		SynchronizeTokenMessage(),
@@ -89,12 +92,10 @@ func SynchronizeToken(sys *System, tenant string, token string) interface{} {
 func DeleteToken(sys *System, tenant string, token string) interface{} {
 	ch := make(chan interface{})
 
-	envelope := system.NewActor("relay/"+xid.New().String(), nil)
+	envelope := system.NewActor("relay/"+xid.New().String(), receive(sys, ch))
+	
+	sys.RegisterActor(envelope)
 	defer sys.UnregisterActor(envelope.Name)
-
-	sys.RegisterActor(envelope, func(state interface{}, context system.Context) {
-		ch <- context.Data
-	})
 
 	sys.SendMessage(
 		DeleteTokenMessage(),

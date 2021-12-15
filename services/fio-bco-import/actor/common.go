@@ -98,9 +98,9 @@ func ProcessMessage(s *System) system.ProcessMessage {
 }
 
 func spawnTokenActor(s *System, id string) (*system.Actor, error) {
-	envelope := system.NewActor(id, model.NewToken(id))
+	envelope := system.NewActor(id, NilToken(s, model.NewToken(id)))
 
-	err := s.RegisterActor(envelope, NilToken(s))
+	err := s.RegisterActor(envelope)
 	if err != nil {
 		log.Warn().Msgf("Unable to register %s actor", id)
 		return nil, err

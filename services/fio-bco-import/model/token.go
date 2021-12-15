@@ -34,6 +34,7 @@ type Token struct {
 func NewToken(id string) Token {
 	return Token{
 		ID:           id,
+		Value:        "",
 		CreatedAt:    time.Now().UTC(),
 		LastSyncedID: 0,
 	}
