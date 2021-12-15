@@ -33,6 +33,6 @@ type DeleteToken struct {
 type SynchronizeToken struct {
 }
 
-// ProbeMessage is internal noop message
-type ProbeMessage struct {
+// SynchornizationDone is internal ack that synchronization is done
+type SynchornizationDone struct {
 }

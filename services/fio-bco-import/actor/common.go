@@ -17,8 +17,6 @@ package actor
 import (
 	"fmt"
 
-	"github.com/jancajthaml-openbank/fio-bco-import/model"
-
 	system "github.com/jancajthaml-openbank/actor-system"
 )
 
@@ -98,7 +96,7 @@ func ProcessMessage(s *System) system.ProcessMessage {
 }
 
 func spawnTokenActor(s *System, id string) (*system.Actor, error) {
-	envelope := system.NewActor(id, NilToken(s, model.NewToken(id)))
+	envelope := system.NewActor(id, NilToken(s, id))
 
 	err := s.RegisterActor(envelope)
 	if err != nil {

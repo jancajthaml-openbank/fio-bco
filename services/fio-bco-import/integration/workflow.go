@@ -29,35 +29,32 @@ import (
 
 // Workflow represents import integration workflow
 type Workflow struct {
-	Token            *model.Token
+	TokenID          string
 	Tenant           string
 	FioClient        *fio.Client
 	VaultClient      *vault.Client
 	LedgerClient     *ledger.Client
 	EncryptedStorage localfs.Storage
-	PlaintextStorage localfs.Storage
 	Metrics          metrics.Metrics
 }
 
 // NewWorkflow returns fascade for integration workflow
 func NewWorkflow(
-	token *model.Token,
+	tokenID string,
 	tenant string,
 	fioGateway string,
 	vaultGateway string,
 	ledgerGateway string,
 	encryptedStorage localfs.Storage,
-	plaintextStorage localfs.Storage,
 	metrics metrics.Metrics,
 ) Workflow {
 	return Workflow{
-		Token:            token,
+		TokenID:          tokenID,
 		Tenant:           tenant,
 		FioClient:        fio.NewClient(fioGateway),
 		VaultClient:      vault.NewClient(vaultGateway),
 		LedgerClient:     ledger.NewClient(ledgerGateway),
 		EncryptedStorage: encryptedStorage,
-		PlaintextStorage: plaintextStorage,
 		Metrics:          metrics,
 	}
 }
@@ -112,51 +109,31 @@ func createTransactionsFromStatements(
 	return nil
 }
 
-func synchronizeNewStatements(
-	encryptedStorage localfs.Storage,
-	plaintextStorage localfs.Storage,
-	token *model.Token,
-	tenant string,
-	fioClient *fio.Client,
-	vaultClient *vault.Client,
-	ledgerClient *ledger.Client,
-	metrics metrics.Metrics,
-) {
+// SynchronizeStatements downloads new statements from fio gateway and creates accounts and transactions and normalizes them into value transfers
+func (workflow Workflow) SynchronizeStatements() {
+	token := persistence.LoadToken(workflow.EncryptedStorage, workflow.TokenID)
+
 	if token == nil {
 		return
 	}
 
-	envelope, err := fioClient.GetStatementsEnvelope(*token)
+	envelope, err := workflow.FioClient.GetStatementsEnvelope(*token)
 	if err != nil {
 		log.Warn().Err(err).Msgf("Unable to get envelope")
 		return
 	}
 
 	log.Debug().Msgf("token %s importing accounts", token.ID)
-	err = createAccountsFromStatements(tenant, vaultClient, envelope)
+	err = createAccountsFromStatements(workflow.Tenant, workflow.VaultClient, envelope)
 	if err != nil {
 		log.Warn().Err(err).Msgf("Unable to create accounts from envelope")
 		return
 	}
 
 	log.Debug().Msgf("token %s importing transactions", token.ID)
-	err = createTransactionsFromStatements(tenant, ledgerClient, encryptedStorage, metrics, token, envelope)
+	err = createTransactionsFromStatements(workflow.Tenant, workflow.LedgerClient, workflow.EncryptedStorage, workflow.Metrics, token, envelope)
 	if err != nil {
 		log.Warn().Err(err).Msgf("Unable to create transactions from envelope")
 		return
 	}
-}
-
-// SynchronizeStatements downloads new statements from fio gateway and creates accounts and transactions in core
-func (workflow Workflow) SynchronizeStatements() {
-	synchronizeNewStatements(
-		workflow.EncryptedStorage,
-		workflow.PlaintextStorage,
-		workflow.Token,
-		workflow.Tenant,
-		workflow.FioClient,
-		workflow.VaultClient,
-		workflow.LedgerClient,
-		workflow.Metrics,
-	)
 }
