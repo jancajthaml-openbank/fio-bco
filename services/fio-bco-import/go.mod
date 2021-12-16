@@ -6,7 +6,7 @@ require (
 	github.com/DataDog/datadog-go v4.8.3+incompatible
 	github.com/jancajthaml-openbank/actor-system v1.5.1
 	github.com/jancajthaml-openbank/local-fs v1.2.2
-	github.com/rs/zerolog v1.26.0
+	github.com/rs/zerolog v1.26.1
 )
 
 require (
