@@ -25,6 +25,9 @@ def token_exists(context, tenant, token):
   request.add_header('Accept', 'application/json')
 
   response = request.do()
+  if response.status == 504:
+    response = request.do()
+
   assert response.status == 200, str(response.status)
 
   actual = list()
@@ -47,6 +50,9 @@ def token_not_exists(context, tenant, token):
   request.add_header('Accept', 'application/json')
 
   response = request.do()
+  if response.status == 504:
+    response = request.do()
+
   assert response.status == 200, str(response.status)
 
   actual = list()
@@ -72,6 +78,9 @@ def create_token(context, tenant, token):
   request.data = json.dumps(payload)
 
   response = request.do()
+  if response.status == 504:
+    response = request.do()
+
   assert response.status == 200, str(response.status)
   key = '{}/{}'.format(tenant, token)
   context.tokens[key] = response.read().decode('utf-8')
@@ -88,6 +97,9 @@ def create_token(context, tenant, token):
   request = Request(method='DELETE', url=uri)
 
   response = request.do()
+  if response.status == 504:
+    response = request.do()
+
   assert response.status == 200, str(response.status)
 
 
@@ -102,6 +114,9 @@ def create_token(context, tenant, token):
   request = Request(method='GET', url=uri)
 
   response = request.do()
+  if response.status == 504:
+    response = request.do()
+
   assert response.status == 200, str(response.status)
 
 
