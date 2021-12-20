@@ -16,8 +16,8 @@ package model
 
 import "github.com/jancajthaml-openbank/fio-bco-import/support/iban"
 
-// AccountPair entity in ledger format
-type AccountPair struct { // FIXME rename to AccountVault
+// AccountVault entity
+type AccountVault struct {
 	Tenant string `json:"tenant"`
 	Name   string `json:"name"`
 }

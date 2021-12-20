@@ -26,7 +26,6 @@ type System struct {
 	system.System
 	Tenant           string
 	EncryptedStorage localfs.Storage
-	PlaintextStorage localfs.Storage
 	Metrics          metrics.Metrics
 	FioGateway       string
 	LedgerGateway    string
@@ -50,11 +49,6 @@ func NewActorSystem(
 		log.Error().Err(err).Msg("Failed to ensure encrypted storage")
 		return nil
 	}
-	plaintextStorage, err := localfs.NewPlaintextStorage(rootStorage)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to ensure plaintext storage")
-		return nil
-	}
 	sys, err := system.New("FioImport/"+tenant, lakeEndpoint)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to register actor system")
@@ -63,7 +57,6 @@ func NewActorSystem(
 	result := new(System)
 	result.System = sys
 	result.EncryptedStorage = encryptedStorage
-	result.PlaintextStorage = plaintextStorage
 	result.Metrics = metrics
 	result.Tenant = tenant
 	result.FioGateway = fioEndpoint

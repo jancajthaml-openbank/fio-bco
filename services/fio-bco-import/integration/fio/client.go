@@ -37,7 +37,7 @@ func NewClient(gateway string) *Client {
 }
 
 // GetStatementsEnvelope returns envelope since last synchronized id and sets that
-// id as pivot for next calls
+// id as pivot for subsequent imports
 func (client *Client) GetStatementsEnvelope(token model.Token) (*Envelope, error) {
 	if client == nil {
 		return nil, fmt.Errorf("nil deference")
@@ -73,6 +73,14 @@ func (client *Client) GetStatementsEnvelope(token model.Token) (*Envelope, error
 
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode == 409 {
+		return nil, fmt.Errorf("fio get transactions.json error token used before mandatory delay of 30 seconds")
+	}
+
+	if resp.StatusCode == 413 {
+		return nil, fmt.Errorf("fio get transactions.json error more than 50k statements to be downloaded")
 	}
 
 	if resp.StatusCode != 200 {
