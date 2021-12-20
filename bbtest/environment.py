@@ -31,8 +31,10 @@ def after_feature(context, feature):
 
 
 def before_all(context):
-  context.tokens = dict()
   context.log = logger()
+  context.log.info('')
+  context.log.info('  (START)')
+  context.tokens = dict()
   context.unit = UnitHelper(context)
   context.zmq = ZMQHelper(context)
   context.fio = FioMock(context)
@@ -49,6 +51,9 @@ def before_all(context):
 
 
 def after_all(context):
+  context.log.info('')
+  context.log.info('  (END)')
+  context.log.info('')
   context.fio.stop()
   context.ledger.stop()
   context.vault.stop()
