@@ -118,7 +118,6 @@ func ExistToken(s *System, id string) system.ReceiverFunction {
 					s.VaultGateway,
 					s.LedgerGateway,
 					s.EncryptedStorage,
-					//s.PlaintextStorage,
 					s.Metrics,
 				)
 

@@ -119,11 +119,11 @@ func (envelope *Envelope) GetTransactions(tenant string) []model.Transaction {
 
 		transfers = append(transfers, model.Transfer{
 			IDTransfer: transfer.transferID.value,
-			Credit: model.AccountPair{
+			Credit: model.AccountVault{
 				Tenant: tenant,
 				Name:   credit,
 			},
-			Debit: model.AccountPair{
+			Debit: model.AccountVault{
 				Tenant: tenant,
 				Name:   debit,
 			},

@@ -78,7 +78,6 @@ func (entity *envelope) UnmarshalJSON(data []byte) error {
 	entity.info.currency = all.Statement.Info.Currency
 	entity.info.iban = all.Statement.Info.IBAN
 	entity.info.bic = all.Statement.Info.BIC
-
 	entity.statements = all.Statement.TransactionList.Statements
 
 	return nil
@@ -89,26 +88,12 @@ type statement struct {
 	amount           *floatNode  `json:"column1"`
 	accountTo        *stringNode `json:"column2"`
 	acountToBankCode *stringNode `json:"column3"`
-	//transferType  *stringNode `json:"column8"`  // FIXME e.g. "Příjem převodem uvnitř banky"
-	currency      *stringNode `json:"column14"`
-	transactionID *intNode    `json:"column17"`
-	transferID    *intNode    `json:"column22"`
-	accountToBIC  *stringNode `json:"column26"`
+	accountToBIC     *stringNode `json:"column26"`
+	//transferType     *stringNode `json:"column8"`  // FIXME e.g. "Příjem převodem uvnitř banky"
+	currency         *stringNode `json:"column14"`
+	transactionID    *intNode    `json:"column17"`
+	transferID       *intNode    `json:"column22"`
 }
-
-/*
-type fioAccountStatement struct {
-	info            accountInfo `json:"info"`
-	transactionList fioTransactionList `json:"transactionList"`
-}
-
-type fioTransactionList struct {
-	transaction []statement `json:"transaction"`
-}
-
-type fioResponse struct {
-	statement fioAccountStatement `json:"accountStatement"`
-}*/
 
 type stringNode struct {
 	value string `json:"value"`
