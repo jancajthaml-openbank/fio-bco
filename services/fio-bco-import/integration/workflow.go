@@ -16,6 +16,7 @@ package integration
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/integration/fio"
 	"github.com/jancajthaml-openbank/fio-bco-import/integration/ledger"
@@ -35,6 +36,7 @@ type Workflow struct {
 	VaultClient      *vault.Client
 	LedgerClient     *ledger.Client
 	EncryptedStorage localfs.Storage
+	PlaintextStorage localfs.Storage
 	Metrics          metrics.Metrics
 }
 
@@ -46,6 +48,7 @@ func NewWorkflow(
 	vaultGateway string,
 	ledgerGateway string,
 	encryptedStorage localfs.Storage,
+	plaintextStorage localfs.Storage,
 	metrics metrics.Metrics,
 ) Workflow {
 	return Workflow{
@@ -55,6 +58,7 @@ func NewWorkflow(
 		VaultClient:      vault.NewClient(vaultGateway),
 		LedgerClient:     ledger.NewClient(ledgerGateway),
 		EncryptedStorage: encryptedStorage,
+		PlaintextStorage: plaintextStorage,
 		Metrics:          metrics,
 	}
 }
@@ -96,10 +100,10 @@ func createTransactionsFromStatements(
 		}
 		metrics.TransactionImported(len(transaction.Transfers))
 		for _, transfer := range transaction.Transfers {
-			if token.LastSyncedID > transfer.IDTransfer {
+			if token.LastSyncedID > transfer.ID {
 				continue
 			}
-			token.LastSyncedID = transfer.IDTransfer
+			token.LastSyncedID = transfer.ID
 			if !persistence.UpdateToken(encryptedStorage, token) {
 				log.Warn().Msgf("unable to update token %s", token.ID)
 			}
@@ -107,6 +111,38 @@ func createTransactionsFromStatements(
 	}
 
 	return nil
+}
+
+// DownloadStatements download new statements from fio gateway
+func (workflow Workflow) DownloadStatements() {
+	if workflow.Token == nil {
+		return
+	}
+
+	envelope, err := workflow.FioClient.GetStatementsEnvelope(*workflow.Token)
+	if err != nil {
+		log.Warn().Err(err).Msgf("Unable to get envelope")
+		return
+	}
+
+	for _, transfer := range envelope.Statements {
+		if transfer.TransferID == nil {
+			continue
+		}
+		exists, err := workflow.PlaintextStorage.Exists("token/" + workflow.Token.ID + "/statements/" + envelope.IBAN + "/" + strconv.FormatInt(transfer.TransferID.Value, 10))
+		if err != nil {
+			log.Warn().Err(err).Msgf("Unable to check if transaction %d exists for token %s IBAN %s", transfer.TransferID.Value, workflow.Token.ID, envelope.IBAN)
+			return
+		}
+		if exists {
+			continue
+		}
+		err = workflow.PlaintextStorage.TouchFile("token/" + workflow.Token.ID + "/statements/" + envelope.IBAN + "/" + strconv.FormatInt(transfer.TransferID.Value, 10) + "/mark")
+		if err != nil {
+			log.Warn().Err(err).Msgf("Unable to mark transaction %d as known for token %s IBAN %s", transfer.TransferID.Value, workflow.Token.ID, envelope.IBAN)
+			return
+		}
+	}
 }
 
 // SynchronizeStatements downloads new statements from fio gateway and creates accounts and transactions and normalizes them into value transfers

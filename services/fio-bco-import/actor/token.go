@@ -118,10 +118,17 @@ func ExistToken(s *System, id string) system.ReceiverFunction {
 					s.VaultGateway,
 					s.LedgerGateway,
 					s.EncryptedStorage,
+					s.PlaintextStorage,
 					s.Metrics,
 				)
 
 				workflow.SynchronizeStatements()
+
+				/*
+				workflow.DownloadStatements()
+				workflow.CreateAccounts()
+				workflow.CreateTransactions()
+				*/
 			}()
 
 			return SynchronizingToken(s, id)

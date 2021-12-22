@@ -24,14 +24,12 @@ import (
 
 // Envelope represents fio statements fascade
 type Envelope struct {
-	data envelope
-}
-
-// NewEnvelope returns fio statement accessor
-func NewEnvelope(data envelope) *Envelope {
-	return &Envelope{
-		data: data,
-	}
+	AccountID string
+	BankID    string
+	Currency  string
+	IBAN      string
+	BIC       string
+	Statements []Statement
 }
 
 // GetTransactions returns transactions from fio statement
@@ -42,8 +40,8 @@ func (envelope *Envelope) GetTransactions(tenant string) []model.Transaction {
 		return transactions
 	}
 
-	sort.SliceStable(envelope.data.statements, func(i, j int) bool {
-		return envelope.data.statements[i].transactionID.value < envelope.data.statements[j].transactionID.value
+	sort.SliceStable(envelope.Statements, func(i, j int) bool {
+		return envelope.Statements[i].TransactionID.Value < envelope.Statements[j].TransactionID.Value
 	})
 
 	previousIDTransaction := ""
@@ -56,54 +54,50 @@ func (envelope *Envelope) GetTransactions(tenant string) []model.Transaction {
 	var currency string
 	var valueDate time.Time
 
-	for _, transfer := range envelope.data.statements {
-		if transfer.transferID == nil || transfer.amount == nil {
+	for _, transfer := range envelope.Statements {
+		if transfer.TransferID == nil || transfer.Amount == nil {
 			continue
 		}
 
-		if transfer.amount.value > 0 {
-			credit = envelope.data.info.iban
-			if transfer.accountTo == nil {
-				debit = envelope.data.info.bic
+		if transfer.Amount.Value > 0 {
+			credit = envelope.IBAN
+			if transfer.AccountTo == nil {
+				debit = envelope.BIC
+			} else if transfer.AcountToBankCode != nil {
+				debit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AcountToBankCode.Value, envelope.BankID)
+			} else if transfer.AccountToBIC != nil {
+				debit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AccountToBIC.Value, envelope.BankID)
 			} else {
-				if transfer.acountToBankCode != nil {
-					debit = model.NormalizeAccountNumber(transfer.accountTo.value, transfer.acountToBankCode.value, envelope.data.info.bankID)
-				} else if transfer.accountToBIC != nil {
-					debit = model.NormalizeAccountNumber(transfer.accountTo.value, transfer.accountToBIC.value, envelope.data.info.bankID)
-				} else {
-					debit = model.NormalizeAccountNumber(transfer.accountTo.value, "", envelope.data.info.bankID)
-				}
+				debit = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.BankID)
 			}
 		} else {
-			if transfer.accountTo == nil {
-				credit = envelope.data.info.bic
+			if transfer.AccountTo == nil {
+				credit = envelope.BIC
+			} else if transfer.AcountToBankCode != nil {
+				credit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AcountToBankCode.Value, envelope.BankID)
+			} else if transfer.AccountToBIC != nil {
+				credit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AccountToBIC.Value, envelope.BankID)
 			} else {
-				if transfer.acountToBankCode != nil {
-					credit = model.NormalizeAccountNumber(transfer.accountTo.value, transfer.acountToBankCode.value, envelope.data.info.bankID)
-				} else if transfer.accountToBIC != nil {
-					credit = model.NormalizeAccountNumber(transfer.accountTo.value, transfer.accountToBIC.value, envelope.data.info.bankID)
-				} else {
-					credit = model.NormalizeAccountNumber(transfer.accountTo.value, "", envelope.data.info.bankID)
-				}
+				credit = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.BankID)
 			}
-			debit = envelope.data.info.iban
+			debit = envelope.IBAN
 		}
 
-		if transfer.transferDate == nil {
+		if transfer.TransferDate == nil {
 			valueDate = now
-		} else if date, err := time.Parse("2006-01-02-0700", transfer.transferDate.value); err == nil {
+		} else if date, err := time.Parse("2006-01-02-0700", transfer.TransferDate.Value); err == nil {
 			valueDate = date.UTC()
 		} else {
 			valueDate = now
 		}
 
-		if transfer.currency == nil {
-			currency = envelope.data.info.currency
+		if transfer.Currency == nil {
+			currency = envelope.Currency
 		} else {
-			currency = transfer.currency.value
+			currency = transfer.Currency.Value
 		}
 
-		idTransaction := envelope.data.info.iban + strconv.FormatInt(transfer.transactionID.value, 10)
+		idTransaction := envelope.IBAN + strconv.FormatInt(transfer.TransactionID.Value, 10)
 
 		if previousIDTransaction == "" {
 			previousIDTransaction = idTransaction
@@ -118,7 +112,8 @@ func (envelope *Envelope) GetTransactions(tenant string) []model.Transaction {
 		}
 
 		transfers = append(transfers, model.Transfer{
-			IDTransfer: transfer.transferID.value,
+			ID: transfer.TransferID.Value,
+			IDTransfer: strconv.FormatInt(transfer.TransferID.Value, 10),
 			Credit: model.AccountVault{
 				Tenant: tenant,
 				Name:   credit,
@@ -128,7 +123,7 @@ func (envelope *Envelope) GetTransactions(tenant string) []model.Transaction {
 				Name:   debit,
 			},
 			ValueDate: valueDate.Format("2006-01-02T15:04:05Z0700"),
-			Amount:    strconv.FormatFloat(math.Abs(transfer.amount.value), 'f', -1, 64),
+			Amount:    strconv.FormatFloat(math.Abs(transfer.Amount.Value), 'f', -1, 64),
 			Currency:  currency,
 		})
 	}
@@ -153,40 +148,37 @@ func (envelope *Envelope) GetAccounts(tenant string) []model.Account {
 		return accounts
 	}
 
-	statements := make(map[string]statement)
-
-	for _, transfer := range envelope.data.statements {
-		if transfer.accountTo == nil {
-			// INFO fee and taxes and maybe card payments
-			statements[envelope.data.info.bic] = transfer
-		} else {
-			statements[transfer.accountTo.value] = transfer
-		}
-	}
-
 	set := make(map[string]model.Account)
 
 	var normalizedAccount string
 	var accountFormat string
 	var currency string
 
-	for account, transfer := range statements {
-		if transfer.acountToBankCode != nil {
-			normalizedAccount = model.NormalizeAccountNumber(account, transfer.acountToBankCode.value, envelope.data.info.bankID)
+	for _, transfer := range envelope.Statements {
+
+		if transfer.AccountTo == nil {
+			// INFO fee and taxes and maybe card payments
+			normalizedAccount = envelope.BIC
+		} else if transfer.AcountToBankCode != nil {
+			normalizedAccount = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AcountToBankCode.Value, envelope.BankID)
+		} else if transfer.AccountToBIC != nil {
+			normalizedAccount = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AccountToBIC.Value, envelope.BankID)
 		} else {
-			normalizedAccount = model.NormalizeAccountNumber(account, "", envelope.data.info.bankID)
+			normalizedAccount = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.BankID)
 		}
 
-		if normalizedAccount != account {
+		if transfer.AccountTo == nil {
+			accountFormat = "FIO_TECHNICAL"
+		} else if transfer.AccountTo.Value != normalizedAccount {
 			accountFormat = "IBAN"
 		} else {
 			accountFormat = "FIO_UNKNOWN"
 		}
 
-		if transfer.currency == nil {
-			currency = envelope.data.info.currency
+		if transfer.Currency == nil {
+			currency = envelope.Currency
 		} else {
-			currency = transfer.currency.value
+			currency = transfer.Currency.Value
 		}
 
 		set[normalizedAccount] = model.Account{
@@ -199,11 +191,11 @@ func (envelope *Envelope) GetAccounts(tenant string) []model.Account {
 
 	}
 
-	set[envelope.data.info.iban] = model.Account{
+	set[envelope.IBAN] = model.Account{
 		Tenant:         tenant,
-		Name:           envelope.data.info.iban,
+		Name:           envelope.IBAN,
 		Format:         "IBAN",
-		Currency:       envelope.data.info.currency,
+		Currency:       envelope.Currency,
 		IsBalanceCheck: false,
 	}
 

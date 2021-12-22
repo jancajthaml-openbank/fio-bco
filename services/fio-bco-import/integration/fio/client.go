@@ -87,11 +87,11 @@ func (client *Client) GetStatementsEnvelope(token model.Token) (*Envelope, error
 		return nil, fmt.Errorf("fio get transactions.json error invalid http status %s", resp.Status)
 	}
 
-	response := new(envelope)
-	err = json.NewDecoder(resp.Body).Decode(response)
+	envelope := new(Envelope)
+	err = json.NewDecoder(resp.Body).Decode(envelope)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewEnvelope(*response), nil
+	return envelope, nil
 }

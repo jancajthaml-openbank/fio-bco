@@ -19,21 +19,8 @@ import (
 	"fmt"
 )
 
-type envelope struct {
-	info       accountInfo
-	statements []statement
-}
-
-type accountInfo struct {
-	accountID string
-	bankID    string
-	currency  string
-	iban      string
-	bic       string
-}
-
-// UnmarshalJSON envelope
-func (entity *envelope) UnmarshalJSON(data []byte) error {
+// UnmarshalJSON Envelope
+func (entity *Envelope) UnmarshalJSON(data []byte) error {
 	if entity == nil {
 		return fmt.Errorf("cannot unmarshal to nil pointer")
 	}
@@ -48,7 +35,7 @@ func (entity *envelope) UnmarshalJSON(data []byte) error {
 				BIC       string `json:"bic"`
 			} `json:"info"`
 			TransactionList struct {
-				Statements []statement `json:"transaction"`
+				Statements []Statement `json:"transaction"`
 			} `json:"transactionList"`
 		} `json:"accountStatement"`
 	}{}
@@ -73,42 +60,42 @@ func (entity *envelope) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("missing attribute \"bic\"")
 	}
 
-	entity.info.accountID = all.Statement.Info.AccountID
-	entity.info.bankID = all.Statement.Info.BankID
-	entity.info.currency = all.Statement.Info.Currency
-	entity.info.iban = all.Statement.Info.IBAN
-	entity.info.bic = all.Statement.Info.BIC
-	entity.statements = all.Statement.TransactionList.Statements
+	entity.AccountID = all.Statement.Info.AccountID
+	entity.BankID = all.Statement.Info.BankID
+	entity.Currency = all.Statement.Info.Currency
+	entity.IBAN = all.Statement.Info.IBAN
+	entity.BIC = all.Statement.Info.BIC
+	entity.Statements = all.Statement.TransactionList.Statements
 
 	return nil
 }
 
-type statement struct {
-	transferDate     *stringNode `json:"column0"`
-	amount           *floatNode  `json:"column1"`
-	accountTo        *stringNode `json:"column2"`
-	acountToBankCode *stringNode `json:"column3"`
-	accountToBIC     *stringNode `json:"column26"`
-	//transferType     *stringNode `json:"column8"`  // FIXME e.g. "Příjem převodem uvnitř banky"
-	currency         *stringNode `json:"column14"`
-	transactionID    *intNode    `json:"column17"`
-	transferID       *intNode    `json:"column22"`
+type Statement struct {
+	TransferDate     *stringNode `json:"column0"`
+	Amount           *floatNode  `json:"column1"`
+	AccountTo        *stringNode `json:"column2"`
+	AcountToBankCode *stringNode `json:"column3"`
+	AccountToBIC     *stringNode `json:"column26"`
+	//TransferType     *stringNode `json:"column8"`  // FIXME e.g. "Příjem převodem uvnitř banky"
+	Currency         *stringNode `json:"column14"`
+	TransactionID    *intNode    `json:"column17"`
+	TransferID       *intNode    `json:"column22"`
 }
 
 type stringNode struct {
-	value string `json:"value"`
-	name  string `json:"name"`
-	id    int    `json:"id"`
+	Value string `json:"value"`
+	Name  string `json:"name"`
+	ID    int    `json:"id"`
 }
 
 type intNode struct {
-	value int64  `json:"value"`
-	name  string `json:"name"`
-	id    int    `json:"id"`
+	Value int64  `json:"value"`
+	Name  string `json:"name"`
+	ID    int    `json:"id"`
 }
 
 type floatNode struct {
-	value float64 `json:"value"`
-	name  string  `json:"name"`
-	id    int     `json:"id"`
+	Value float64 `json:"value"`
+	Name  string  `json:"name"`
+	ID    int     `json:"id"`
 }
