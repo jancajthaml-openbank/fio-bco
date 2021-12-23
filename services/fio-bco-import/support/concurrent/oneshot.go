@@ -15,7 +15,6 @@
 package concurrent
 
 import (
-	"fmt"
 	"context"
 	"sync"
 )
@@ -87,10 +86,6 @@ func (daemon *OneShotDaemon) Start(parentContext context.Context, cancelFunction
 	log.Info().Msgf("Start daemon %s run once", daemon.name)
 	defer log.Info().Msgf("Stop daemon %s", daemon.name)
 
-	fmt.Printf("oneshot daemon %s Work start\n", daemon.name)
 	daemon.Work()
-	fmt.Printf("oneshot daemon %s Work done\n", daemon.name)
-	fmt.Printf("oneshot daemon %s Done start\n", daemon.name)
 	<-daemon.Done()
-	fmt.Printf("oneshot daemon %s Done done\n", daemon.name)
 }

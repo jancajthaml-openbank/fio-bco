@@ -15,7 +15,6 @@
 package actor
 
 import (
-	"fmt"
 	"github.com/jancajthaml-openbank/fio-bco-import/metrics"
 
 	system "github.com/jancajthaml-openbank/actor-system"
@@ -84,9 +83,7 @@ func (system *System) Work() {
 	if system == nil {
 		return
 	}
-	fmt.Println("System Work start")
 	system.System.Start()
-	fmt.Println("System Work done")
 }
 
 // Cancel does nothing
