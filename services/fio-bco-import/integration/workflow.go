@@ -17,6 +17,7 @@ package integration
 import (
 	"fmt"
 	"strconv"
+	"encoding/json"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/integration/fio"
 	"github.com/jancajthaml-openbank/fio-bco-import/integration/ledger"
@@ -137,10 +138,15 @@ func (workflow Workflow) DownloadStatements() {
 		if exists {
 			continue
 		}
-		err = workflow.PlaintextStorage.TouchFile("token/" + workflow.Token.ID + "/statements/" + envelope.IBAN + "/" + strconv.FormatInt(transfer.TransferID.Value, 10) + "/mark")
+		data, err := json.Marshal(transfer)
 		if err != nil {
-			log.Warn().Err(err).Msgf("Unable to mark transaction %d as known for token %s IBAN %s", transfer.TransferID.Value, workflow.Token.ID, envelope.IBAN)
-			return
+			log.Warn().Msgf("Unable to marshal statement details of %s/%s/%d", workflow.Token.ID, envelope.IBAN, transfer.TransferID.Value)
+			continue
+		}
+		err = workflow.PlaintextStorage.WriteFileExclusive("token/" + workflow.Token.ID + "/statements/" + envelope.IBAN + "/" + strconv.FormatInt(transfer.TransferID.Value, 10) + "/data", data)
+		if err != nil {
+			log.Warn().Err(err).Msgf("Unable to persist statement details of %s/%s/%d", workflow.Token.ID, envelope.IBAN, transfer.TransferID.Value)
+			continue
 		}
 	}
 }
