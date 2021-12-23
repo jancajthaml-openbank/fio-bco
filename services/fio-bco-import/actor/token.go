@@ -47,15 +47,18 @@ func NonExistToken(s *System, id string) system.ReceiverFunction {
 			return NonExistToken(s, id)
 
 		case CreateToken:
-			if persistence.CreateToken(s.EncryptedStorage, id, msg.Value) != nil {
+			err := persistence.CreateToken(s.EncryptedStorage, id, msg.Value)
+			if err != nil {
 				s.SendMessage(FatalError, context.Sender, context.Receiver)
-				log.Debug().Msgf("token %s (NonExist CreateToken) Error", id)
+				log.Debug().Msgf("token %s (NonExist CreateToken) Error %s", id, err)
 				return NonExistToken(s, id)
 			}
+
 			s.SendMessage(RespCreateToken, context.Sender, context.Receiver)
 			log.Info().Msgf("New Token %s Created", id)
 			log.Debug().Msgf("token %s (NonExist CreateToken) OK", id)
 			s.Metrics.TokenCreated()
+
 			return ExistToken(s, id)
 
 		case DeleteToken:
