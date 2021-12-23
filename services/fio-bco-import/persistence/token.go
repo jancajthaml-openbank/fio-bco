@@ -15,6 +15,8 @@
 package persistence
 
 import (
+	"fmt"
+
 	localfs "github.com/jancajthaml-openbank/local-fs"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
@@ -44,14 +46,18 @@ func LoadTokens(storage localfs.Storage) ([]model.Token, error) {
 }
 
 // LoadToken rehydrates token entity state from storage
-func LoadToken(storage localfs.Storage, id string) *model.Token {
+func LoadToken(storage localfs.Storage, id string) (*model.Token, error) {
 	result := new(model.Token)
 	result.ID = id
-	return HydrateToken(storage, result)
+	err := HydrateToken(storage, result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // CreateToken persist token entity state to storage
-func CreateToken(storage localfs.Storage, id string, value string) *model.Token {
+func CreateToken(storage localfs.Storage, id string, value string) error {
 	token := model.NewToken(id)
 	token.Value = value
 	return PersistToken(storage, &token)
@@ -59,41 +65,33 @@ func CreateToken(storage localfs.Storage, id string, value string) *model.Token 
 
 // DeleteToken deletes existing token entity
 func DeleteToken(storage localfs.Storage, id string) bool {
-	path := "token/" + id + "/value"
+	path := "token/" + id
 	return storage.DeleteFile(path) == nil
 }
 
 // PersistToken persist new token entity to storage
-func PersistToken(storage localfs.Storage, entity *model.Token) *model.Token {
+func PersistToken(storage localfs.Storage, entity *model.Token) error {
 	if entity == nil {
-		return nil
+		return fmt.Errorf("nil reference")
 	}
-	path := "token/" + entity.ID + "/value"
 	data, err := entity.Serialize()
 	if err != nil {
-		return nil
+		return err
 	}
-	if storage.WriteFileExclusive(path, data) != nil {
-		return nil
-	}
-	return entity
+	return storage.WriteFileExclusive("token/" + entity.ID + "/value", data)
 }
 
 // HydrateToken hydrate existing token from storage
-func HydrateToken(storage localfs.Storage, entity *model.Token) *model.Token {
+func HydrateToken(storage localfs.Storage, entity *model.Token) error {
 	if entity == nil {
-		return nil
+		return fmt.Errorf("nil reference")
 	}
 	path := "token/" + entity.ID + "/value"
 	data, err := storage.ReadFileFully(path)
 	if err != nil {
-		return nil
+		return err
 	}
-	err = entity.Deserialize(data)
-	if err != nil {
-		return nil
-	}
-	return entity
+	return entity.Deserialize(data)
 }
 
 // UpdateToken updates data of existing token to storage
@@ -102,7 +100,6 @@ func UpdateToken(storage localfs.Storage, entity *model.Token) bool {
 		return false
 	}
 	path := "token/" + entity.ID + "/value"
-	// FIXME check nil
 	data, err := entity.Serialize()
 	if err != nil {
 		return false

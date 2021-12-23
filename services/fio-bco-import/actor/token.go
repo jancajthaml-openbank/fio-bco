@@ -25,7 +25,8 @@ import (
 func NilToken(s *System, id string) system.ReceiverFunction {
 	return func(context system.Context) system.ReceiverFunction {
 		context.Self.Tell(context.Data, context.Receiver, context.Sender)
-		if persistence.LoadToken(s.EncryptedStorage, id) == nil {
+		_, err := persistence.LoadToken(s.EncryptedStorage, id)
+		if err != nil {
 			log.Debug().Msgf("token %s Nil -> NonExist", id)
 			return NonExistToken(s, id)
 		} else {
@@ -46,17 +47,15 @@ func NonExistToken(s *System, id string) system.ReceiverFunction {
 			return NonExistToken(s, id)
 
 		case CreateToken:
-			if persistence.CreateToken(s.EncryptedStorage, id, msg.Value) == nil {
+			if persistence.CreateToken(s.EncryptedStorage, id, msg.Value) != nil {
 				s.SendMessage(FatalError, context.Sender, context.Receiver)
 				log.Debug().Msgf("token %s (NonExist CreateToken) Error", id)
 				return NonExistToken(s, id)
 			}
-
 			s.SendMessage(RespCreateToken, context.Sender, context.Receiver)
 			log.Info().Msgf("New Token %s Created", id)
 			log.Debug().Msgf("token %s (NonExist CreateToken) OK", id)
 			s.Metrics.TokenCreated()
-
 			return ExistToken(s, id)
 
 		case DeleteToken:
@@ -106,8 +105,9 @@ func ExistToken(s *System, id string) system.ReceiverFunction {
 					context.Self.Tell(SynchornizationDone{}, context.Receiver, context.Receiver)
 				}()
 
-				token := persistence.LoadToken(s.EncryptedStorage, id)
-				if token == nil {
+				token, err := persistence.LoadToken(s.EncryptedStorage, id)
+				if err != nil {
+					// TODO log
 					return
 				}
 
