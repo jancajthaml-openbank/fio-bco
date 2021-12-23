@@ -78,7 +78,7 @@ func PersistToken(storage localfs.Storage, entity *model.Token) error {
 	if err != nil {
 		return err
 	}
-	return storage.WriteFileExclusive("token/" + entity.ID, data)
+	return storage.WriteFileExclusive("token/"+entity.ID, data)
 }
 
 // HydrateToken hydrate existing token from storage

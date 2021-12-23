@@ -16,8 +16,8 @@ package fio
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
 	"github.com/jancajthaml-openbank/fio-bco-import/support/http"
@@ -60,7 +60,7 @@ func (client *Client) GetStatementsEnvelope(token model.Token) (*Envelope, error
 	if err != nil {
 		return nil, err
 	} else if err == nil && resp.StatusCode != 200 {
-    	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		bodyBytes, _ := ioutil.ReadAll(resp.Body)
 		return nil, fmt.Errorf("fio set last synced id invalid http status %s body %s", resp.Status, string(bodyBytes))
 	}
 

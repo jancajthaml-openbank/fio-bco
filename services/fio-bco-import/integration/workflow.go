@@ -15,9 +15,9 @@
 package integration
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
-	"encoding/json"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/integration/fio"
 	"github.com/jancajthaml-openbank/fio-bco-import/integration/ledger"
@@ -31,7 +31,7 @@ import (
 
 // Workflow represents import integration workflow
 type Workflow struct {
-	Token 		     *model.Token
+	Token            *model.Token
 	Tenant           string
 	FioClient        *fio.Client
 	VaultClient      *vault.Client
@@ -53,7 +53,7 @@ func NewWorkflow(
 	metrics metrics.Metrics,
 ) Workflow {
 	return Workflow{
-		Token: token,
+		Token:            token,
 		Tenant:           tenant,
 		FioClient:        fio.NewClient(fioGateway),
 		VaultClient:      vault.NewClient(vaultGateway),
@@ -143,7 +143,7 @@ func (workflow Workflow) DownloadStatements() {
 			log.Warn().Msgf("Unable to marshal statement details of %s/%s/%d", workflow.Token.ID, envelope.IBAN, transfer.TransferID.Value)
 			continue
 		}
-		err = workflow.PlaintextStorage.WriteFileExclusive("token/" + workflow.Token.ID + "/statements/" + envelope.IBAN + "/" + strconv.FormatInt(transfer.TransferID.Value, 10) + "/data", data)
+		err = workflow.PlaintextStorage.WriteFileExclusive("token/"+workflow.Token.ID+"/statements/"+envelope.IBAN+"/"+strconv.FormatInt(transfer.TransferID.Value, 10)+"/data", data)
 		if err != nil {
 			log.Warn().Err(err).Msgf("Unable to persist statement details of %s/%s/%d", workflow.Token.ID, envelope.IBAN, transfer.TransferID.Value)
 			continue

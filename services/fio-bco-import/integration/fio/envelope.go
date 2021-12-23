@@ -26,11 +26,11 @@ import (
 
 // Envelope represents fio statements fascade
 type Envelope struct {
-	AccountID string
-	BankID    string
-	Currency  string
-	IBAN      string
-	BIC       string
+	AccountID  string
+	BankID     string
+	Currency   string
+	IBAN       string
+	BIC        string
 	Statements []Statement
 }
 
@@ -114,7 +114,7 @@ func (envelope *Envelope) GetTransactions(tenant string) []model.Transaction {
 		}
 
 		transfers = append(transfers, model.Transfer{
-			ID: transfer.TransferID.Value,
+			ID:         transfer.TransferID.Value,
 			IDTransfer: strconv.FormatInt(transfer.TransferID.Value, 10),
 			Credit: model.AccountVault{
 				Tenant: tenant,

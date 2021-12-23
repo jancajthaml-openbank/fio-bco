@@ -29,10 +29,9 @@ func NilToken(s *System, id string) system.ReceiverFunction {
 		if err != nil {
 			log.Debug().Msgf("token %s Nil -> NonExist", id)
 			return NonExistToken(s, id)
-		} else {
-			log.Debug().Msgf("token %s Nil -> Exist", id)
-			return ExistToken(s, id)
 		}
+		log.Debug().Msgf("token %s Nil -> Exist", id)
+		return ExistToken(s, id)
 	}
 }
 
@@ -128,9 +127,9 @@ func ExistToken(s *System, id string) system.ReceiverFunction {
 				workflow.SynchronizeStatements()
 
 				/*
-				workflow.DownloadStatements()
-				workflow.CreateAccounts()
-				workflow.CreateTransactions()
+					workflow.DownloadStatements()
+					workflow.CreateAccounts()
+					workflow.CreateTransactions()
 				*/
 			}()
 

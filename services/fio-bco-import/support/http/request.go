@@ -17,8 +17,8 @@ package http
 import (
 	"bytes"
 	"io"
-	_url "net/url"
 	_http "net/http"
+	_url "net/url"
 )
 
 // Request wraps net/http request
@@ -54,4 +54,3 @@ func (request *Request) SetHeader(key string, value string) {
 	}
 	request.Header[key] = []string{value}
 }
-
