@@ -31,10 +31,13 @@ type Account struct {
 	IsBalanceCheck bool   `json:"isBalanceCheck"`
 }
 
-// NormalizeAccountNumber return account number in IBAN form
-func NormalizeAccountNumber(number string, bankCode string, nostroBankCode string) string {
+// NormalizeAccountNumber return account number in IBAN format
+func NormalizeAccountNumber(number string, bankCode string, nostroBankCode string) (string, bool) {
 	if len(number) > 2 && (number[0] >= 'A' && number[0] <= 'Z') && (number[1] >= 'A' && number[1] <= 'Z') {
-		return number
+		return number, false
+	}
+	if iban.ValidIBAN(number) {
+		return number, true
 	}
 	var calculatedIBAN string
 	if bankCode == "" {
@@ -43,7 +46,7 @@ func NormalizeAccountNumber(number string, bankCode string, nostroBankCode strin
 		calculatedIBAN = iban.Calculate(number, bankCode)
 	}
 	if calculatedIBAN == "" {
-		return number
+		return number, false
 	}
-	return calculatedIBAN
+	return calculatedIBAN, true
 }

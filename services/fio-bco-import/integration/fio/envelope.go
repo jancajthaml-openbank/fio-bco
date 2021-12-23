@@ -15,6 +15,8 @@
 package fio
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
 	"math"
 	"sort"
@@ -64,21 +66,21 @@ func (envelope *Envelope) GetTransactions(tenant string) []model.Transaction {
 			if transfer.AccountTo == nil {
 				debit = envelope.BIC
 			} else if transfer.AcountToBankCode != nil {
-				debit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AcountToBankCode.Value, envelope.BankID)
+				debit, _ = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AcountToBankCode.Value, envelope.BankID)
 			} else if transfer.AccountToBIC != nil {
-				debit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AccountToBIC.Value, envelope.BankID)
+				debit, _ = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AccountToBIC.Value, envelope.BankID)
 			} else {
-				debit = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.BankID)
+				debit, _ = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.BankID)
 			}
 		} else {
 			if transfer.AccountTo == nil {
 				credit = envelope.BIC
 			} else if transfer.AcountToBankCode != nil {
-				credit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AcountToBankCode.Value, envelope.BankID)
+				credit, _ = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AcountToBankCode.Value, envelope.BankID)
 			} else if transfer.AccountToBIC != nil {
-				credit = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AccountToBIC.Value, envelope.BankID)
+				credit, _ = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AccountToBIC.Value, envelope.BankID)
 			} else {
-				credit = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.BankID)
+				credit, _ = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.BankID)
 			}
 			debit = envelope.IBAN
 		}
@@ -151,6 +153,7 @@ func (envelope *Envelope) GetAccounts(tenant string) []model.Account {
 	set := make(map[string]model.Account)
 
 	var normalizedAccount string
+	var isIBAN bool
 	var accountFormat string
 	var currency string
 
@@ -159,19 +162,22 @@ func (envelope *Envelope) GetAccounts(tenant string) []model.Account {
 		if transfer.AccountTo == nil {
 			// INFO fee and taxes and maybe card payments
 			normalizedAccount = envelope.BIC
+			isIBAN = false
 		} else if transfer.AcountToBankCode != nil {
-			normalizedAccount = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AcountToBankCode.Value, envelope.BankID)
+			normalizedAccount, isIBAN = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AcountToBankCode.Value, envelope.BankID)
 		} else if transfer.AccountToBIC != nil {
-			normalizedAccount = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AccountToBIC.Value, envelope.BankID)
+			normalizedAccount, isIBAN = model.NormalizeAccountNumber(transfer.AccountTo.Value, transfer.AccountToBIC.Value, envelope.BankID)
 		} else {
-			normalizedAccount = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.BankID)
+			normalizedAccount, isIBAN = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.BankID)
 		}
 
 		if transfer.AccountTo == nil {
 			accountFormat = "FIO_TECHNICAL"
-		} else if transfer.AccountTo.Value != normalizedAccount {
+		} else if isIBAN {
 			accountFormat = "IBAN"
 		} else {
+			bytes, _ := json.Marshal(transfer)
+			fmt.Printf("Strange account number in statement: %s\n", string(bytes))
 			accountFormat = "FIO_UNKNOWN"
 		}
 
