@@ -26,11 +26,13 @@ import (
 
 // Envelope represents fio statements fascade
 type Envelope struct {
-	AccountID  string
-	BankCode     string
-	Currency   string
-	IBAN       string
-	BIC        string
+
+	AccountID  string // FIXME move under INFO section
+	BankCode   string // FIXME move under INFO section
+	Currency   string // FIXME move under INFO section
+	IBAN       string // FIXME move under INFO section
+	BIC        string // FIXME move under INFO section
+
 	Statements []Statement
 }
 
