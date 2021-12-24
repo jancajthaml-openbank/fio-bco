@@ -65,7 +65,7 @@ func CreateToken(storage localfs.Storage, id string, value string) error {
 
 // DeleteToken deletes existing token entity
 func DeleteToken(storage localfs.Storage, id string) bool {
-	path := "token/" + id
+	path := "token/" + id + "/value"
 	return storage.DeleteFile(path) == nil
 }
 
@@ -78,7 +78,7 @@ func PersistToken(storage localfs.Storage, entity *model.Token) error {
 	if err != nil {
 		return err
 	}
-	return storage.WriteFileExclusive("token/"+entity.ID, data)
+	return storage.WriteFileExclusive("token/"+entity.ID+"/value", data)
 }
 
 // HydrateToken hydrate existing token from storage
@@ -86,7 +86,7 @@ func HydrateToken(storage localfs.Storage, entity *model.Token) error {
 	if entity == nil {
 		return fmt.Errorf("nil reference")
 	}
-	path := "token/" + entity.ID
+	path := "token/" + entity.ID + "/value"
 	data, err := storage.ReadFileFully(path)
 	if err != nil {
 		return err
@@ -99,7 +99,7 @@ func UpdateToken(storage localfs.Storage, entity *model.Token) bool {
 	if entity == nil {
 		return false
 	}
-	path := "token/" + entity.ID
+	path := "token/" + entity.ID + "/value"
 	data, err := entity.Serialize()
 	if err != nil {
 		return false

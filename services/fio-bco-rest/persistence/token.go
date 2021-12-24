@@ -46,7 +46,7 @@ func HydrateToken(storage localfs.Storage, tenant string, token string) *model.T
 	if tenant == "" || token == "" {
 		return nil
 	}
-	path := "t_" + tenant + "/import/fio/token/" + token
+	path := "t_" + tenant + "/import/fio/token/" + token + "/value"
 	data, err := storage.ReadFileFully(path)
 	if err != nil {
 		return nil

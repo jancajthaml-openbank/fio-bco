@@ -132,7 +132,7 @@ func (workflow Workflow) DownloadStatements() {
 		}
 		exists, err := workflow.PlaintextStorage.Exists("token/" + workflow.Token.ID + "/statements/" + envelope.IBAN + "/" + strconv.FormatInt(transfer.TransferID.Value, 10))
 		if err != nil {
-			log.Warn().Err(err).Msgf("Unable to check if transaction %d exists for token %s IBAN %s", transfer.TransferID.Value, workflow.Token.ID, envelope.IBAN)
+			log.Warn().Err(err).Msgf("Unable to check if transaction %d exists for token %s IBAN %s with error %s", transfer.TransferID.Value, workflow.Token.ID, envelope.IBAN, err)
 			return
 		}
 		if exists {
@@ -145,7 +145,7 @@ func (workflow Workflow) DownloadStatements() {
 		}
 		err = workflow.PlaintextStorage.WriteFileExclusive("token/"+workflow.Token.ID+"/statements/"+envelope.IBAN+"/"+strconv.FormatInt(transfer.TransferID.Value, 10)+"/data", data)
 		if err != nil {
-			log.Warn().Err(err).Msgf("Unable to persist statement details of %s/%s/%d", workflow.Token.ID, envelope.IBAN, transfer.TransferID.Value)
+			log.Warn().Err(err).Msgf("Unable to persist statement details of %s/%s/%d with error %s", workflow.Token.ID, envelope.IBAN, transfer.TransferID.Value, err)
 			continue
 		}
 	}
