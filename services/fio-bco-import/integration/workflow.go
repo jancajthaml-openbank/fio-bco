@@ -17,6 +17,8 @@ package integration
 import (
 	"encoding/json"
 	"fmt"
+	"time"
+	"math"
 	"strconv"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/integration/fio"
@@ -64,6 +66,7 @@ func NewWorkflow(
 	}
 }
 
+/*
 func createAccountsFromStatements(
 	tenant string,
 	vaultClient *vault.Client,
@@ -82,7 +85,9 @@ func createAccountsFromStatements(
 
 	return nil
 }
+*/
 
+/*
 func createTransactionsFromStatements(
 	tenant string,
 	ledgerClient *ledger.Client,
@@ -113,6 +118,7 @@ func createTransactionsFromStatements(
 
 	return nil
 }
+*/
 
 // DownloadStatements download new statements from fio gateway
 func (workflow Workflow) DownloadStatements() {
@@ -197,7 +203,7 @@ func (workflow Workflow) CreateAccounts() {
 	idsNeedingConfirmation := make([]string, 0)
 	creatingNostro := false
 
-	exists, err := workflow.PlaintextStorage.Exists("token/" + workflow.Token.ID + "/nostro_ack")
+	exists, err := workflow.PlaintextStorage.Exists("token/" + workflow.Token.ID + "/ack_nostro")
 	if err != nil {
 		log.Warn().Err(err).Msgf("Unable to check if %s nostro account ack exists exists", workflow.Token.ID)
 		return
@@ -221,7 +227,7 @@ func (workflow Workflow) CreateAccounts() {
 	}
 
 	for _, id := range ids {
-		exists, err := workflow.PlaintextStorage.Exists("token/" + workflow.Token.ID + "/statements/" + id + "/accounts_ack")
+		exists, err := workflow.PlaintextStorage.Exists("token/" + workflow.Token.ID + "/statements/" + id + "/ack_account")
 		if err != nil {
 			log.Warn().Err(err).Msgf("Unable to check if statement %s/%s accounts exists", workflow.Token.ID, id)
 			continue
@@ -296,20 +302,184 @@ func (workflow Workflow) CreateAccounts() {
 	}
 
 	if creatingNostro {
-		err = workflow.PlaintextStorage.TouchFile("token/" + workflow.Token.ID + "/nostro_ack")
+		err = workflow.PlaintextStorage.TouchFile("token/" + workflow.Token.ID + "/ack_nostro")
 		if err != nil {
 			log.Warn().Err(err).Msgf("Unable to mark nostro account as createdfor %s", workflow.Token.ID)
 		}
 	}
 
 	for _, id := range idsNeedingConfirmation {
-		err = workflow.PlaintextStorage.TouchFile("token/" + workflow.Token.ID + "/statements/" + id + "/accounts_ack")
+		err = workflow.PlaintextStorage.TouchFile("token/" + workflow.Token.ID + "/statements/" + id + "/ack_account")
 		if err != nil {
 			log.Warn().Err(err).Msgf("Unable to mark account discovery for %s/%s", workflow.Token.ID, id)
 		}
 	}
 }
 
+
+func (workflow Workflow) CreateTransactions() {
+	log.Debug().Msgf("token %s creating transactions from statements", workflow.Token.ID)
+
+	data, err := workflow.PlaintextStorage.ReadFileFully("token/" + workflow.Token.ID + "/nostro")
+	if err != nil {
+		log.Warn().Err(err).Msgf("Unable to load %s nostro info", workflow.Token.ID)
+		return
+	}
+
+	info := new(fio.Info)
+	if json.Unmarshal(data, info) != nil {
+		log.Warn().Msgf("Unable to unmarshal info %s", workflow.Token.ID)
+		return
+	}
+
+	ids, err := workflow.PlaintextStorage.ListDirectory("token/"+workflow.Token.ID+"/statements", true)
+	if err != nil {
+		log.Warn().Err(err).Msgf("Unable to obtain transaction ids from storage for token %s", workflow.Token.ID)
+		return
+	}
+
+	previousIDTransaction := ""
+	idsNeedingConfirmation := make([]string, 0)
+	transfers := make([]model.Transfer, 0)
+
+	now := time.Now()
+
+	var credit string
+	var debit string
+	var currency string
+	var valueDate time.Time
+
+	for _, id := range ids {
+		exists, err := workflow.PlaintextStorage.Exists("token/" + workflow.Token.ID + "/statements/" + id + "/ack_transfer")
+		if err != nil {
+			log.Warn().Err(err).Msgf("Unable to check if statement %s/%s transfer exists", workflow.Token.ID, id)
+			continue
+		}
+		if exists {
+			continue
+		}
+
+		data, err := workflow.PlaintextStorage.ReadFileFully("token/" + workflow.Token.ID + "/statements/" + id + "/data")
+		if err != nil {
+			log.Warn().Err(err).Msgf("Unable to load statement %s/%s", workflow.Token.ID, id)
+			continue
+		}
+
+		statement := new(fio.Statement)
+		if json.Unmarshal(data, statement) != nil {
+			log.Warn().Msgf("Unable to unmarshal statement %s/%s", workflow.Token.ID, id)
+			continue
+		}
+
+		if statement.TransferID == nil || statement.Amount == nil {
+			continue
+		}
+
+		if statement.Amount.Value > 0 {
+			credit = info.IBAN
+			if statement.AccountTo == nil {
+				// INFO fee and taxes and maybe card payments
+				debit = info.BIC
+			} else if statement.AccountToBIC != nil {
+				debit, _ = model.NormalizeAccountNumber(statement.AccountTo.Value, statement.AccountToBIC.Value, "")
+			} else if statement.AcountToBankCode != nil {
+				debit, _ = model.NormalizeAccountNumber(statement.AccountTo.Value, "", statement.AcountToBankCode.Value)
+			} else {
+				debit, _ = model.NormalizeAccountNumber(statement.AccountTo.Value, "", info.BankCode)
+			}
+		} else {
+			if statement.AccountTo == nil {
+				// INFO fee and taxes and maybe card payments
+				credit = info.BIC
+			} else if statement.AccountToBIC != nil {
+				credit, _ = model.NormalizeAccountNumber(statement.AccountTo.Value, statement.AccountToBIC.Value, "")
+			} else if statement.AcountToBankCode != nil {
+				credit, _ = model.NormalizeAccountNumber(statement.AccountTo.Value, "", statement.AcountToBankCode.Value)
+			} else {
+				credit, _ = model.NormalizeAccountNumber(statement.AccountTo.Value, "", info.BankCode)
+			}
+			debit = info.BIC
+		}
+
+		if statement.TransferDate == nil {
+			valueDate = now
+		} else if date, err := time.Parse("2006-01-02-0700", statement.TransferDate.Value); err == nil {
+			valueDate = date.UTC()
+		} else {
+			valueDate = now
+		}
+
+		if statement.Currency == nil {
+			currency = info.Currency
+		} else {
+			currency = statement.Currency.Value
+		}
+
+		idTransaction := info.IBAN + strconv.FormatInt(statement.TransactionID.Value, 10)
+
+		if previousIDTransaction == "" {
+			previousIDTransaction = idTransaction
+		} else if previousIDTransaction != idTransaction {
+			transaction := model.Transaction{
+				Tenant:        workflow.Tenant,
+				IDTransaction: previousIDTransaction,
+				Transfers:     transfers,
+			}
+			log.Info().Msgf("Creating transaction %s", transaction.IDTransaction)
+			err := workflow.LedgerClient.CreateTransaction(transaction)
+			if err != nil {
+				log.Warn().Msgf("unable to create transaction %s/%s", workflow.Tenant, previousIDTransaction)
+				return
+			}
+			workflow.Metrics.TransactionImported(len(transfers))
+			previousIDTransaction = idTransaction
+			transfers = make([]model.Transfer, 0)
+		}
+
+		transfers = append(transfers, model.Transfer{
+			ID:         statement.TransferID.Value,
+			IDTransfer: strconv.FormatInt(statement.TransferID.Value, 10),
+			Credit: model.AccountVault{
+				Tenant: workflow.Tenant,
+				Name:   credit,
+			},
+			Debit: model.AccountVault{
+				Tenant: workflow.Tenant,
+				Name:   debit,
+			},
+			ValueDate: valueDate.Format("2006-01-02T15:04:05Z0700"),
+			Amount:    strconv.FormatFloat(math.Abs(statement.Amount.Value), 'f', -1, 64),
+			Currency:  currency,
+		})
+
+		idsNeedingConfirmation = append(idsNeedingConfirmation, id)
+	}
+
+	if len(transfers) != 0 {
+		transaction := model.Transaction{
+			Tenant:        workflow.Tenant,
+			IDTransaction: previousIDTransaction,
+			Transfers:     transfers,
+		}
+
+		log.Info().Msgf("Creating transaction %s", transaction.IDTransaction)
+		err := workflow.LedgerClient.CreateTransaction(transaction)
+		if err != nil {
+			log.Warn().Msgf("unable to create transaction %s/%s", workflow.Tenant, previousIDTransaction)
+			return
+		}
+		workflow.Metrics.TransactionImported(len(transfers))
+	}
+
+	for _, id := range idsNeedingConfirmation {
+		err = workflow.PlaintextStorage.TouchFile("token/" + workflow.Token.ID + "/statements/" + id + "/ack_transfer")
+		if err != nil {
+			log.Warn().Err(err).Msgf("Unable to mark transfer discovery for %s/%s", workflow.Token.ID, id)
+		}
+	}
+}
+
+/*
 // SynchronizeStatements downloads new statements from fio gateway and creates accounts and transactions and normalizes them into value transfers
 func (workflow Workflow) SynchronizeStatements() {
 	if workflow.Token == nil {
@@ -336,3 +506,4 @@ func (workflow Workflow) SynchronizeStatements() {
 		return
 	}
 }
+*/

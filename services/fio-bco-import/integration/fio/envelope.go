@@ -14,15 +14,15 @@
 
 package fio
 
-import (
-	"encoding/json"
-	"fmt"
-	"github.com/jancajthaml-openbank/fio-bco-import/model"
-	"math"
-	"sort"
-	"strconv"
-	"time"
-)
+//import (
+	//"encoding/json"
+	//"fmt"
+	//"github.com/jancajthaml-openbank/fio-bco-import/model"
+	//"math"
+	//"sort"
+	//"strconv"
+	//"time"
+//)
 
 // Envelope represents fio statements fascade
 type Envelope struct {
@@ -39,6 +39,7 @@ type Info struct {
 	BIC        string
 }
 
+/*
 // GetTransactions returns transactions from fio statement
 func (envelope *Envelope) GetTransactions(tenant string) []model.Transaction {
 	transactions := make([]model.Transaction, 0)
@@ -218,3 +219,4 @@ func (envelope *Envelope) GetAccounts(tenant string) []model.Account {
 
 	return accounts
 }
+*/

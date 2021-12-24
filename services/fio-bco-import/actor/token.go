@@ -124,16 +124,9 @@ func ExistToken(s *System, id string) system.ReceiverFunction {
 					s.Metrics,
 				)
 
-				//workflow.SynchronizeStatements()
-
 				workflow.DownloadStatements()
 				workflow.CreateAccounts()
-
-				/*
-					workflow.DownloadStatements()
-					workflow.CreateAccounts()
-					workflow.CreateTransactions()
-				*/
+				workflow.CreateTransactions()
 			}()
 
 			return SynchronizingToken(s, id)

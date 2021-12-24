@@ -38,7 +38,7 @@ func LoadTokens(storage localfs.Storage) ([]model.Token, error) {
 		token := model.Token{
 			ID: id,
 		}
-		if HydrateToken(storage, &token) != nil {
+		if HydrateToken(storage, &token) == nil {
 			result = append(result, token)
 		}
 	}
