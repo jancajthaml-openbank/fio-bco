@@ -60,11 +60,11 @@ func (entity *Envelope) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("missing attribute \"bic\"")
 	}
 
-	entity.AccountID = all.Statement.Info.AccountID
-	entity.BankCode = all.Statement.Info.BankID
-	entity.Currency = all.Statement.Info.Currency
-	entity.IBAN = all.Statement.Info.IBAN
-	entity.BIC = all.Statement.Info.BIC
+	entity.Info.AccountID = all.Statement.Info.AccountID
+	entity.Info.BankCode = all.Statement.Info.BankID
+	entity.Info.Currency = all.Statement.Info.Currency
+	entity.Info.IBAN = all.Statement.Info.IBAN
+	entity.Info.BIC = all.Statement.Info.BIC
 	entity.Statements = all.Statement.TransactionList.Statements
 
 	return nil

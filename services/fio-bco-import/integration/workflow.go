@@ -126,30 +126,33 @@ func (workflow Workflow) DownloadStatements() {
 		return
 	}
 
-	exists, err := workflow.PlaintextStorage.Exists("token/" + workflow.Token.ID + "/info/" + envelope.IBAN)
+	exists, err := workflow.PlaintextStorage.Exists("token/" + workflow.Token.ID + "/info/" + envelope.Info.IBAN)
 	if err != nil {
-		log.Warn().Err(err).Msgf("Unable to check if info for token %s IBAN %s exists with error %s", workflow.Token.ID, envelope.IBAN, err)
+		log.Warn().Err(err).Msgf("Unable to check if info for token %s IBAN %s exists with error %s", workflow.Token.ID, envelope.Info.IBAN, err)
 		return
 	}
 
 	if !exists {
 		log.Info().Msgf("Should create info about synchronized account before downloading statements")
-		//data, err := json.Marshal(transfer)
-		//if err != nil {
-		//	log.Warn().Msgf("Unable to marshal statement details of %s/%s/%d", workflow.Token.ID, envelope.IBAN, transfer.TransferID.Value)
-		//	continue
-		//}
+		data, err := json.Marshal(envelope.Info)
+		if err != nil {
+			log.Warn().Msgf("Unable to marshal info of %s/%s", workflow.Token.ID, envelope.Info.IBAN)
+			return
+		}
+		err = workflow.PlaintextStorage.WriteFileExclusive("token/"+workflow.Token.ID+"/info/"+envelope.Info.IBAN, data)
+		if err != nil {
+			log.Warn().Err(err).Msgf("Unable to persist envelope info of %s/%s with error %s", workflow.Token.ID, envelope.Info.IBAN, err)
+			return
+		}
 	}
-
-	// FIXME create statement with id 0 and information abbount account
 
 	for _, transfer := range envelope.Statements {
 		if transfer.TransferID == nil {
 			continue
 		}
-		exists, err := workflow.PlaintextStorage.Exists("token/" + workflow.Token.ID + "/statements/" + envelope.IBAN + "/" + strconv.FormatInt(transfer.TransferID.Value, 10))
+		exists, err := workflow.PlaintextStorage.Exists("token/" + workflow.Token.ID + "/statements/" + envelope.Info.IBAN + "/" + strconv.FormatInt(transfer.TransferID.Value, 10))
 		if err != nil {
-			log.Warn().Err(err).Msgf("Unable to check if transaction %d exists for token %s IBAN %s with error %s", transfer.TransferID.Value, workflow.Token.ID, envelope.IBAN, err)
+			log.Warn().Err(err).Msgf("Unable to check if transaction %d exists for token %s IBAN %s with error %s", transfer.TransferID.Value, workflow.Token.ID, envelope.Info.IBAN, err)
 			return
 		}
 		if exists {
@@ -157,12 +160,12 @@ func (workflow Workflow) DownloadStatements() {
 		}
 		data, err := json.Marshal(transfer)
 		if err != nil {
-			log.Warn().Msgf("Unable to marshal statement details of %s/%s/%d", workflow.Token.ID, envelope.IBAN, transfer.TransferID.Value)
+			log.Warn().Msgf("Unable to marshal statement details of %s/%s/%d", workflow.Token.ID, envelope.Info.IBAN, transfer.TransferID.Value)
 			continue
 		}
-		err = workflow.PlaintextStorage.WriteFileExclusive("token/"+workflow.Token.ID+"/statements/"+envelope.IBAN+"/"+strconv.FormatInt(transfer.TransferID.Value, 10)+"/data", data)
+		err = workflow.PlaintextStorage.WriteFileExclusive("token/"+workflow.Token.ID+"/statements/"+envelope.Info.IBAN+"/"+strconv.FormatInt(transfer.TransferID.Value, 10)+"/data", data)
 		if err != nil {
-			log.Warn().Err(err).Msgf("Unable to persist statement details of %s/%s/%d with error %s", workflow.Token.ID, envelope.IBAN, transfer.TransferID.Value, err)
+			log.Warn().Err(err).Msgf("Unable to persist statement details of %s/%s/%d with error %s", workflow.Token.ID, envelope.Info.IBAN, transfer.TransferID.Value, err)
 			continue
 		}
 		if workflow.Token.LastSyncedID >= transfer.TransferID.Value {
@@ -180,7 +183,7 @@ func (workflow Workflow) CreateAccounts() {
 
 	log.Debug().Msgf("token %s creating accounts from statements", workflow.Token.ID)
 
-	IBANs, err := workflow.PlaintextStorage.ListDirectory("token/"+workflow.Token.ID+"/statements", true)
+	IBANs, err := workflow.PlaintextStorage.ListDirectory("token/"+workflow.Token.ID+"/info", true)
 	if err != nil {
 		log.Warn().Err(err).Msgf("Unable to obtain IBANs from storage for token %s", workflow.Token.ID)
 		return
@@ -188,9 +191,18 @@ func (workflow Workflow) CreateAccounts() {
 
 	for _, IBAN := range IBANs {
 
-		// TODO load nostro account from info file here
+		data, err := workflow.PlaintextStorage.ReadFileFully("token/" + workflow.Token.ID + "/info/" + IBAN)
+		if err != nil {
+			log.Warn().Err(err).Msgf("Unable to load %s/%s info statement", workflow.Token.ID, IBAN)
+			return
+		}
+		
+		info := new(fio.Info)
+		if json.Unmarshal(data, info) != nil {
+			log.Warn().Msgf("Unable to unmarshal info %s/%s", workflow.Token.ID, IBAN)
+			return
+		}
 
-		//accounts := make(map[string]bool)
 		set := make(map[string]model.Account)
 		idsNeedingConfirmation := make([]string, 0)
 
@@ -200,9 +212,14 @@ func (workflow Workflow) CreateAccounts() {
 			return
 		}
 
-		//log.Info().Msgf("token %s sees statements of IBAN %s ids: %+v", workflow.Token.ID, IBAN, ids)
-
-		// TODO load nostro (statement with id 0)
+		// FIXME only once
+		set[info.IBAN] = model.Account{
+			Tenant:         workflow.Tenant,
+			Name:           info.IBAN,
+			Format:         "IBAN",
+			Currency:       info.Currency,
+			IsBalanceCheck: false,
+		}
 
 		for _, id := range ids {
 			exists, err := workflow.PlaintextStorage.Exists("token/" + workflow.Token.ID + "/statements/" + IBAN + "/" + id + "/accounts")
@@ -228,80 +245,55 @@ func (workflow Workflow) CreateAccounts() {
 
 			log.Info().Msgf("Statement that accounts will be created from is %+v", statement)
 
-			//if envelope == nil {
-			//	return accounts
-			//}
-
 			var normalizedAccount string
 			var isIBAN bool
 			var accountFormat string
-			//var currency string
-
-			//for _, transfer := range envelope.Statements {
+			var currency string
 
 			if statement.AccountTo == nil {
 				// INFO fee and taxes and maybe card payments
-				normalizedAccount = "FIOBCZPPXXX"	// FIXME not hardcoded
+				normalizedAccount = info.BIC
 				isIBAN = false
 			} else if statement.AccountToBIC != nil {
 				normalizedAccount, isIBAN = model.NormalizeAccountNumber(statement.AccountTo.Value, statement.AccountToBIC.Value, "")
 			} else if statement.AcountToBankCode != nil {
 				normalizedAccount, isIBAN = model.NormalizeAccountNumber(statement.AccountTo.Value, "", statement.AcountToBankCode.Value)
 			} else {
-				normalizedAccount, isIBAN = model.NormalizeAccountNumber(statement.AccountTo.Value, "", "2010")	// FIXME not hardcoded
+				normalizedAccount, isIBAN = model.NormalizeAccountNumber(statement.AccountTo.Value, "", info.BankCode)
 			}
 
 			if statement.AccountTo == nil {
 				accountFormat = "FIO_TECHNICAL"
 			} else if isIBAN {
 				accountFormat = "IBAN"
-				//fmt.Printf("Valid IBAN in statement: %s\n", normalizedAccount)
 			} else {
-				//bytes, _ := json.Marshal(statement)
 				fmt.Printf("Strange account number in statement: %s\n", string(data))
 				accountFormat = "FIO_UNKNOWN"
 			}
 
 			if statement.Currency == nil {
-				fmt.Printf("Strange statement missing currency statement: %s\n", string(data))
-				//currency = envelope.Currency	// FIXME no access to envelope
-				continue
+				currency = info.Currency
+			} else {
+				currency = statement.Currency.Value
 			}
 
 			set[normalizedAccount] = model.Account{
 				Tenant:         workflow.Tenant,
 				Name:           normalizedAccount,
 				Format:         accountFormat,
-				Currency:       statement.Currency.Value,
+				Currency:       currency,
 				IsBalanceCheck: false,
 			}
-
-			//}
-
-			// FIXME TODO based on INFO of envelope add account to be created (just once)
-			/*
-			set[envelope.IBAN] = model.Account{
-				Tenant:         tenant,
-				Name:           envelope.IBAN,
-				Format:         "IBAN",
-				Currency:       envelope.Currency,
-				IsBalanceCheck: false,
-			}
-			*/
-
-
-			//return accounts
 
 			idsNeedingConfirmation = append(idsNeedingConfirmation, id)
 		}
 
-		if len(idsNeedingConfirmation) == 0 {
-			continue
-		}
-
-
 		for _, account := range set {
 			log.Info().Msgf("Will create following account %+v", account)
+		}
+
+		if len(idsNeedingConfirmation) == 0 {
+			continue
 		}
 
 		log.Info().Msgf("Following statements need confirmation %+v", idsNeedingConfirmation)
