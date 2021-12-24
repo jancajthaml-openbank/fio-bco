@@ -15,81 +15,155 @@
 package iban
 
 // Calculate calculates IBAN given number and bank identity code
-func Calculate(number string, identityCode string) string {
-	// https://www.cnb.cz/miranda2/export/sites/www.cnb.cz/en/payment_systems/accounts_bank_codes/download/bank_codes_CR_128.pdf
+func Calculate(number string, bic string, bankCode string) string {
 
-	switch identityCode {
-	case
-		"0100",
-		"0300",
-		"0600",
-		"0710",
-		"0800",
-		"2010",
-		"2020",
-		"2030",
-		"2060",
-		"2070",
-		"2100",
-		"2200",
-		"2220",
-		"2240",
-		"2250",
-		"2260",
-		"2275",
-		"2600",
-		"2700",
-		"3030",
-		"3050",
-		"3060",
-		"3500",
-		"4000",
-		"4300",
-		"5500",
-		"5800",
-		"6000",
-		"6100",
-		"6200",
-		"6210",
-		"6300",
-		"6700",
-		"6800",
-		"7910",
-		"7940",
-		"7950",
-		"7960",
-		"7970",
-		"7980",
-		"7990",
-		"8030",
-		"8040",
-		"8060",
-		"8090",
-		"8150",
-		"8200",
-		"8215",
-		"8220",
-		"8225",
-		"8230",
-		"8240",
-		"8250",
-		"8260",
-		"8265",
-		"8270",
-		"8280",
-		"8290",
-		"8291",
-		"8292",
-		"8293",
-		"8294",
-		"8295",
-		"8296",
-		"8297",
-		"8298",
-		"0730":
+	if bic == "" {
+		return CalculateCzech(number, bankCode)
+	}
+
+	switch bic {
+	case "CSCHUS6S", "CSCHUS6SINT":
 		{
-			return CalculateCzech(number, identityCode)
+			// TODO calculate US IBAN
+			return ""	
 		}
+	case "FIOBCZPP", "FIOBCZPPXXX":
+		{
+			return CalculateCzech(number, "2010")
+		}
+	case "KOMBCZPP", "KOMBCZPPXXX":
+		{
+			return CalculateCzech(number, "0100")
+		}
+	case "CEKOCZPP", "CEKOCZPPXXX":
+		{
+			return CalculateCzech(number, "0300")
+		}
+	case "AGBACZPP", "AGBACZPPXXX":
+		{
+			return CalculateCzech(number, "0600")
+		}
+	case "CNBACZPP", "CNBACZPPXXX":
+		{
+			return CalculateCzech(number, "0710")
+		}
+	case "GIBACZPX", "GIBACZPXXXX":
+		{
+			return CalculateCzech(number, "0800")
+		}
+	case "BOTKCZPP", "BOTKCZPPXXX":
+		{
+			return CalculateCzech(number, "2020")
+		}
+	case "CITFCZPP", "CITFCZPPXXX":
+		{
+			return CalculateCzech(number, "2060")
+		}
+	case "MPUBCZPP", "MPUBCZPPXXX":
+		{
+			return CalculateCzech(number, "2070")
+		}
+	case "ARTTCZPP", "ARTTCZPPXXX":
+		{
+			return CalculateCzech(number, "2220")
+		}
+	case "POBNCZPP", "POBNCZPPXXX":
+		{
+			return CalculateCzech(number, "2240")
+		}
+	case "CTASCZ22", "CTASCZ22XXX":
+		{
+			return CalculateCzech(number, "2250")
+		}
+
+	case "ZUNOCZPP", "ZUNOCZPPXXX":
+		{
+			return CalculateCzech(number, "2310")
+		}
+	case "CITICZPX", "CITICZPXXXX":
+		{
+			return CalculateCzech(number, "2600")
+		}
+	case "BACXCZPP", "BACXCZPPXXX":
+		{
+			return CalculateCzech(number, "2700")
+		}
+	case "AIRACZPP", "AIRACZPPXXX":
+		{
+			return CalculateCzech(number, "3030")
+		}
+	case "INGBCZPP", "INGBCZPPXXX":
+		{
+			return CalculateCzech(number, "3500")
+		}
+	case "SOLACZPP", "SOLACZPPXXX":
+		{
+			return CalculateCzech(number, "4000")
+		}
+	case "CMZRCZP1", "CMZRCZP1XXX":
+		{
+			return CalculateCzech(number, "4300")
+		}
+	case "RZBCCZPP", "RZBCCZPPXXX":
+		{
+			return CalculateCzech(number, "5500")
+		}
+	case "JTBPCZPP", "JTBPCZPPXXX":
+		{
+			return CalculateCzech(number, "5800")
+		}
+	case "PMBPCZPP", "PMBPCZPPXXX":
+		{
+			return CalculateCzech(number, "6000")
+		}
+	case "EQBKCZPP", "EQBKCZPPXXX":
+		{
+			return CalculateCzech(number, "6100")
+		}
+	case "COBACZPX", "COBACZPXXXX":
+		{
+			return CalculateCzech(number, "6200")
+		}
+	case "BREXCZPP", "BREXCZPPXXX":
+		{
+			return CalculateCzech(number, "6210")
+		}
+	case "GEBACZPP", "GEBACZPPXXX":
+		{
+			return CalculateCzech(number, "6300")
+		}
+	case "SUBACZPP", "SUBACZPPXXX":
+		{
+			return CalculateCzech(number, "6700")
+		}
+	case "VBOECZ2X", "VBOECZ2XXXX":
+		{
+			return CalculateCzech(number, "6800")
+		}
+	case "DEUTCZPX", "DEUTCZPXXXX":
+		{
+			return CalculateCzech(number, "7910")
+		}
+	case "SPWTCZ21", "SPWTCZ21XXX":
+		{
+			return CalculateCzech(number, "7940")
+		}
+	case "GENOCZ21", "GENOCZ21XXX":
+		{
+			return CalculateCzech(number, "8030")
+		}
+	case "OBKLCZ2X", "OBKLCZ2XXXX":
+		{
+			return CalculateCzech(number, "8040")
+		}
+	case "CZEECZPP", "CZEECZPPXXX":
+		{
+			return CalculateCzech(number, "8090")
+		}
+	case "MIDLCZPP", "MIDLCZPPXXX":
+		{
+			return CalculateCzech(number, "8150")
+		}		
 	default:
 		{
 			return ""

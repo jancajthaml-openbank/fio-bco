@@ -27,7 +27,7 @@ import (
 // Envelope represents fio statements fascade
 type Envelope struct {
 	AccountID  string
-	BankID     string
+	BankCode     string
 	Currency   string
 	IBAN       string
 	BIC        string
@@ -71,7 +71,7 @@ func (envelope *Envelope) GetTransactions(tenant string) []model.Transaction {
 			} else if transfer.AcountToBankCode != nil {
 				debit, _ = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", transfer.AcountToBankCode.Value)
 			} else {
-				debit, _ = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.BankID)
+				debit, _ = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.BankCode)
 			}
 		} else {
 			if transfer.AccountTo == nil {
@@ -82,7 +82,7 @@ func (envelope *Envelope) GetTransactions(tenant string) []model.Transaction {
 			} else if transfer.AcountToBankCode != nil {
 				credit, _ = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", transfer.AcountToBankCode.Value)
 			} else {
-				credit, _ = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.BankID)
+				credit, _ = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.BankCode)
 			}
 			debit = envelope.IBAN
 		}
@@ -169,7 +169,7 @@ func (envelope *Envelope) GetAccounts(tenant string) []model.Account {
 		} else if transfer.AcountToBankCode != nil {
 			normalizedAccount, isIBAN = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", transfer.AcountToBankCode.Value)
 		} else {
-			normalizedAccount, isIBAN = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.BankID)
+			normalizedAccount, isIBAN = model.NormalizeAccountNumber(transfer.AccountTo.Value, "", envelope.BankCode)
 		}
 
 		if transfer.AccountTo == nil {

@@ -36,13 +36,7 @@ func NormalizeAccountNumber(number string, bic string, bankCode string) (string,
 	if iban.ValidIBAN(number) {
 		return number, true
 	}
-	var calculatedIBAN string
-	if bankCode == "" {
-		// FIXME lookup bankCode from BIC
-		//calculatedIBAN = iban.Calculate(number, nostroBankCode)
-		return number, false
-	}
-	calculatedIBAN = iban.Calculate(number, bankCode)
+	calculatedIBAN := iban.Calculate(number, bic, bankCode)
 	if calculatedIBAN == "" {
 		return number, false
 	}

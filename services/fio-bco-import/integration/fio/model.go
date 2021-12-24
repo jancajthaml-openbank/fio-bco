@@ -61,7 +61,7 @@ func (entity *Envelope) UnmarshalJSON(data []byte) error {
 	}
 
 	entity.AccountID = all.Statement.Info.AccountID
-	entity.BankID = all.Statement.Info.BankID
+	entity.BankCode = all.Statement.Info.BankID
 	entity.Currency = all.Statement.Info.Currency
 	entity.IBAN = all.Statement.Info.IBAN
 	entity.BIC = all.Statement.Info.BIC
