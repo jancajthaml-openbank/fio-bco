@@ -25,6 +25,10 @@ func ValidIBAN(number string) bool {
 		{
 			return ValidateCzechIBAN(number)
 		}
+	case "NL":
+		{
+			return ValidateNetherlandsIBAN(number)
+		}
 	default:
 		{
 			return false

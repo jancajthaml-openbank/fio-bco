@@ -32,19 +32,17 @@ type Account struct {
 }
 
 // NormalizeAccountNumber return account number in IBAN format
-func NormalizeAccountNumber(number string, bankCode string, nostroBankCode string) (string, bool) {
-	if len(number) > 2 && (number[0] >= 'A' && number[0] <= 'Z') && (number[1] >= 'A' && number[1] <= 'Z') {
-		return number, false
-	}
+func NormalizeAccountNumber(number string, bic string, bankCode string) (string, bool) {
 	if iban.ValidIBAN(number) {
 		return number, true
 	}
 	var calculatedIBAN string
 	if bankCode == "" {
-		calculatedIBAN = iban.Calculate(number, nostroBankCode)
-	} else {
-		calculatedIBAN = iban.Calculate(number, bankCode)
+		// FIXME lookup bankCode from BIC
+		//calculatedIBAN = iban.Calculate(number, nostroBankCode)
+		return number, false
 	}
+	calculatedIBAN = iban.Calculate(number, bankCode)
 	if calculatedIBAN == "" {
 		return number, false
 	}

@@ -14,7 +14,20 @@
 
 package iban
 
-func mod97(number string) int {
+import "strconv"
+
+var checkSumToString = make([]string, 99)
+
+func init() {
+	for i := 0; i < 10; i++ {
+		checkSumToString[i] = "0" + strconv.Itoa(i)
+	}
+	for i := 10; i < 99; i++ {
+		checkSumToString[i] = strconv.Itoa(i)
+	}
+}
+
+func asciimod97(number string) int {
 	var (
 		d uint
 		i int
@@ -25,9 +38,10 @@ func mod97(number string) int {
 scan:
 	d = uint(number[i]) - 48
 	if d > 9 {
-		return -1
+		x = (((x * 100) + d - 7) % 97)
+	} else {
+		x = (((x * 10) + d) % 97)
 	}
-	x = (((x * 10) + d) % 97)
 	i++
 	if i != l {
 		goto scan
