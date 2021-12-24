@@ -29,6 +29,10 @@ func ValidIBAN(number string) bool {
 		{
 			return ValidateNetherlandsIBAN(number)
 		}
+	case "DE":
+		{
+			return ValidateGermanIBAN(number)
+		}
 	default:
 		{
 			return false

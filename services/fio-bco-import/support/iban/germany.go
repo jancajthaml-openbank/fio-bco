@@ -20,16 +20,17 @@ package iban
 	//"strings"
 //)
 
-// ValidateNetherlandsIBAN validates if number is IBAN
-func ValidateNetherlandsIBAN(number string) bool {
-	if len(number) != 18 {
+// ValidateGermanIBAN validates if number is IBAN
+func ValidateGermanIBAN(number string) bool {
+	if len(number) != 22 {
 		return false
 	}
-	if number[0:2] != "NL" {
+	if number[0:2] != "DE" {
 		return false
 	}
+
 	switch number[4:5] {
-	case "A", "B", "D", "E", "F", "I", "L", "O", "P", "S", "T", "X", "Z":
+	case "1", "2", "3", "4", "5", "6", "7", "8":
 		{
 			break
 		}
@@ -39,11 +40,22 @@ func ValidateNetherlandsIBAN(number string) bool {
 		}
 	}
 
-	return asciimod97(number[4:18] + number[0:4]) == 1
+	switch number[7:8] {
+	case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9":
+		{
+			break
+		}
+	default:
+		{
+			return false
+		}
+	}
+
+	return asciimod97(number[4:22] + number[0:4]) == 1
 }
 
-// CalculateNetherlands calculates IBAN for Netherlands
-func CalculateNetherlands(number string, bankCode string) (result string) {
+// CalculateGerman calculates IBAN for Germany
+func CalculateGerman(number string, bankCode string) (result string) {
 	defer func() {
 		if recover() != nil {
 			result = ""
