@@ -19,6 +19,22 @@ import (
 	"fmt"
 )
 
+// Envelope represents fio statements fascade
+type Envelope struct {
+	Info       Info
+	Statements []Statement
+}
+
+// Info represents account information from which statements originate
+type Info struct {
+	AccountID string
+	BankCode  string
+	Currency  string
+	IBAN      string
+	BIC       string
+}
+
+
 // UnmarshalJSON Envelope
 func (entity *Envelope) UnmarshalJSON(data []byte) error {
 	if entity == nil {
