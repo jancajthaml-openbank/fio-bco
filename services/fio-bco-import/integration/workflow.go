@@ -16,7 +16,6 @@ package integration
 
 import (
 	"encoding/json"
-	//"fmt"
 	"math"
 	"strconv"
 	"time"
@@ -82,7 +81,7 @@ func (workflow Workflow) DownloadStatements() {
 
 	exists, err := workflow.PlaintextStorage.Exists("token/" + workflow.Token.ID + "/nostro")
 	if err != nil {
-		log.Warn().Err(err).Msgf("Unable to check if info for token %sexists with error %s", workflow.Token.ID, err)
+		log.Warn().Err(err).Msgf("Unable to check if info for token %s exists", workflow.Token.ID)
 		return
 	}
 
@@ -95,7 +94,7 @@ func (workflow Workflow) DownloadStatements() {
 		}
 		err = workflow.PlaintextStorage.WriteFileExclusive("token/"+workflow.Token.ID+"/nostro", data)
 		if err != nil {
-			log.Warn().Err(err).Msgf("Unable to persist envelope nostro info of %s with error %s", workflow.Token.ID, err)
+			log.Warn().Err(err).Msgf("Unable to persist envelope nostro info of %s with", workflow.Token.ID)
 			return
 		}
 	}
@@ -156,7 +155,7 @@ func (workflow Workflow) CreateAccounts() {
 
 	exists, err := workflow.PlaintextStorage.Exists("token/" + workflow.Token.ID + "/ack_nostro")
 	if err != nil {
-		log.Warn().Err(err).Msgf("Unable to check if %s nostro account ack exists exists", workflow.Token.ID)
+		log.Warn().Err(err).Msgf("Unable to check if nostro account creation was acknowledged %s/%s", workflow.Token.ID, id)
 		return
 	}
 
@@ -187,7 +186,7 @@ func (workflow Workflow) CreateAccounts() {
 	for _, id := range ids {
 		exists, err := workflow.PlaintextStorage.Exists("token/" + workflow.Token.ID + "/statements/" + id + "/ack_account")
 		if err != nil {
-			log.Warn().Err(err).Msgf("Unable to check if statement %s/%s accounts exists", workflow.Token.ID, id)
+			log.Warn().Err(err).Msgf("Unable to check if account creation was acknowledged %s/%s", workflow.Token.ID, id)
 			continue
 		}
 		if exists {
@@ -234,7 +233,7 @@ func (workflow Workflow) CreateAccounts() {
 
 		err := workflow.VaultClient.CreateAccount(account)
 		if err != nil {
-			log.Warn().Err(err).Msgf("unable to create account %s", account.Name)
+			log.Warn().Err(err).Msgf("Unable to create account %s", account.Name)
 			return
 		}
 	}
@@ -242,14 +241,14 @@ func (workflow Workflow) CreateAccounts() {
 	if creatingNostro {
 		err = workflow.PlaintextStorage.TouchFile("token/" + workflow.Token.ID + "/ack_nostro")
 		if err != nil {
-			log.Warn().Err(err).Msgf("Unable to mark nostro account as createdfor %s", workflow.Token.ID)
+			log.Warn().Err(err).Msgf("Unable to akcnowledge nostro account creation %s/%s", workflow.Token.ID, id)
 		}
 	}
 
 	for _, id := range idsNeedingConfirmation {
 		err = workflow.PlaintextStorage.TouchFile("token/" + workflow.Token.ID + "/statements/" + id + "/ack_account")
 		if err != nil {
-			log.Warn().Err(err).Msgf("Unable to mark account discovery for %s/%s", workflow.Token.ID, id)
+			log.Warn().Err(err).Msgf("Unable to akcnowledge account creation %s/%s", workflow.Token.ID, id)
 		}
 	}
 }
@@ -348,7 +347,7 @@ func (workflow Workflow) CreateTransactions() {
 			log.Info().Msgf("Creating transaction %s", transaction.IDTransaction)
 			err := workflow.LedgerClient.CreateTransaction(transaction)
 			if err != nil {
-				log.Warn().Msgf("unable to create transaction %s/%s with error %s", workflow.Tenant, previousIDTransaction, err)
+				log.Warn().Err(err).Msgf("Unable to create transaction %s/%s", workflow.Tenant, previousIDTransaction)
 				return
 			}
 			workflow.Metrics.TransactionImported(len(transfers))
@@ -356,7 +355,7 @@ func (workflow Workflow) CreateTransactions() {
 			for _, id := range idsNeedingConfirmation {
 				err = workflow.PlaintextStorage.TouchFile("token/" + workflow.Token.ID + "/statements/" + id + "/ack_transfer")
 				if err != nil {
-					log.Warn().Err(err).Msgf("Unable to mark transfer discovery for %s/%s", workflow.Token.ID, id)
+					log.Warn().Err(err).Msgf("Unable to akcnowledge transfer creation %s/%s", workflow.Token.ID, id)
 				}
 			}
 
@@ -393,7 +392,7 @@ func (workflow Workflow) CreateTransactions() {
 		log.Info().Msgf("Creating transaction %s", transaction.IDTransaction)
 		err := workflow.LedgerClient.CreateTransaction(transaction)
 		if err != nil {
-			log.Warn().Msgf("unable to create transaction %s/%s", workflow.Tenant, previousIDTransaction)
+			log.Warn().Msgf("Unable to create transaction %s/%s", workflow.Tenant, previousIDTransaction)
 			return
 		}
 		workflow.Metrics.TransactionImported(len(transfers))
@@ -402,7 +401,7 @@ func (workflow Workflow) CreateTransactions() {
 	for _, id := range idsNeedingConfirmation {
 		err = workflow.PlaintextStorage.TouchFile("token/" + workflow.Token.ID + "/statements/" + id + "/ack_transfer")
 		if err != nil {
-			log.Warn().Err(err).Msgf("Unable to mark transfer discovery for %s/%s", workflow.Token.ID, id)
+			log.Warn().Err(err).Msgf("Unable to akcnowledge transfer creation %s/%s", workflow.Token.ID, id)
 		}
 	}
 }
