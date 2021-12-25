@@ -205,6 +205,8 @@ func (workflow Workflow) CreateAccounts() {
 		var accountFormat string
 		var currency string
 
+		// FIXME info we don't know in which currency AccountTo is :(
+
 		if statement.AccountTo == nil {
 			// INFO fee and taxes and maybe card payments
 			normalizedAccount = info.BIC + "_" + info.Currency
