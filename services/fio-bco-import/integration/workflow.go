@@ -16,7 +16,7 @@ package integration
 
 import (
 	"encoding/json"
-	"fmt"
+	//"fmt"
 	"time"
 	"math"
 	"strconv"
@@ -134,6 +134,7 @@ func (workflow Workflow) DownloadStatements() {
 	}
 }
 
+// CreateAccounts creates accounts from downloaded statements
 func (workflow Workflow) CreateAccounts() {
 	log.Debug().Msgf("token %s creating accounts from statements", workflow.Token.ID)
 
@@ -164,6 +165,13 @@ func (workflow Workflow) CreateAccounts() {
 			Tenant:         workflow.Tenant,
 			Name:           info.IBAN,
 			Format:         "IBAN",
+			Currency:       info.Currency,
+			IsBalanceCheck: false,
+		}
+		set[info.BIC+"_"+info.Currency] = model.Account{
+			Tenant:         workflow.Tenant,
+			Name:           info.BIC+"_"+info.Currency,
+			Format:         "NOSTRO",
 			Currency:       info.Currency,
 			IsBalanceCheck: false,
 		}
@@ -200,33 +208,7 @@ func (workflow Workflow) CreateAccounts() {
 
 		idsNeedingConfirmation = append(idsNeedingConfirmation, id)
 
-		var normalizedAccount string
-		var isIBAN bool
-		var accountFormat string
 		var currency string
-
-		// FIXME info we don't know in which currency AccountTo is :(
-
-		if statement.AccountTo == nil {
-			// INFO fee and taxes and maybe card payments
-			normalizedAccount = info.BIC + "_" + info.Currency
-			isIBAN = false
-		} else if statement.AccountToBIC != nil {
-			normalizedAccount, isIBAN = model.NormalizeAccountNumber(statement.AccountTo.Value, statement.AccountToBIC.Value, "")
-		} else if statement.AcountToBankCode != nil {
-			normalizedAccount, isIBAN = model.NormalizeAccountNumber(statement.AccountTo.Value, "", statement.AcountToBankCode.Value)
-		} else {
-			normalizedAccount, isIBAN = model.NormalizeAccountNumber(statement.AccountTo.Value, "", info.BankCode)
-		}
-
-		if statement.AccountTo == nil {
-			accountFormat = "FIO_TECHNICAL"
-		} else if isIBAN {
-			accountFormat = "IBAN"
-		} else {
-			fmt.Printf("Strange account number in statement: %s\n", string(data))
-			accountFormat = "FIO_UNKNOWN"
-		}
 
 		if statement.Specification != nil {
 			currency = statement.Specification.Value[len(statement.Specification.Value)-3 : len(statement.Specification.Value)]
@@ -236,29 +218,14 @@ func (workflow Workflow) CreateAccounts() {
 			currency = info.Currency
 		}
 
-		if statement.Specification != nil {
-			set[info.BIC+"_"+info.Currency] = model.Account{
-				Tenant:         workflow.Tenant,
-				Name:           info.BIC+"_"+info.Currency,
-				Format:         "FIO_TECHNICAL",
-				Currency:       info.Currency,
-				IsBalanceCheck: false,
-			}
+		if currency != info.Currency {
 			set[info.BIC+"_"+currency] = model.Account{
 				Tenant:         workflow.Tenant,
 				Name:           info.BIC+"_"+currency,
-				Format:         "FIO_TECHNICAL",
+				Format:         "NOSTRO",
 				Currency:       currency,
 				IsBalanceCheck: false,
 			}
-		}
-
-		set[normalizedAccount] = model.Account{
-			Tenant:         workflow.Tenant,
-			Name:           normalizedAccount,
-			Format:         accountFormat,
-			Currency:       currency,
-			IsBalanceCheck: false,
 		}
 	}
 
@@ -287,7 +254,7 @@ func (workflow Workflow) CreateAccounts() {
 	}
 }
 
-
+// CreateTransactions creates transactions from downloaded statements
 func (workflow Workflow) CreateTransactions() {
 	log.Debug().Msgf("token %s creating transactions from statements", workflow.Token.ID)
 
@@ -317,10 +284,7 @@ func (workflow Workflow) CreateTransactions() {
 
 	var credit string
 	var debit string
-	var creditCurrency string
-	var creditAmount string
-	var debitCurrency string
-	var debitAmount string
+	var currency string
 	var valueDate time.Time
 
 	for _, id := range ids {
@@ -351,27 +315,9 @@ func (workflow Workflow) CreateTransactions() {
 
 		if statement.Amount.Value > 0 {
 			credit = info.IBAN
-			if statement.AccountTo == nil {
-				// INFO fee and taxes and maybe card payments
-				debit = info.BIC + "_" + info.Currency
-			} else if statement.AccountToBIC != nil {
-				debit, _ = model.NormalizeAccountNumber(statement.AccountTo.Value, statement.AccountToBIC.Value, "")
-			} else if statement.AcountToBankCode != nil {
-				debit, _ = model.NormalizeAccountNumber(statement.AccountTo.Value, "", statement.AcountToBankCode.Value)
-			} else {
-				debit, _ = model.NormalizeAccountNumber(statement.AccountTo.Value, "", info.BankCode)
-			}
+			debit = info.BIC + "_" + info.Currency
 		} else {
-			if statement.AccountTo == nil {
-				// INFO fee and taxes and maybe card payments
-				credit = info.BIC + "_" + info.Currency
-			} else if statement.AccountToBIC != nil {
-				credit, _ = model.NormalizeAccountNumber(statement.AccountTo.Value, statement.AccountToBIC.Value, "")
-			} else if statement.AcountToBankCode != nil {
-				credit, _ = model.NormalizeAccountNumber(statement.AccountTo.Value, "", statement.AcountToBankCode.Value)
-			} else {
-				credit, _ = model.NormalizeAccountNumber(statement.AccountTo.Value, "", info.BankCode)
-			}
+			credit = info.BIC + "_" + info.Currency
 			debit = info.IBAN
 		}
 
@@ -383,28 +329,10 @@ func (workflow Workflow) CreateTransactions() {
 			valueDate = now
 		}
 
-		// FIXME somethimes specification is null even when the credit currency is different to debit one
-
-		if statement.Specification != nil && statement.Currency != nil {
-			creditCurrency = statement.Specification.Value[len(statement.Specification.Value)-3 : len(statement.Specification.Value)]
-			creditAmount = statement.Specification.Value[0: len(statement.Specification.Value) - 4]
-			debitCurrency = statement.Currency.Value
-			debitAmount = strconv.FormatFloat(math.Abs(statement.Amount.Value), 'f', -1, 64)
-		} else if statement.Specification != nil {
-			creditCurrency = statement.Specification.Value[len(statement.Specification.Value)-3 : len(statement.Specification.Value)]
-			creditAmount = statement.Specification.Value[0: len(statement.Specification.Value) - 4]
-			debitCurrency = info.Currency
-			debitAmount = strconv.FormatFloat(math.Abs(statement.Amount.Value), 'f', -1, 64)
-		} else if statement.Currency != nil {
-			creditCurrency = statement.Currency.Value
-			creditAmount = strconv.FormatFloat(math.Abs(statement.Amount.Value), 'f', -1, 64)
-			debitCurrency = creditCurrency
-			debitAmount = creditAmount
+		if statement.Currency != nil {
+			currency = statement.Currency.Value
 		} else {
-			creditCurrency = info.Currency
-			creditAmount = strconv.FormatFloat(math.Abs(statement.Amount.Value), 'f', -1, 64)
-			debitCurrency = creditCurrency
-			debitAmount = creditAmount
+			currency = info.Currency
 		}
 
 		idTransaction := info.IBAN + strconv.FormatInt(statement.TransactionID.Value, 10)
@@ -417,7 +345,7 @@ func (workflow Workflow) CreateTransactions() {
 				IDTransaction: previousIDTransaction,
 				Transfers:     transfers,
 			}
-			log.Info().Msgf("Creating transaction %s in full %+v", transaction.IDTransaction, transaction)
+			log.Info().Msgf("Creating transaction %s", transaction.IDTransaction)
 			err := workflow.LedgerClient.CreateTransaction(transaction)
 			if err != nil {
 				log.Warn().Msgf("unable to create transaction %s/%s with error %s", workflow.Tenant, previousIDTransaction, err)
@@ -437,55 +365,20 @@ func (workflow Workflow) CreateTransactions() {
 			idsNeedingConfirmation = make([]string, 0)
 		}
 
-		if creditCurrency != debitCurrency {
-			fmt.Printf("Currency mismatch credit %s %s debit %s %s\n", creditAmount, creditCurrency, debitAmount, debitCurrency)
-
-			transfers = append(transfers, model.Transfer{
-				IDTransfer: strconv.FormatInt(statement.TransferID.Value, 10) + "_1",
-				Credit: model.AccountVault{
-					Tenant: workflow.Tenant,
-					Name:   debit,
-				},
-				Debit: model.AccountVault{
-					Tenant: workflow.Tenant,
-					Name:   info.BIC + "_" +  creditCurrency,
-				},
-				ValueDate: valueDate.Format("2006-01-02T15:04:05Z0700"),
-				Amount:    creditAmount,
-				Currency:  creditCurrency,
-			})
-
-			transfers = append(transfers, model.Transfer{
-				IDTransfer: strconv.FormatInt(statement.TransferID.Value, 10) + "_2",
-				Credit: model.AccountVault{
-					Tenant: workflow.Tenant,
-					Name:   info.BIC + "_" + debitCurrency,
-				},
-				Debit: model.AccountVault{
-					Tenant: workflow.Tenant,
-					Name:   credit,
-				},
-				ValueDate: valueDate.Format("2006-01-02T15:04:05Z0700"),
-				Amount:    debitAmount,
-				Currency:  debitCurrency,
-			})
-
-		} else {
-			transfers = append(transfers, model.Transfer{
-				IDTransfer: strconv.FormatInt(statement.TransferID.Value, 10) + "_1",
-				Credit: model.AccountVault{
-					Tenant: workflow.Tenant,
-					Name:   credit,
-				},
-				Debit: model.AccountVault{
-					Tenant: workflow.Tenant,
-					Name:   debit,
-				},
-				ValueDate: valueDate.Format("2006-01-02T15:04:05Z0700"),
-				Amount:    debitAmount,
-				Currency:  debitCurrency,
-			})
-		}
+		transfers = append(transfers, model.Transfer{
+			IDTransfer: strconv.FormatInt(statement.TransferID.Value, 10),
+			Credit: model.AccountVault{
+				Tenant: workflow.Tenant,
+				Name:   credit,
+			},
+			Debit: model.AccountVault{
+				Tenant: workflow.Tenant,
+				Name:   debit,
+			},
+			ValueDate: valueDate.Format("2006-01-02T15:04:05Z0700"),
+			Amount:    strconv.FormatFloat(math.Abs(statement.Amount.Value), 'f', -1, 64),
+			Currency:  currency,
+		})
 
 		idsNeedingConfirmation = append(idsNeedingConfirmation, id)
 	}
