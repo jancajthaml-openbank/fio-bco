@@ -24,12 +24,11 @@ import (
 
 // LoadTokens rehydrates token entity state from storage
 func LoadTokens(storage localfs.Storage) ([]model.Token, error) {
-	path := "token"
-	ok, err := storage.Exists(path)
+	ok, err := storage.Exists("token")
 	if err != nil || !ok {
 		return make([]model.Token, 0), nil
 	}
-	tokens, err := storage.ListDirectory(path, true)
+	tokens, err := storage.ListDirectory("token", true)
 	if err != nil {
 		return nil, err
 	}
@@ -65,8 +64,7 @@ func CreateToken(storage localfs.Storage, id string, value string) error {
 
 // DeleteToken deletes existing token entity
 func DeleteToken(storage localfs.Storage, id string) bool {
-	path := "token/" + id + "/value"
-	return storage.DeleteFile(path) == nil
+	return storage.DeleteFile("token/" + id + "/value") == nil
 }
 
 // PersistToken persist new token entity to storage
@@ -86,8 +84,12 @@ func HydrateToken(storage localfs.Storage, entity *model.Token) error {
 	if entity == nil {
 		return fmt.Errorf("nil reference")
 	}
-	path := "token/" + entity.ID + "/value"
-	data, err := storage.ReadFileFully(path)
+	ok, err := storage.Exists("token/" + entity.ID + "/value")
+	if !ok || err != nil {
+		storage.DeleteFile("token/" + entity.ID)
+		return fmt.Errorf("does not exists")
+	}
+	data, err := storage.ReadFileFully("token/" + entity.ID + "/value")
 	if err != nil {
 		return err
 	}
@@ -99,10 +101,9 @@ func UpdateToken(storage localfs.Storage, entity *model.Token) bool {
 	if entity == nil {
 		return false
 	}
-	path := "token/" + entity.ID + "/value"
 	data, err := entity.Serialize()
 	if err != nil {
 		return false
 	}
-	return storage.WriteFile(path, data) == nil
+	return storage.WriteFile("token/" + entity.ID + "/value", data) == nil
 }

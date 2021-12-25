@@ -109,7 +109,6 @@ func ExistToken(s *System, id string) system.ReceiverFunction {
 
 				token, err := persistence.LoadToken(s.EncryptedStorage, id)
 				if err != nil {
-					// FIXME cleanup token if /value does not exists
 					return
 				}
 
