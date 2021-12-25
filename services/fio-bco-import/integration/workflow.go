@@ -383,6 +383,8 @@ func (workflow Workflow) CreateTransactions() {
 			valueDate = now
 		}
 
+		// FIXME somethimes specification is null even when the credit currency is different to debit one
+
 		if statement.Specification != nil && statement.Currency != nil {
 			creditCurrency = statement.Specification.Value[len(statement.Specification.Value)-3 : len(statement.Specification.Value)]
 			creditAmount = statement.Specification.Value[0: len(statement.Specification.Value) - 4]
