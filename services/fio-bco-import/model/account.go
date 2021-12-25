@@ -14,8 +14,6 @@
 
 package model
 
-import "github.com/jancajthaml-openbank/fio-bco-import/support/iban"
-
 // AccountVault entity
 type AccountVault struct {
 	Tenant string `json:"tenant"`
@@ -29,16 +27,4 @@ type Account struct {
 	Format         string `json:"format"`
 	Currency       string `json:"currency"`
 	IsBalanceCheck bool   `json:"isBalanceCheck"`
-}
-
-// NormalizeAccountNumber return account number in IBAN format
-func NormalizeAccountNumber(number string, bic string, bankCode string) (string, bool) {
-	if iban.ValidIBAN(number) {
-		return number, true
-	}
-	calculatedIBAN := iban.Calculate(number, bic, bankCode)
-	if calculatedIBAN == "" {
-		return number, false
-	}
-	return calculatedIBAN, true
 }
