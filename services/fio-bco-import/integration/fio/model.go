@@ -76,10 +76,10 @@ type Statement struct {
 	AccountTo        *stringNode `json:"column2"`
 	AcountToBankCode *stringNode `json:"column3"`
 	AccountToBIC     *stringNode `json:"column26"`
-	//TransferType     *stringNode `json:"column8"`  // FIXME e.g. "Příjem převodem uvnitř banky"
-	Currency      *stringNode `json:"column14"`
-	TransactionID *intNode    `json:"column17"`
-	TransferID    *intNode    `json:"column22"`
+	Currency         *stringNode `json:"column14"`
+	TransactionID    *intNode    `json:"column17"`
+	TransferID       *intNode    `json:"column22"`
+	Specification    *stringNode `json:"column18"`
 }
 
 type stringNode struct {
