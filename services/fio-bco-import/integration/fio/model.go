@@ -70,27 +70,28 @@ func (entity *Envelope) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// Statement represents fio statement
 type Statement struct {
-	TransferDate     *stringNode `json:"column0"`
-	Amount           *floatNode  `json:"column1"`
-	AccountToName    *stringNode  `json:"column10"`
-	AccountToBankName    *stringNode  `json:"column12"`
-	ConstantSymbol    *stringNode  `json:"column4"`
-	VariableSymbol    *stringNode  `json:"column5"`
-	SpecificSymbol    *stringNode  `json:"column6"`
-	UserIdentificationSymbol    *stringNode  `json:"column7"`
-	CommentReceiver    *stringNode  `json:"column16"`
-	CommentSender    *stringNode  `json:"column25"`
-	OperationType    *stringNode  `json:"column8"`
-	Author    *stringNode  `json:"column9"`
-	PaymentReference    *stringNode  `json:"column27"`
-	AccountTo        *stringNode `json:"column2"`
-	AcountToBankCode *stringNode `json:"column3"`
-	AccountToBIC     *stringNode `json:"column26"`
-	Currency         *stringNode `json:"column14"`
-	TransactionID    *intNode    `json:"column17"`
-	TransferID       *intNode    `json:"column22"`
-	Specification    *stringNode `json:"column18"`
+	TransferDate             *stringNode `json:"column0"`
+	Amount                   *floatNode  `json:"column1"`
+	AccountToName            *stringNode `json:"column10"`
+	AccountToBankName        *stringNode `json:"column12"`
+	ConstantSymbol           *stringNode `json:"column4"`
+	VariableSymbol           *stringNode `json:"column5"`
+	SpecificSymbol           *stringNode `json:"column6"`
+	UserIdentificationSymbol *stringNode `json:"column7"`
+	CommentReceiver          *stringNode `json:"column16"`
+	CommentSender            *stringNode `json:"column25"`
+	OperationType            *stringNode `json:"column8"`
+	Author                   *stringNode `json:"column9"`
+	PaymentReference         *stringNode `json:"column27"`
+	AccountTo                *stringNode `json:"column2"`
+	AcountToBankCode         *stringNode `json:"column3"`
+	AccountToBIC             *stringNode `json:"column26"`
+	Currency                 *stringNode `json:"column14"`
+	TransactionID            *intNode    `json:"column17"`
+	TransferID               *intNode    `json:"column22"`
+	Specification            *stringNode `json:"column18"`
 }
 
 type stringNode struct {

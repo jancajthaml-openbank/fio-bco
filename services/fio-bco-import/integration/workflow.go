@@ -17,9 +17,9 @@ package integration
 import (
 	"encoding/json"
 	//"fmt"
-	"time"
 	"math"
 	"strconv"
+	"time"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/integration/fio"
 	"github.com/jancajthaml-openbank/fio-bco-import/integration/ledger"
@@ -121,7 +121,7 @@ func (workflow Workflow) DownloadStatements() {
 		}
 		err = workflow.PlaintextStorage.WriteFileExclusive("token/"+workflow.Token.ID+"/statements/"+strconv.FormatInt(transfer.TransferID.Value, 10)+"/data", data)
 		if err != nil {
-			log.Warn().Err(err).Msgf("Unable to persist statement details of %s/%s/%d with error %s", workflow.Token.ID, transfer.TransferID.Value, err)
+			log.Warn().Err(err).Msgf("Unable to persist statement details of %s/%d with error %s", workflow.Token.ID, transfer.TransferID.Value, err)
 			continue
 		}
 		if workflow.Token.LastSyncedID >= transfer.TransferID.Value {
@@ -170,7 +170,7 @@ func (workflow Workflow) CreateAccounts() {
 		}
 		set[info.BIC+"_"+info.Currency] = model.Account{
 			Tenant:         workflow.Tenant,
-			Name:           info.BIC+"_"+info.Currency,
+			Name:           info.BIC + "_" + info.Currency,
 			Format:         "NOSTRO",
 			Currency:       info.Currency,
 			IsBalanceCheck: false,
@@ -221,7 +221,7 @@ func (workflow Workflow) CreateAccounts() {
 		if currency != info.Currency {
 			set[info.BIC+"_"+currency] = model.Account{
 				Tenant:         workflow.Tenant,
-				Name:           info.BIC+"_"+currency,
+				Name:           info.BIC + "_" + currency,
 				Format:         "NOSTRO",
 				Currency:       currency,
 				IsBalanceCheck: false,
@@ -359,7 +359,7 @@ func (workflow Workflow) CreateTransactions() {
 					log.Warn().Err(err).Msgf("Unable to mark transfer discovery for %s/%s", workflow.Token.ID, id)
 				}
 			}
-	
+
 			previousIDTransaction = idTransaction
 			transfers = make([]model.Transfer, 0)
 			idsNeedingConfirmation = make([]string, 0)
