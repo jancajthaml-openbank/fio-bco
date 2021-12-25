@@ -66,65 +66,13 @@ func NewWorkflow(
 	}
 }
 
-/*
-func createAccountsFromStatements(
-	tenant string,
-	vaultClient *vault.Client,
-	envelope *fio.Envelope,
-) error {
-	accounts := envelope.GetAccounts(tenant)
-
-	for _, account := range accounts {
-		log.Info().Msgf("Creating account %s", account.Name)
-
-		err := vaultClient.CreateAccount(account)
-		if err != nil {
-			return fmt.Errorf("unable to create account %s with %w", account.Name, err)
-		}
-	}
-
-	return nil
-}
-*/
-
-/*
-func createTransactionsFromStatements(
-	tenant string,
-	ledgerClient *ledger.Client,
-	encryptedStorage localfs.Storage,
-	metrics metrics.Metrics,
-	token *model.Token,
-	envelope *fio.Envelope,
-) error {
-	transactions := envelope.GetTransactions(tenant)
-
-	for _, transaction := range transactions {
-		log.Info().Msgf("Creating transaction %s", transaction.IDTransaction)
-		err := ledgerClient.CreateTransaction(transaction)
-		if err != nil {
-			return fmt.Errorf("unable to create transaction %s/%s", transaction.Tenant, transaction.IDTransaction)
-		}
-		metrics.TransactionImported(len(transaction.Transfers))
-		for _, transfer := range transaction.Transfers {
-			if token.LastSyncedID > transfer.ID {
-				continue
-			}
-			token.LastSyncedID = transfer.ID
-			if !persistence.UpdateToken(encryptedStorage, token) {
-				log.Warn().Msgf("unable to update token %s", token.ID)
-			}
-		}
-	}
-
-	return nil
-}
-*/
-
 // DownloadStatements download new statements from fio gateway
 func (workflow Workflow) DownloadStatements() {
 	if workflow.Token == nil {
 		return
 	}
+
+	log.Debug().Msgf("token %s downloading new statements", workflow.Token.ID)
 
 	envelope, err := workflow.FioClient.GetStatementsEnvelope(*workflow.Token)
 	if err != nil {
@@ -151,6 +99,8 @@ func (workflow Workflow) DownloadStatements() {
 			return
 		}
 	}
+
+	log.Debug().Msgf("token %s downloaded %d new statements", workflow.Token.ID, len(envelope.Statements))
 
 	for _, transfer := range envelope.Statements {
 		if transfer.TransferID == nil {
@@ -255,7 +205,7 @@ func (workflow Workflow) CreateAccounts() {
 
 		if statement.AccountTo == nil {
 			// INFO fee and taxes and maybe card payments
-			normalizedAccount = info.BIC
+			normalizedAccount = info.BIC + "_" + info.Currency
 			isIBAN = false
 		} else if statement.AccountToBIC != nil {
 			normalizedAccount, isIBAN = model.NormalizeAccountNumber(statement.AccountTo.Value, statement.AccountToBIC.Value, "")
@@ -379,7 +329,7 @@ func (workflow Workflow) CreateTransactions() {
 			credit = info.IBAN
 			if statement.AccountTo == nil {
 				// INFO fee and taxes and maybe card payments
-				debit = info.BIC
+				debit = info.BIC + "_" + info.Currency
 			} else if statement.AccountToBIC != nil {
 				debit, _ = model.NormalizeAccountNumber(statement.AccountTo.Value, statement.AccountToBIC.Value, "")
 			} else if statement.AcountToBankCode != nil {
@@ -390,7 +340,7 @@ func (workflow Workflow) CreateTransactions() {
 		} else {
 			if statement.AccountTo == nil {
 				// INFO fee and taxes and maybe card payments
-				credit = info.BIC
+				credit = info.BIC + "_" + info.Currency
 			} else if statement.AccountToBIC != nil {
 				credit, _ = model.NormalizeAccountNumber(statement.AccountTo.Value, statement.AccountToBIC.Value, "")
 			} else if statement.AcountToBankCode != nil {
@@ -398,7 +348,7 @@ func (workflow Workflow) CreateTransactions() {
 			} else {
 				credit, _ = model.NormalizeAccountNumber(statement.AccountTo.Value, "", info.BankCode)
 			}
-			debit = info.BIC
+			debit = info.IBAN
 		}
 
 		if statement.TransferDate == nil {
@@ -437,7 +387,6 @@ func (workflow Workflow) CreateTransactions() {
 		}
 
 		transfers = append(transfers, model.Transfer{
-			ID:         statement.TransferID.Value,
 			IDTransfer: strconv.FormatInt(statement.TransferID.Value, 10),
 			Credit: model.AccountVault{
 				Tenant: workflow.Tenant,
@@ -478,32 +427,3 @@ func (workflow Workflow) CreateTransactions() {
 		}
 	}
 }
-
-/*
-// SynchronizeStatements downloads new statements from fio gateway and creates accounts and transactions and normalizes them into value transfers
-func (workflow Workflow) SynchronizeStatements() {
-	if workflow.Token == nil {
-		return
-	}
-
-	envelope, err := workflow.FioClient.GetStatementsEnvelope(*workflow.Token)
-	if err != nil {
-		log.Warn().Err(err).Msgf("Unable to get envelope")
-		return
-	}
-
-	log.Debug().Msgf("token %s importing accounts", workflow.Token.ID)
-	err = createAccountsFromStatements(workflow.Tenant, workflow.VaultClient, envelope)
-	if err != nil {
-		log.Warn().Err(err).Msgf("Unable to create accounts from envelope")
-		return
-	}
-
-	log.Debug().Msgf("token %s importing transactions", workflow.Token.ID)
-	err = createTransactionsFromStatements(workflow.Tenant, workflow.LedgerClient, workflow.EncryptedStorage, workflow.Metrics, workflow.Token, envelope)
-	if err != nil {
-		log.Warn().Err(err).Msgf("Unable to create transactions from envelope")
-		return
-	}
-}
-*/

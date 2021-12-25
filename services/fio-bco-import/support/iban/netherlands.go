@@ -14,12 +14,6 @@
 
 package iban
 
-//import (
-	//"strconv"
-//	"fmt"
-	//"strings"
-//)
-
 // ValidateNetherlandsIBAN validates if number is IBAN
 func ValidateNetherlandsIBAN(number string) bool {
 	if len(number) != 18 {
@@ -40,32 +34,4 @@ func ValidateNetherlandsIBAN(number string) bool {
 	}
 
 	return asciimod97(number[4:18] + number[0:4]) == 1
-}
-
-// CalculateNetherlands calculates IBAN for Netherlands
-func CalculateNetherlands(number string, bankCode string) (result string) {
-	defer func() {
-		if recover() != nil {
-			result = ""
-		}
-	}()
-	/*
-	// canonize input
-	canonisedNumber := strings.Replace(strings.Replace(number, "-", "", -1), " ", "", -1)
-	// accountNumber of length 16
-	paddedNumber := "0000000000000000"[0:16-len(canonisedNumber)] + canonisedNumber
-	// bankCode of length 4
-	paddedBankCode := "0000"[0:4-len(bankCode)] + bankCode
-	// country code for "Czech Republic"
-	countryCode := "CZ"
-	// country code converted to digits
-	countryDigits := "123500"
-	// checksum mod 97
-	checksum := (98 - mod97(paddedBankCode+paddedNumber+countryDigits))
-	if checksum == 99 {
-		return
-	}
-	result = countryCode + checkSumToString[checksum] + paddedBankCode + paddedNumber
-	*/
-	return
 }

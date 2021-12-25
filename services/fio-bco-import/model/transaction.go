@@ -23,7 +23,6 @@ type Transaction struct {
 
 // Transfer entity in ledger-rest format
 type Transfer struct {
-	ID         int64        `json:"-"`
 	IDTransfer string       `json:"id"`
 	Credit     AccountVault `json:"credit"`
 	Debit      AccountVault `json:"debit"`
