@@ -64,7 +64,7 @@ func CreateToken(storage localfs.Storage, id string, value string) error {
 
 // DeleteToken deletes existing token entity
 func DeleteToken(storage localfs.Storage, id string) bool {
-	return storage.DeleteFile("token/" + id + "/value") == nil
+	return storage.Delete("token/" + id + "/value") == nil
 }
 
 // PersistToken persist new token entity to storage
@@ -86,7 +86,12 @@ func HydrateToken(storage localfs.Storage, entity *model.Token) error {
 	}
 	ok, err := storage.Exists("token/" + entity.ID + "/value")
 	if !ok || err != nil {
-		storage.DeleteFile("token/" + entity.ID)
+		err = storage.Delete("token/" + entity.ID)
+		if err != nil {
+			log.Warn().Err(err).Msgf("Unable to clean leftover files of no longer existing token %s", entity.ID)
+		} else {
+			log.Info().Msgf("Cleaned files of no longer existing token %s", entity.ID)
+		}
 		return fmt.Errorf("does not exists")
 	}
 	data, err := storage.ReadFileFully("token/" + entity.ID + "/value")

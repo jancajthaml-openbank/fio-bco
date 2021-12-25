@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/DataDog/datadog-go v4.8.3+incompatible
 	github.com/jancajthaml-openbank/actor-system v1.5.4
-	github.com/jancajthaml-openbank/local-fs v1.2.4
+	github.com/jancajthaml-openbank/local-fs v1.2.6
 	github.com/rs/zerolog v1.26.1
 )
 
