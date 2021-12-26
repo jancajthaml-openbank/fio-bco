@@ -12,25 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package iban
+package persistence
 
-func mod97(number string) int {
-	var (
-		d uint
-		i int
-		x uint
-		l = len(number)
-	)
+import "github.com/jancajthaml-openbank/fio-bco-import/support/logging"
 
-scan:
-	d = uint(number[i]) - 48
-	if d > 9 {
-		return -1
-	}
-	x = (((x * 10) + d) % 97)
-	i++
-	if i != l {
-		goto scan
-	}
-	return int(x)
-}
+var log = logging.New("persistence")

@@ -93,7 +93,7 @@ func DeleteToken(sys *System, tenant string, token string) interface{} {
 	ch := make(chan interface{})
 
 	envelope := system.NewActor("relay/"+xid.New().String(), receive(sys, ch))
-	
+
 	sys.RegisterActor(envelope)
 	defer sys.UnregisterActor(envelope.Name)
 

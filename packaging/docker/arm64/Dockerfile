@@ -22,6 +22,8 @@ USER root
 
 RUN apt-get update
 
+RUN apt-get install -y openssl ca-certificates
+
 RUN find /opt/artifacts -name fio-bco_*_arm64.deb | xargs -I{} -tx apt-get install -y -f {}
 
 ENTRYPOINT [ "fio-bco-rest" ]

@@ -25,13 +25,13 @@ import (
 func NilToken(s *System, id string) system.ReceiverFunction {
 	return func(context system.Context) system.ReceiverFunction {
 		context.Self.Tell(context.Data, context.Receiver, context.Sender)
-		if persistence.LoadToken(s.EncryptedStorage, id) == nil {
+		_, err := persistence.LoadToken(s.EncryptedStorage, id)
+		if err != nil {
 			log.Debug().Msgf("token %s Nil -> NonExist", id)
 			return NonExistToken(s, id)
-		} else {
-			log.Debug().Msgf("token %s Nil -> Exist", id)
-			return ExistToken(s, id)
 		}
+		log.Debug().Msgf("token %s Nil -> Exist", id)
+		return ExistToken(s, id)
 	}
 }
 
@@ -46,9 +46,10 @@ func NonExistToken(s *System, id string) system.ReceiverFunction {
 			return NonExistToken(s, id)
 
 		case CreateToken:
-			if persistence.CreateToken(s.EncryptedStorage, id, msg.Value) == nil {
+			err := persistence.CreateToken(s.EncryptedStorage, id, msg.Value)
+			if err != nil {
 				s.SendMessage(FatalError, context.Sender, context.Receiver)
-				log.Debug().Msgf("token %s (NonExist CreateToken) Error", id)
+				log.Debug().Msgf("token %s (NonExist CreateToken) Error %s", id, err)
 				return NonExistToken(s, id)
 			}
 
@@ -106,8 +107,8 @@ func ExistToken(s *System, id string) system.ReceiverFunction {
 					context.Self.Tell(SynchornizationDone{}, context.Receiver, context.Receiver)
 				}()
 
-				token := persistence.LoadToken(s.EncryptedStorage, id)
-				if token == nil {
+				token, err := persistence.LoadToken(s.EncryptedStorage, id)
+				if err != nil {
 					return
 				}
 
@@ -118,10 +119,13 @@ func ExistToken(s *System, id string) system.ReceiverFunction {
 					s.VaultGateway,
 					s.LedgerGateway,
 					s.EncryptedStorage,
+					s.PlaintextStorage,
 					s.Metrics,
 				)
 
-				workflow.SynchronizeStatements()
+				workflow.DownloadStatements()
+				workflow.CreateAccounts()
+				workflow.CreateTransactions()
 			}()
 
 			return SynchronizingToken(s, id)

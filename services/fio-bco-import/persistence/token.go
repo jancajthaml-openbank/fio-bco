@@ -15,6 +15,8 @@
 package persistence
 
 import (
+	"fmt"
+
 	localfs "github.com/jancajthaml-openbank/local-fs"
 
 	"github.com/jancajthaml-openbank/fio-bco-import/model"
@@ -22,12 +24,11 @@ import (
 
 // LoadTokens rehydrates token entity state from storage
 func LoadTokens(storage localfs.Storage) ([]model.Token, error) {
-	path := "token"
-	ok, err := storage.Exists(path)
+	ok, err := storage.Exists("token")
 	if err != nil || !ok {
 		return make([]model.Token, 0), nil
 	}
-	tokens, err := storage.ListDirectory(path, true)
+	tokens, err := storage.ListDirectory("token", true)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +37,7 @@ func LoadTokens(storage localfs.Storage) ([]model.Token, error) {
 		token := model.Token{
 			ID: id,
 		}
-		if HydrateToken(storage, &token) != nil {
+		if HydrateToken(storage, &token) == nil {
 			result = append(result, token)
 		}
 	}
@@ -44,14 +45,18 @@ func LoadTokens(storage localfs.Storage) ([]model.Token, error) {
 }
 
 // LoadToken rehydrates token entity state from storage
-func LoadToken(storage localfs.Storage, id string) *model.Token {
+func LoadToken(storage localfs.Storage, id string) (*model.Token, error) {
 	result := new(model.Token)
 	result.ID = id
-	return HydrateToken(storage, result)
+	err := HydrateToken(storage, result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // CreateToken persist token entity state to storage
-func CreateToken(storage localfs.Storage, id string, value string) *model.Token {
+func CreateToken(storage localfs.Storage, id string, value string) error {
 	token := model.NewToken(id)
 	token.Value = value
 	return PersistToken(storage, &token)
@@ -59,41 +64,41 @@ func CreateToken(storage localfs.Storage, id string, value string) *model.Token 
 
 // DeleteToken deletes existing token entity
 func DeleteToken(storage localfs.Storage, id string) bool {
-	path := "token/" + id + "/value"
-	return storage.DeleteFile(path) == nil
+	return storage.Delete("token/" + id + "/value") == nil
 }
 
 // PersistToken persist new token entity to storage
-func PersistToken(storage localfs.Storage, entity *model.Token) *model.Token {
+func PersistToken(storage localfs.Storage, entity *model.Token) error {
 	if entity == nil {
-		return nil
+		return fmt.Errorf("nil reference")
 	}
-	path := "token/" + entity.ID + "/value"
 	data, err := entity.Serialize()
 	if err != nil {
-		return nil
+		return err
 	}
-	if storage.WriteFileExclusive(path, data) != nil {
-		return nil
-	}
-	return entity
+	return storage.WriteFileExclusive("token/"+entity.ID+"/value", data)
 }
 
 // HydrateToken hydrate existing token from storage
-func HydrateToken(storage localfs.Storage, entity *model.Token) *model.Token {
+func HydrateToken(storage localfs.Storage, entity *model.Token) error {
 	if entity == nil {
-		return nil
+		return fmt.Errorf("nil reference")
 	}
-	path := "token/" + entity.ID + "/value"
-	data, err := storage.ReadFileFully(path)
+	ok, err := storage.Exists("token/" + entity.ID + "/value")
+	if !ok || err != nil {
+		err = storage.Delete("token/" + entity.ID)
+		if err != nil {
+			log.Warn().Err(err).Msgf("Unable to clean leftover files of no longer existing token %s", entity.ID)
+		} else {
+			log.Info().Msgf("Cleaned files of no longer existing token %s", entity.ID)
+		}
+		return fmt.Errorf("does not exists")
+	}
+	data, err := storage.ReadFileFully("token/" + entity.ID + "/value")
 	if err != nil {
-		return nil
+		return err
 	}
-	err = entity.Deserialize(data)
-	if err != nil {
-		return nil
-	}
-	return entity
+	return entity.Deserialize(data)
 }
 
 // UpdateToken updates data of existing token to storage
@@ -101,11 +106,9 @@ func UpdateToken(storage localfs.Storage, entity *model.Token) bool {
 	if entity == nil {
 		return false
 	}
-	path := "token/" + entity.ID + "/value"
-	// FIXME check nil
 	data, err := entity.Serialize()
 	if err != nil {
 		return false
 	}
-	return storage.WriteFile(path, data) == nil
+	return storage.WriteFile("token/" + entity.ID + "/value", data) == nil
 }

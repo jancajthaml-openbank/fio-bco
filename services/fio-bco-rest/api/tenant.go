@@ -26,6 +26,12 @@ import (
 
 // CreateTenant enables fio-bco-import@{tenant}
 func CreateTenant(control system.Control) func(c echo.Context) error {
+	if control == nil {
+		return func(c echo.Context) error {
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
+		}
+	}
 	return func(c echo.Context) error {
 		unescapedTenant, err := url.PathUnescape(c.Param("tenant"))
 		if err != nil {
@@ -48,6 +54,12 @@ func CreateTenant(control system.Control) func(c echo.Context) error {
 
 // DeleteTenant disables fio-bco-import@{tenant}
 func DeleteTenant(control system.Control) func(c echo.Context) error {
+	if control == nil {
+		return func(c echo.Context) error {
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
+		}
+	}
 	return func(c echo.Context) error {
 		unescapedTenant, err := url.PathUnescape(c.Param("tenant"))
 		if err != nil {
@@ -70,6 +82,12 @@ func DeleteTenant(control system.Control) func(c echo.Context) error {
 
 // ListTenants lists fio-bco-import@
 func ListTenants(control system.Control) func(c echo.Context) error {
+	if control == nil {
+		return func(c echo.Context) error {
+			c.Response().WriteHeader(http.StatusNotFound)
+			return nil
+		}
+	}
 	return func(c echo.Context) error {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
 		units, err := control.ListUnits("import@")
