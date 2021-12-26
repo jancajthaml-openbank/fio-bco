@@ -49,7 +49,7 @@ func NonExistToken(s *System, id string) system.ReceiverFunction {
 			err := persistence.CreateToken(s.EncryptedStorage, id, msg.Value)
 			if err != nil {
 				s.SendMessage(FatalError, context.Sender, context.Receiver)
-				log.Debug().Err(err).Msgf("token %s (NonExist CreateToken) Error %s", id)
+				log.Debug().Err(err).Msgf("token %s (NonExist CreateToken) Error", id)
 				return NonExistToken(s, id)
 			}
 
