@@ -24,12 +24,12 @@ import (
 
 // FioImport represents fio gateway to ledger-rest import subroutine
 type FioImport struct {
-	callback func(token string)
+	callback func(id string)
 	storage  localfs.Storage
 }
 
 // NewFioImport returns fio import fascade
-func NewFioImport(rootStorage string, storageKey []byte, callback func(token string)) *FioImport {
+func NewFioImport(rootStorage string, storageKey []byte, callback func(id string)) *FioImport {
 	storage, err := localfs.NewEncryptedStorage(rootStorage, storageKey)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to ensure storage")
@@ -61,7 +61,13 @@ func (fio FioImport) getActiveTokens() ([]string, error) {
 	return uniq, nil
 }
 
-func (fio FioImport) importRoundtrip() {
+// Setup does nothing
+func (fio FioImport) Setup() error {
+	return nil
+}
+
+// Work performs import roundtrip
+func (fio FioImport) Work() {
 	tokens, err := fio.getActiveTokens()
 	if err != nil {
 		log.Error().Err(err).Msg("unable to get active tokens")
@@ -72,16 +78,6 @@ func (fio FioImport) importRoundtrip() {
 		log.Debug().Msgf("Request to import token %s", item)
 		fio.callback(item)
 	}
-}
-
-// Setup does nothing
-func (fio FioImport) Setup() error {
-	return nil
-}
-
-// Work performs import roundtrip
-func (fio FioImport) Work() {
-	fio.importRoundtrip()
 }
 
 // Cancel does nothing
