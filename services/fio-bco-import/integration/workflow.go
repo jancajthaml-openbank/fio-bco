@@ -155,7 +155,7 @@ func (workflow Workflow) CreateAccounts() {
 
 	exists, err := workflow.PlaintextStorage.Exists("token/" + workflow.Token.ID + "/ack_nostro")
 	if err != nil {
-		log.Warn().Err(err).Msgf("Unable to check if nostro account creation was acknowledged %s/%s", workflow.Token.ID, id)
+		log.Warn().Err(err).Msgf("Unable to check if nostro account creation was acknowledged %s", workflow.Token.ID)
 		return
 	}
 
@@ -241,7 +241,7 @@ func (workflow Workflow) CreateAccounts() {
 	if creatingNostro {
 		err = workflow.PlaintextStorage.TouchFile("token/" + workflow.Token.ID + "/ack_nostro")
 		if err != nil {
-			log.Warn().Err(err).Msgf("Unable to akcnowledge nostro account creation %s/%s", workflow.Token.ID, id)
+			log.Warn().Err(err).Msgf("Unable to akcnowledge nostro account creation %s", workflow.Token.ID)
 		}
 	}
 
