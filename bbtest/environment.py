@@ -6,7 +6,7 @@ from helpers.zmq import ZMQHelper
 from mocks.fio.server import FioMock
 from mocks.vault.server import VaultMock
 from mocks.ledger.server import LedgerMock
-from helpers.statsd import StatsdHelper
+from openbank_testkit import StatsdMock
 from helpers.logger import logger
 
 
@@ -40,7 +40,7 @@ def before_all(context):
   context.fio = FioMock(context)
   context.ledger = LedgerMock(context)
   context.vault = VaultMock(context)
-  context.statsd = StatsdHelper()
+  context.statsd = StatsdMock()
   context.statsd.start()
   context.fio.start()
   context.ledger.start()
