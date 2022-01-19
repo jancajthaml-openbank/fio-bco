@@ -4,9 +4,9 @@
 from behave import *
 import json
 import time
-from decimal import Decimal
 import os
-from helpers.http import Request
+from decimal import Decimal
+from openbank_testkit import Request
 
 
 @given('fio gateway contains following statements')
@@ -138,7 +138,7 @@ def perform_http_request(context, uri):
   context.http_response = {
     'status': str(response.status),
     'body': response.read().decode('utf-8'),
-    'content-type': response.info().get_content_type()
+    'content-type': response.content_type
   }
 
 

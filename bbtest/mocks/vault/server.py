@@ -3,7 +3,7 @@
 
 import threading
 from http.server import HTTPServer
-from helpers.encrypt import SelfSignedCeritifate
+from openbank_testkit import SelfSignedCeritifate
 import ssl
 from .handler import RequestHandler
 from .logic import BussinessLogic
@@ -35,5 +35,5 @@ class VaultMock(threading.Thread):
       self.join()
     except:
       pass
-    self.__certificate.cleanup()
+    del self.__certificate
     del self.httpd
