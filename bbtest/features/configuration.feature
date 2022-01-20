@@ -5,7 +5,7 @@ Feature: Service can be configured
       | property  | value |
       | LOG_LEVEL | ERROR |
 
-    Then journalctl of "fio-bco-rest" contains following
+    Then journalctl of "fio-bco-rest.service" contains following
     """
       Log level set to ERROR
     """
@@ -15,7 +15,7 @@ Feature: Service can be configured
       | property  | value |
       | LOG_LEVEL | INFO  |
 
-    Then journalctl of "fio-bco-rest" contains following
+    Then journalctl of "fio-bco-rest.service" contains following
     """
       Log level set to INFO
     """
@@ -25,7 +25,7 @@ Feature: Service can be configured
       | property  | value   |
       | LOG_LEVEL | INVALID |
 
-    Then journalctl of "fio-bco-rest" contains following
+    Then journalctl of "fio-bco-rest.service" contains following
     """
       Log level set to INFO
     """
@@ -35,7 +35,7 @@ Feature: Service can be configured
       | property  | value |
       | LOG_LEVEL | DEBUG |
 
-    Then journalctl of "fio-bco-rest" contains following
+    Then journalctl of "fio-bco-rest.service" contains following
     """
       Log level set to DEBUG
     """
