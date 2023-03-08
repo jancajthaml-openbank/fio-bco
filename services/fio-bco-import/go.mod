@@ -15,5 +15,5 @@ require (
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/pebbe/zmq4 v1.2.8 // indirect
 	github.com/stretchr/testify v1.6.1 // indirect
-	golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6 // indirect
+	golang.org/x/sys v0.1.0 // indirect
 )
