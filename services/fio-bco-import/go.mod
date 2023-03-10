@@ -1,6 +1,6 @@
 module github.com/jancajthaml-openbank/fio-bco-import
 
-go 1.17
+go 1.20
 
 require (
 	github.com/DataDog/datadog-go v4.8.3+incompatible
